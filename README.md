@@ -1,2 +1,2 @@
 # ledger-fio
-Ledger Nano S app dor FIO.
+Ledger Nano S app for FIO.
