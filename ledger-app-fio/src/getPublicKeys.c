@@ -89,9 +89,9 @@ static void getPublicKeys_respondOneKey_ui_runStep()
 	}
 	UI_STEP(GET_KEY_UI_STEP_RESPOND) {
 		ASSERT(ctx->responseReadyMagic == RESPONSE_READY_MAGIC);
-
+        
 		io_send_buf(SUCCESS, (uint8_t*) &ctx->extPubKey, SIZEOF(ctx->extPubKey));
-		ctx->responseReadyMagic = 0; // just for safety
+		ctx->responseReadyMagic = 0; // just for safety 
 		ui_displayBusy(); // needs to happen after I/O
 
 		ctx->currentPath++;

@@ -232,7 +232,7 @@ __attribute__((section(".boot"))) int main(void)
 
 				#if defined(HAVE_BLE)
 				BLE_power(0, NULL);
-				BLE_power(1, "Nano X ADA");
+				BLE_power(1, "Nano X FIO");
 				#endif
 
 				io_state = IO_EXPECT_IO;

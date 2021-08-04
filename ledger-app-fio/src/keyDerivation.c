@@ -36,7 +36,7 @@ void derivePrivateKey(
 
 			io_seproxyhal_io_heartbeat();
 			os_perso_derive_node_bip32(
-			        CX_CURVE_Ed25519,
+			        CX_CURVE_SECP256K1,
 			        pathSpec->path,
 			        pathSpec->length,
 			        privateKeyRawBuffer,
@@ -107,11 +107,13 @@ void deriveExtendedPublicKey(
 
 	BEGIN_TRY {
 		TRY {
+
 			derivePrivateKey(
 			        pathSpec,
 			        &chainCode,
 			        &privateKey
 			);
+
 
 			// Pubkey part
 			cx_ecfp_public_key_t publicKey;
