@@ -1,0 +1,6 @@
+App compatibility
+Clean up unittests
+Example app and tests crash at the end
+Returned errors do not have desired DeviceStatusError type
+-------------------------------------------------------------
+Add sign transaction
