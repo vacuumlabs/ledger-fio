@@ -2,8 +2,7 @@
 #include "bip44.h"
 #include "endian.h"
 
-static const uint32_t MAX_REASONABLE_ACCOUNT = 100;
-static const uint32_t MAX_REASONABLE_ADDRESS = 1000000;
+static const uint32_t MAX_REASONABLE_ADDRESS = 1000;
 
 size_t bip44_parseFromWire(
         bip44_path_t* pathSpec,
@@ -48,49 +47,11 @@ bool bip44_hasValidFIOPrefix(const bip44_path_t* pathSpec)
 	CHECK(pathSpec->length > BIP44_I_COIN_TYPE);
 	CHECK(pathSpec->path[BIP44_I_PURPOSE] == (PURPOSE_FIO | HARDENED_BIP32));
 	CHECK(pathSpec->path[BIP44_I_COIN_TYPE] == (FIO_COIN_TYPE | HARDENED_BIP32));
+	CHECK(pathSpec->path[BIP44_I_ACCOUNT] == (0 | HARDENED_BIP32));
+	CHECK(pathSpec->path[BIP44_I_CHAIN] == (0));
 	return true;
 #undef CHECK
 }
-
-// Account
-
-bool bip44_containsAccount(const bip44_path_t* pathSpec)
-{
-	return pathSpec->length > BIP44_I_ACCOUNT;
-}
-
-uint32_t bip44_getAccount(const bip44_path_t* pathSpec)
-{
-	ASSERT(pathSpec->length > BIP44_I_ACCOUNT);
-	return pathSpec->path[BIP44_I_ACCOUNT];
-}
-
-bool bip44_containsMoreThanAccount(const bip44_path_t* pathSpec)
-{
-	return (pathSpec->length > BIP44_I_ACCOUNT + 1);
-}
-
-bool bip44_hasReasonableAccount(const bip44_path_t* pathSpec)
-{
-	if (!bip44_containsAccount(pathSpec)) return false;
-	uint32_t account = bip44_getAccount(pathSpec);
-	if (!isHardened(account)) return false;
-	return unharden(account) <= MAX_REASONABLE_ACCOUNT;
-}
-
-// ChainType
-
-bool bip44_containsChainType(const bip44_path_t* pathSpec)
-{
-	return pathSpec->length > BIP44_I_CHAIN;
-}
-
-uint32_t bip44_getChainTypeValue(const bip44_path_t* pathSpec)
-{
-	ASSERT(pathSpec->length > BIP44_I_CHAIN);
-	return pathSpec->path[BIP44_I_CHAIN];
-}
-
 
 // Address
 
@@ -110,13 +71,6 @@ bool bip44_hasReasonableAddress(const bip44_path_t* pathSpec)
 	if (!bip44_containsAddress(pathSpec)) return false;
 	const uint32_t address = bip44_getAddressValue(pathSpec);
 	return (address <= MAX_REASONABLE_ADDRESS);
-}
-
-// path is valid as the spending path in all addresses except REWARD
-bool bip44_isValidAddressPath(const bip44_path_t* pathSpec)
-{
-	return bip44_hasValidFIOPrefix(pathSpec) &&
-	       bip44_containsAddress(pathSpec);
 }
 
 // Futher

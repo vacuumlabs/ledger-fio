@@ -23,72 +23,6 @@ void ui_displayPathScreen(
 	);
 }
 
-__noinline_due_to_stack__
-static void _ui_displayPathAccountScreen(
-        const char* screenHeader,
-        const bip44_path_t* path,
-        bool showAccountDescription,
-        ui_callback_fn_t callback
-)
-{
-	ASSERT(strlen(screenHeader) > 0);
-	ASSERT(strlen(screenHeader) < BUFFER_SIZE_PARANOIA);
-
-	ASSERT(bip44_hasValidFIOPrefix(path));
-	ASSERT(bip44_containsAccount(path));
-
-	char accountDescription[160];
-	explicit_bzero(accountDescription, SIZEOF(accountDescription));
-
-	if (showAccountDescription) {
-		uint32_t account = unharden(bip44_getAccount(path));
-		snprintf(
-		        accountDescription, SIZEOF(accountDescription),
-		        "Account #%u  ", account + 1
-		);
-	}
-
-	{
-		size_t len = strlen(accountDescription);
-		ASSERT(len + 1 < SIZEOF(accountDescription));
-
-		bip44_printToStr(path, accountDescription + len, SIZEOF(accountDescription) - len);
-	}
-
-	{
-		size_t len = strlen(accountDescription);
-		ASSERT(len > 0);
-		ASSERT(len + 1 < SIZEOF(accountDescription));
-	}
-
-	ui_displayPaginatedText(
-	        screenHeader,
-	        accountDescription,
-	        callback
-	);
-}
-
-// the given path typically corresponds to an account
-// if it contains anything more, we display just the whole path
-void ui_displayAccountScreen(
-        const char* screenHeader,
-        const bip44_path_t* path,
-        ui_callback_fn_t callback
-)
-{
-	ASSERT(bip44_hasValidFIOPrefix(path));
-	ASSERT(bip44_containsAccount(path));
-
-	bool showAccountDescription = bip44_hasReasonableAccount(path) && (!bip44_containsMoreThanAccount(path));
-
-	_ui_displayPathAccountScreen(
-	        screenHeader,
-	        path,
-	        showAccountDescription,
-	        callback
-	);
-}
-
 void ui_displayUint64Screen(
         const char* screenHeader,
         uint64_t value,
@@ -101,62 +35,6 @@ void ui_displayUint64Screen(
 	ui_displayPaginatedText(
 	        screenHeader,
 	        valueStr,
-	        callback
-	);
-}
-
-void ui_displayValidityBoundaryScreen(
-        const char* screenHeader,
-        uint64_t boundary,
-        uint8_t networkId, uint32_t protocolMagic,
-        ui_callback_fn_t callback
-)
-{
-	char boundaryStr[30];
-	explicit_bzero(boundaryStr, SIZEOF(boundaryStr));
-
-/*	if ((networkId == MAINNET_NETWORK_ID) && (protocolMagic == MAINNET_PROTOCOL_MAGIC)) {
-		// nicer formatting could only be used for mainnet
-		// since it depends on network params that could differ for testnets
-		str_formatValidityBoundary(boundary, boundaryStr, SIZEOF(boundaryStr));
-		ui_displayPaginatedText(
-		        screenHeader,
-		        boundaryStr,
-		        callback
-		);
-	} else {*/
-		ui_displayUint64Screen(
-		        screenHeader,
-		        boundary,
-		        callback
-		);
-/*	}*/
-}
-
-void ui_displayNetworkParamsScreen(
-        const char* screenHeader,
-        uint8_t networkId,
-        uint32_t protocolMagic,
-        ui_callback_fn_t callback
-)
-{
-	ASSERT(strlen(screenHeader) > 0);
-	ASSERT(strlen(screenHeader) < BUFFER_SIZE_PARANOIA);
-//	ASSERT(isValidNetworkId(networkId));
-
-	char networkParams[100];
-	explicit_bzero(networkParams, SIZEOF(networkParams));
-
-	snprintf(
-	        networkParams, SIZEOF(networkParams),
-	        "network id %d / protocol magic %u",
-	        (int) networkId, (unsigned) protocolMagic
-	);
-	ASSERT(strlen(networkParams) + 1 < SIZEOF(networkParams));
-
-	ui_displayPaginatedText(
-	        screenHeader,
-	        networkParams,
 	        callback
 	);
 }

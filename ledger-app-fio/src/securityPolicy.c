@@ -2,42 +2,6 @@
 
 #include "securityPolicy.h"
 
-// Helper macros
-
-static inline bool has_fio_prefix_and_any_account(const bip44_path_t* pathSpec)
-{
-	return bip44_hasValidFIOPrefix(pathSpec) &&
-	       bip44_containsAccount(pathSpec);
-}
-
-static inline bool is_valid_stake_pool_owner_path(const bip44_path_t* pathSpec)
-{
-	return bip44_isValidStakingKeyPath(pathSpec);
-}
-
-// account is from a small brute-forcable range
-static inline bool has_reasonable_account(const bip44_path_t* pathSpec)
-{
-	return bip44_hasReasonableAccount(pathSpec);
-}
-
-// address is from a small brute-forcable range
-static inline bool has_reasonable_address(const bip44_path_t* pathSpec)
-{
-	return bip44_hasReasonableAddress(pathSpec);
-}
-
-// both account and address are from a small brute-forcable range
-static inline bool has_reasonable_account_and_address(const bip44_path_t* pathSpec)
-{
-	return has_reasonable_account(pathSpec) && has_reasonable_address(pathSpec);
-}
-
-static inline bool is_too_deep(const bip44_path_t* pathSpec)
-{
-	return bip44_containsMoreThanAddress(pathSpec);
-}
-
 
 
 #define DENY()                          return POLICY_DENY;
@@ -61,11 +25,10 @@ static inline bool is_too_deep(const bip44_path_t* pathSpec)
 // Get extended public key and return it to the host
 security_policy_t policyForGetPublicKey(const bip44_path_t* pathSpec)
 {
-	DENY_UNLESS(has_fio_prefix_and_any_account(pathSpec));
-
-	WARN_UNLESS(has_reasonable_account(pathSpec));
-
-	WARN_IF(is_too_deep(pathSpec));
+	DENY_UNLESS(bip44_hasValidFIOPrefix(pathSpec));
+	DENY_UNLESS(bip44_containsAddress(pathSpec));
+    DENY_IF(bip44_containsMoreThanAddress(pathSpec));
+	WARN_UNLESS(bip44_hasReasonableAddress(pathSpec));
 
 	PROMPT();
 }

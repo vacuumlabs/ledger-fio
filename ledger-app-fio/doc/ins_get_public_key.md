@@ -1,27 +1,18 @@
-# Get Public Keys
+# Get Public Key
 
 **Description**
 
-Get an extended public key (i.e., public key + chain code) for a given BIP32 path. 
-
-It is also possible to ask for a confirmation for exporting several keys (if the paths describing the keys are not suspicious, they won't be shown to the user and no further confirmation is required).
-
-Note: Unlike BTC app, this call does not return nor display addresses. See [](ins_derive_address.md) for details.
-
+Get a public key for a given BIP32 path. 
 
 **Command**
-
-For the initial APDU message, use
 
 | Field | Value    |
 | ----- | -------- |
 | CLA   | `0xD7`   |
 | INS   | `0x10`   |
-| P1    | `0x00`   |
+| P1    | unused   |
 | P2    | unused   |
 | Lc    | variable |
-
-For each of the following messages (one for each of the remaining keys), use `0x01` for P1.
 
 **Data**
 
@@ -41,14 +32,9 @@ For each of the following messages (one for each of the remaining keys), the las
 
 **Response**
 
-This format applies to both the initial APDU message and each of the following messages.
-
 | Field      | Length |
 | ---------- | ------ |
 | pub_key    | 32     |
-| chain_code | 32     |
-
-Concatenation of `pub_key` and `chain_code` representing the extended public key.
 
 **Errors (SW codes)**
 
@@ -68,12 +54,12 @@ Concatenation of `pub_key` and `chain_code` representing the extended public key
     - `Lc >= 1` (we have path_len)
     - `1 + path_len * 4 == Lc`
   - check derivation path is valid and within FIO BIP32 space
-    - `path_len >= 3`
-    - `path_len <= 5`
+    - `path_len == 5`
     - `path[0] == 44'` (' means hardened)
-    - `path[1] == 1815'`
-    - `path[2] is hardened` (`path[2]` is account number)
-    - Ledger might impose more restrictions, see implementation of `policyForGetExtendedPublicKey` in [src/securityPolicy.c](../src/securityPolicy.c) for details
+    - `path[1] == 235'`
+    - `path[2] == 0'` 
+    - `path[3] == 0'` 
+    - Ledger might impose more restrictions, see implementation of `policyForGetPublicKey` in [src/securityPolicy.c](../src/securityPolicy.c) for details
 - calculate public key
 - respond with public key
  

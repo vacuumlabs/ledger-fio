@@ -37,18 +37,8 @@ enum {
 
 bool bip44_hasValidFIOPrefix(const bip44_path_t* pathSpec);
 
-bool bip44_containsAccount(const bip44_path_t* pathSpec);
-uint32_t bip44_getAccount(const bip44_path_t* pathSpec);
-bool bip44_containsMoreThanAccount(const bip44_path_t* pathSpec);
-bool bip44_hasReasonableAccount(const bip44_path_t* pathSpec);
-
-bool bip44_containsChainType(const bip44_path_t* pathSpec);
-
 bool bip44_containsAddress(const bip44_path_t* pathSpec);
-bool bip44_isValidAddressPath(const bip44_path_t* pathSpec);
 bool bip44_hasReasonableAddress(const bip44_path_t* pathSpec);
-
-bool bip44_isValidStakingKeyPath(const bip44_path_t* pathSpec);
 
 bool bip44_containsMoreThanAddress(const bip44_path_t* pathSpec);
 
