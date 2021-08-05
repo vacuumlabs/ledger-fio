@@ -58,15 +58,8 @@ static inline bool is_too_deep(const bip44_path_t* pathSpec)
 #define SHOW_UNLESS(expr)  if (!(expr)) return POLICY_SHOW_BEFORE_RESPONSE;
 
 
-security_policy_t policyForGetPublicKeysInit(size_t numPaths)
-{
-	PROMPT_IF(numPaths > 1);
-
-	ALLOW();
-}
-
 // Get extended public key and return it to the host
-security_policy_t policyForGetExtendedPublicKey(const bip44_path_t* pathSpec)
+security_policy_t policyForGetPublicKey(const bip44_path_t* pathSpec)
 {
 	DENY_UNLESS(has_fio_prefix_and_any_account(pathSpec));
 

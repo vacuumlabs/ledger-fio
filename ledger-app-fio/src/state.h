@@ -2,7 +2,7 @@
 #define H_FIO_APP_STATE
 
 #include "getVersion.h"
-#include "getPublicKeys.h"
+#include "getPublicKey.h"
 
 typedef struct {
 	int placeholder;
@@ -14,7 +14,7 @@ typedef struct {
 
 typedef union {
 	// Here should go states of all instructions
-	ins_get_keys_context_t getKeysContext;
+	ins_get_key_context_t getKeyContext;
 	placeholder_t placeholder;
 } instructionState_t;
 

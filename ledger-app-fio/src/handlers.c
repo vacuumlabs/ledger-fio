@@ -6,7 +6,8 @@
 #include "handlers.h"
 #include "getVersion.h"
 #include "getSerial.h"
-#include "getPublicKeys.h"
+#include "getPublicKey.h"
+#include "runTests.h"
 
 // The APDU protocol uses a single-byte instruction code (INS) to specify
 // which command should be executed. We'll use this code to dispatch on a
@@ -20,13 +21,13 @@ handler_fn_t* lookupHandler(uint8_t ins)
 		CASE(0x01, getSerial_handleAPDU);
 
 		// 0x1* -  public-key related
-		CASE(0x10, getPublicKeys_handleAPDU);
+		CASE(0x10, getPublicKey_handleAPDU);
 
-/*		#ifdef DEVEL
+		#ifdef DEVEL
 		// 0xF* -  debug_mode related
 		CASE(0xF0, handleRunTests);
 		//   0xF1  reserved for INS_SET_HEADLESS_INTERACTION
-		#endif // DEVEL*/
+		#endif // DEVEL
 #	undef   CASE
 	default:
 		return NULL;
