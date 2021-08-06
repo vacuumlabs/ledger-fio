@@ -34,7 +34,7 @@ For each of the following messages (one for each of the remaining keys), the las
 
 | Field      | Length |
 | ---------- | ------ |
-| pub_key    | 32     |
+| pub_key    | 65     |
 
 **Errors (SW codes)**
 
@@ -58,7 +58,7 @@ For each of the following messages (one for each of the remaining keys), the las
     - `path[0] == 44'` (' means hardened)
     - `path[1] == 235'`
     - `path[2] == 0'` 
-    - `path[3] == 0'` 
+    - `path[3] == 0` 
     - Ledger might impose more restrictions, see implementation of `policyForGetPublicKey` in [src/securityPolicy.c](../src/securityPolicy.c) for details
 - calculate public key
 - respond with public key
