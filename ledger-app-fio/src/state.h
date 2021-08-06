@@ -3,6 +3,7 @@
 
 #include "getVersion.h"
 #include "getPublicKey.h"
+#include "signTransaction.h"
 
 typedef struct {
 	int placeholder;
@@ -15,7 +16,7 @@ typedef struct {
 typedef union {
 	// Here should go states of all instructions
 	ins_get_key_context_t getKeyContext;
-	placeholder_t placeholder;
+    ins_sign_transaction_context_t signTransactionContext;
 } instructionState_t;
 
 // Note(instructions are uint8_t but we have a special INS_NONE value

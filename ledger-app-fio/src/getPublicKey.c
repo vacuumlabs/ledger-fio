@@ -51,10 +51,10 @@ enum {
 	GET_KEY_UI_STEP_RESPOND,
 } ;
 
-static void getPublicKey_respondOneKey_ui_runStep()
+static void getPublicKey_ui_runStep()
 {
 	TRACE("UI step %d", ctx->ui_step);
-	ui_callback_fn_t* this_fn = getPublicKey_respondOneKey_ui_runStep;
+	ui_callback_fn_t* this_fn = getPublicKey_ui_runStep;
 
 	UI_STEP_BEGIN(ctx->ui_step);
 	UI_STEP(GET_KEY_UI_STEP_WARNING) {
@@ -78,7 +78,7 @@ static void getPublicKey_respondOneKey_ui_runStep()
 	UI_STEP(GET_KEY_UI_STEP_RESPOND) {
 		ASSERT(ctx->responseReadyMagic == RESPONSE_READY_MAGIC);
         
-		io_send_buf(SUCCESS, (uint8_t*) &ctx->extPubKey.pubKey, SIZEOF(ctx->extPubKey.pubKey));
+		io_send_buf(SUCCESS, ctx->pubKey.W, SIZEOF(ctx->pubKey.W));
 		ctx->responseReadyMagic = 0; // just for safety 
 		ui_displayBusy(); // needs to happen after I/O
 
@@ -90,7 +90,7 @@ static void getPublicKey_respondOneKey_ui_runStep()
 }
 
 // derive the key described by ctx->pathSpec and run the ui state machine accordingly
-static void runGetOnePublicKeyUIFlow()
+static void runGetPublicKeyUIFlow()
 {
 	ASSERT(ctx->ui_step == UI_STEP_NONE); // make sure no ui state machine is running
 
@@ -103,9 +103,9 @@ static void runGetOnePublicKeyUIFlow()
 
 	{
 		// Calculation
-		deriveExtendedPublicKey(
+		derivePublicKey(
 		        & ctx->pathSpec,
-		        & ctx->extPubKey
+		        & ctx->pubKey
 		);
 		ctx->responseReadyMagic = RESPONSE_READY_MAGIC;
 	}
@@ -120,7 +120,7 @@ static void runGetOnePublicKeyUIFlow()
 		ASSERT(false);
 	}
 
-	getPublicKey_respondOneKey_ui_runStep();
+	getPublicKey_ui_runStep();
 }
 
 // ============================== MAIN HANDLER ==============================
@@ -148,5 +148,5 @@ void getPublicKey_handleAPDU(
 	parsePath(&view);
 	VALIDATE(view_remainingSize(&view) == 0, ERR_INVALID_DATA);
 
-	runGetOnePublicKeyUIFlow();
+	runGetPublicKeyUIFlow();
 }

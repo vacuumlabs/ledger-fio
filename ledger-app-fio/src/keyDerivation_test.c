@@ -3,6 +3,7 @@
 #include "keyDerivation.h"
 #include "hexUtils.h"
 #include "testUtils.h"
+#include "utils.h"
 
 static void pathSpec_init(bip44_path_t* pathSpec, const uint32_t* pathArray, uint32_t pathLength)
 {
@@ -19,12 +20,17 @@ void testcase_derivePrivateKey(uint32_t* path, uint32_t pathLen, const char* exp
 	bip44_PRINTF(&pathSpec);
 	PRINTF("\n");
 
-	uint8_t expected[64];
-	size_t expectedSize = decode_hex(expectedHex, expected, SIZEOF(expected));
 
-	chain_code_t chainCode;
-	privateKey_t privateKey;
-	derivePrivateKey(&pathSpec, &chainCode, &privateKey);
+	private_key_t privateKey;
+	derivePrivateKey(&pathSpec, &privateKey);
+    TRACE("%d", SIZEOF(privateKey.d));
+    TRACE_BUFFER(privateKey.d, SIZEOF(privateKey.d));
+
+	uint8_t expected[32];
+	size_t expectedSize = decode_hex(expectedHex, expected, SIZEOF(expected));
+    TRACE("%d", SIZEOF(expected));
+    TRACE_BUFFER(expected, SIZEOF(expected));
+
 	EXPECT_EQ_BYTES(expected, privateKey.d, expectedSize);
 }
 
@@ -43,34 +49,17 @@ void testPrivateKeyDerivation()
 	// Note: Failing tests here? Did you load testing mnemonic
 	// "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"?
 
-/*	TESTCASE(
-	        (HD + 44, HD + 235, HD + 1),
+	TESTCASE(
+	        (HD + 44, HD + 235, HD + 0, 0, 0),
 
-	        "5878bdf06af259f1419324680c4d4ce05b4343895b697144d874749925e69d41"
-	        "648e7e50061809207f81dac36b73cd8fab2325d49d26bc65ebbb696ea59c45b8"
+	        "4d597899db76e87933e7c6841c2d661810f070bad20487ef20eb84e182695a3a"
 	);
 
 	TESTCASE(
-	        (HD + 44, HD + 235, HD + 1, HD + 55 ),
+	        (HD + 44, HD + 235, HD + 0, 0, 2000 ),
 
-	        "38996766f3a49d987f37b694d170eef5866397f71fe0c50108f4b3db27e69d41"
-	        "54a57702a5bf1fde836fa243f7009e665e4e902a70699ee5e82187afc425cc6a"
+	        "0762d870ba3a00625d02c8374dbcd33f1df4d8f1abbaa89387ab5c8afa533d90"
 	);
-
-	TESTCASE(
-	        (HD + 44, HD + 235, HD + 1, 31),
-
-	        "0058ea2c7e34f781d12b0cee8d8a5aff4a28436b26137e7f8bcc1fc42ae69d41"
-	        "0aaccec99effc497b55fbd3c4ce53a3484a34e6e4b744975f9a415c1c82ecdc3"
-	);
-
-
-	TESTCASE(
-	        ( HD + 44, HD + 235, HD + 1, HD + 31, 25, HD + 44 ),
-
-	        "8038f4cd293028cca6eadf4d282bedbb6ed0e7d2e4c10128b5cb621f30e69d41"
-	        "ff4a4b14953d542c2350e0d580a224ca628577b619351df3508ed42326343a4a"
-	);*/
 #undef TESTCASE
 
 #define TESTCASE(path_, error_) \
@@ -85,27 +74,26 @@ void testPrivateKeyDerivation()
 #undef TESTCASE
 }
 
-void testcase_derivePublicKey(uint32_t* path, uint32_t pathLen, const char* expected)
+void testcase_derivePublicKey(uint32_t* path, uint32_t pathLen, const char* expectedHex)
 {
 	PRINTF("testcase_derivePublicKey ");
 
 	bip44_path_t pathSpec;
 	pathSpec_init(&pathSpec, path, pathLen);
-
 	bip44_PRINTF(&pathSpec);
 	PRINTF("\n");
 
-	chain_code_t chainCode;
-	privateKey_t privateKey;
-	derivePrivateKey(&pathSpec, &chainCode, &privateKey);
-	cx_ecfp_public_key_t publicKey;
-	deriveRawPublicKey(&privateKey, &publicKey);
-	uint8_t publicKeyRaw[32];
-	extractRawPublicKey(&publicKey, publicKeyRaw, SIZEOF(publicKeyRaw));
+	public_key_t publicKey;
+	derivePublicKey(&pathSpec, &publicKey);
+    TRACE("%d", SIZEOF(publicKey.W));
+    TRACE_BUFFER(publicKey.W, SIZEOF(publicKey.W));
 
-	uint8_t expectedBuffer[32];
-	decode_hex(expected, expectedBuffer, SIZEOF(expectedBuffer));
-	EXPECT_EQ_BYTES(expectedBuffer, publicKeyRaw, SIZEOF(expectedBuffer));
+	uint8_t expected[65];
+	decode_hex(expectedHex, expected, SIZEOF(expected));
+    TRACE("%d", SIZEOF(expected));
+    TRACE_BUFFER(expected, SIZEOF(expected));
+
+	EXPECT_EQ_BYTES(expected, publicKey.W, SIZEOF(expected));
 }
 
 void testPublicKeyDerivation()
@@ -117,74 +105,19 @@ void testPublicKeyDerivation()
 	}
 
 
-/*	TESTCASE(
-	        (HD + 44, HD + 235, HD + 1),
-	        "eb6e933ce45516ac7b0e023de700efae5e212ccc6bf0fcb33ba9243b9d832827"
+	TESTCASE(
+	        (HD + 44, HD + 235, HD + 0, 0, 0),
+	        "04a9a222bc3b1a5a58ada17d10069b3961ebd0f917d4b2106031a061915ca9cc24a06941e0a4c0d5e266850ff980ad349ab8b027c93bf4aead1984168ad43e30ab"
 	)
 
 	TESTCASE(
-	        (HD + 44, HD + 235, HD + 1, 1615),
-	        "f1fd3cebbacec0f5ac321328e74b565b38f853839d7e98f1e5ee6cf3131ab86b"
+	        (HD + 44, HD + 235, HD + 0, 0, 2000),
+	        "0484e52dfea57b8f1787488a356374cd8e8515b8ad8db3dd4f9088d8e42ed2fb6d571e8894cccbdbf15e1bd84f8b4362f52d1b5b712b9775c0a51cdd5ee9a9e8ca"
 	);
-
-
-	TESTCASE(
-	        (HD + 44, HD + 235, HD + 1, HD + 15),
-	        "866276e301fb7862406fef97d92fc8e712a24b821efc11e17fdba916b8fbdd55"
-	);
-
-
-	TESTCASE(
-	        (HD + 44, HD + 235, HD + 1, HD + 23, 189),
-	        "3aba387352d588040e33046bfd5d856210e5324f91cb5d6b710b23e65a096400"
-	);*/
 
 
 #undef TESTCASE
 }
-
-
-void testcase_deriveChainCode(uint32_t* path, uint32_t pathLen, const char* expectedHex)
-{
-	PRINTF("testcase_deriveChainCode ");
-
-	chain_code_t chainCode;
-	privateKey_t privateKey;
-
-	bip44_path_t pathSpec;
-	pathSpec_init(&pathSpec, path, pathLen);
-
-	bip44_PRINTF(&pathSpec);
-	PRINTF("\n");
-
-	derivePrivateKey(&pathSpec, &chainCode, &privateKey);
-	uint8_t expectedBuffer[32];
-	decode_hex(expectedHex, expectedBuffer, 32);
-	EXPECT_EQ_BYTES(expectedBuffer, chainCode.code, 32);
-}
-
-// not tested
-void testChainCodeDerivation()
-{
-#define TESTCASE(path_, expectedHex_) \
-	{ \
-		uint32_t path[] = { UNWRAP path_ }; \
-		testcase_deriveChainCode(path, ARRAY_LEN(path), expectedHex_); \
-	}
-
-/*	TESTCASE(
-	        (HD + 44, HD + 235, HD + 1),
-	        "0b161cb11babe1f56c3f9f1cbbb7b6d2d13eeb3efa67205198a69b8d81885354"
-	);
-
-	TESTCASE(
-	        (HD + 44, HD + 235, HD + 1, HD + 31, 25, HD + 44),
-	        "092979eec36b62a569381ec14ba33e65f3b80f40e28333f5bbc34577ad2c305d"
-	);*/
-
-#undef TESTCASE
-}
-
 
 void run_key_derivation_test()
 {
@@ -193,7 +126,6 @@ void run_key_derivation_test()
 	PRINTF("12-word mnemonic: 11*abandon about\n");
 	testPrivateKeyDerivation();
 	testPublicKeyDerivation();
-	testChainCodeDerivation();
 }
 
 #endif // DEVEL

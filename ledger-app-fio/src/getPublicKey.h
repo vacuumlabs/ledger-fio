@@ -16,10 +16,8 @@
 typedef struct {
 	get_key_stage_t stage;
 
-	uint16_t currentPath;
-
 	bip44_path_t pathSpec;
-	extendedPublicKey_t extPubKey;
+	public_key_t pubKey;
 
 	uint16_t responseReadyMagic;
 

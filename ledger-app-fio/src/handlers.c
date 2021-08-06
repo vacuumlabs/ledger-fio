@@ -7,6 +7,7 @@
 #include "getVersion.h"
 #include "getSerial.h"
 #include "getPublicKey.h"
+#include "signTransaction.h"
 #include "runTests.h"
 
 // The APDU protocol uses a single-byte instruction code (INS) to specify
@@ -22,6 +23,9 @@ handler_fn_t* lookupHandler(uint8_t ins)
 
 		// 0x1* -  public-key related
 		CASE(0x10, getPublicKey_handleAPDU);
+
+		// 0x2* -  transaction related
+		CASE(0x20, signTransaction_handleAPDU);
 
 		#ifdef DEVEL
 		// 0xF* -  debug_mode related

@@ -12,10 +12,11 @@
 #include "endian.h"
 #include "fio.h"
 
+#define PRIVATE_KEY_SEED_LEN 32
+
 void derivePrivateKey(
         const bip44_path_t* pathSpec,
-        chain_code_t* chainCode,
-        privateKey_t* privateKey
+        private_key_t* privateKey
 )
 {
 	if (!bip44_hasValidFIOPrefix(pathSpec)) {
@@ -24,110 +25,56 @@ void derivePrivateKey(
 	// Sanity check
 	ASSERT(pathSpec->length < ARRAY_LEN(pathSpec->path));
 
-	uint8_t privateKeyRawBuffer[64];
-
-	STATIC_ASSERT(SIZEOF(chainCode->code) == 32, "bad chain code length");
-	explicit_bzero(chainCode->code, SIZEOF(chainCode->code));
+    TRACE();
+	uint8_t privateKeySeed[PRIVATE_KEY_SEED_LEN];
 
 	BEGIN_TRY {
 		TRY {
+            TRACE();
 			STATIC_ASSERT(CX_APILEVEL >= 5, "unsupported api level");
-			STATIC_ASSERT(SIZEOF(privateKey->d) == 64, "bad private key length");
 
+            TRACE();
 			io_seproxyhal_io_heartbeat();
+            TRACE();
 			os_perso_derive_node_bip32(
 			        CX_CURVE_SECP256K1,
 			        pathSpec->path,
 			        pathSpec->length,
-			        privateKeyRawBuffer,
-			        chainCode->code);
+			        privateKeySeed,
+			        NULL);
+            TRACE();
 			io_seproxyhal_io_heartbeat();
+            TRACE();
 
-			// We should do cx_ecfp_init_private_key here, but it does not work in SDK < 1.5.4,
-			// should work with the new SDK
-			privateKey->curve = CX_CURVE_Ed25519;
-			privateKey->d_len = 64;
-			memmove(privateKey->d, privateKeyRawBuffer, 64);
+            cx_ecfp_init_private_key(CX_CURVE_SECP256K1, privateKeySeed, 32, privateKey);  
 		}
 		FINALLY {
-			explicit_bzero(privateKeyRawBuffer, SIZEOF(privateKeyRawBuffer));
+			explicit_bzero(privateKeySeed, SIZEOF(privateKeySeed));
 		}
 	} END_TRY;
 }
 
-
-void deriveRawPublicKey(
-        const privateKey_t* privateKey,
-        cx_ecfp_public_key_t* publicKey
-)
-{
-	// We should do cx_ecfp_generate_pair here, but it does not work in SDK < 1.5.4,
-	// should work with the new SDK
-	io_seproxyhal_io_heartbeat();
-	cx_eddsa_get_public_key(
-	        // cx_eddsa has a special case struct for Cardano's private keys
-	        // but signature is standard
-	        (const struct cx_ecfp_256_private_key_s *) privateKey,
-	        CX_SHA512,
-	        publicKey,
-	        NULL, 0, NULL, 0);
-	io_seproxyhal_io_heartbeat();
-}
-
-void extractRawPublicKey(
-        const cx_ecfp_public_key_t* publicKey,
-        uint8_t* outBuffer, size_t outSize
-)
-{
-	// copy public key little endian to big endian
-	ASSERT(outSize == 32);
-	STATIC_ASSERT(SIZEOF(publicKey->W) == 65, "bad public key length");
-
-	uint8_t i;
-	for (i = 0; i < 32; i++) {
-		outBuffer[i] = publicKey->W[64 - i];
-	}
-
-	if ((publicKey->W[32] & 1) != 0) {
-		outBuffer[31] |= 0x80;
-	}
-}
-
-
-// pub_key + chain_code
-void deriveExtendedPublicKey(
+void derivePublicKey(
         const bip44_path_t* pathSpec,
-        extendedPublicKey_t* out
+        public_key_t * publicKey
 )
 {
-	privateKey_t privateKey;
-	chain_code_t chainCode;
-
-	STATIC_ASSERT(SIZEOF(*out) == CHAIN_CODE_SIZE + PUBLIC_KEY_SIZE, "bad ext pub key size");
-
+	private_key_t privateKey;
 	BEGIN_TRY {
 		TRY {
-
-			derivePrivateKey(
-			        pathSpec,
-			        &chainCode,
-			        &privateKey
-			);
-
-
-			// Pubkey part
-			cx_ecfp_public_key_t publicKey;
-
-			deriveRawPublicKey(&privateKey, &publicKey);
-
-			STATIC_ASSERT(SIZEOF(out->pubKey) == PUBLIC_KEY_SIZE, "bad pub key size");
-
-			extractRawPublicKey(&publicKey, out->pubKey, SIZEOF(out->pubKey));
-
-			// Chain code (we copy it second to avoid mid-updates extractRawPublicKey throws
-			STATIC_ASSERT(CHAIN_CODE_SIZE == SIZEOF(out->chainCode), "bad chain code size");
-			STATIC_ASSERT(CHAIN_CODE_SIZE == SIZEOF(chainCode.code), "bad chain code size");
-			memmove(out->chainCode, chainCode.code, CHAIN_CODE_SIZE);
+			TRACE();
+			derivePrivateKey(pathSpec, &privateKey);	
+			// We should do cx_ecfp_generate_pair here, but it does not work in SDK < 1.5.4,
+			// should work with the new SDK
+			TRACE();
+			io_seproxyhal_io_heartbeat();
+			TRACE();
+			cx_ecfp_init_public_key(CX_CURVE_SECP256K1, NULL, 0, publicKey);
+			TRACE();
+			cx_ecfp_generate_pair(CX_CURVE_SECP256K1, publicKey, &privateKey, 1); //1 - private key preserved	
+			TRACE();
+			io_seproxyhal_io_heartbeat();
+			TRACE();
 		}
 		FINALLY {
 			explicit_bzero(&privateKey, SIZEOF(privateKey));
