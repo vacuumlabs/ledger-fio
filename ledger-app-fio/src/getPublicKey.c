@@ -4,6 +4,7 @@
 #include "uiScreens.h"
 #include "getPublicKey.h"
 #include "bufView.h"
+#include "utils.h"
 
 static int16_t RESPONSE_READY_MAGIC = 23456;
 
@@ -56,18 +57,18 @@ static void getPublicKey_ui_runStep()
 	TRACE("UI step %d", ctx->ui_step);
 	ui_callback_fn_t* this_fn = getPublicKey_ui_runStep;
 
-	UI_STEP_BEGIN(ctx->ui_step);
-	UI_STEP(GET_KEY_UI_STEP_WARNING) {
+	UI_STEP_BEGIN_OLD(ctx->ui_step);
+	UI_STEP_OLD(GET_KEY_UI_STEP_WARNING) {
 		ui_displayPaginatedText(
 		        "Unusual request",
 		        "Proceed with care",
 		        this_fn
 		);
 	}
-	UI_STEP(GET_KEY_UI_STEP_DISPLAY) {
+	UI_STEP_OLD(GET_KEY_UI_STEP_DISPLAY) {
 		ui_displayPathScreen("Export public key", &ctx->pathSpec, this_fn);
 	}
-	UI_STEP(GET_KEY_UI_STEP_CONFIRM) {
+	UI_STEP_OLD(GET_KEY_UI_STEP_CONFIRM) {
 		ui_displayPrompt(
 		        "Confirm export",
 		        "public key?",
@@ -75,7 +76,7 @@ static void getPublicKey_ui_runStep()
 		        respond_with_user_reject
 		);
 	}
-	UI_STEP(GET_KEY_UI_STEP_RESPOND) {
+	UI_STEP_OLD(GET_KEY_UI_STEP_RESPOND) {
 		ASSERT(ctx->responseReadyMagic == RESPONSE_READY_MAGIC);
         
 		io_send_buf(SUCCESS, ctx->pubKey.W, SIZEOF(ctx->pubKey.W));
@@ -86,7 +87,7 @@ static void getPublicKey_ui_runStep()
 
 		advanceStage();
 	}
-	UI_STEP_END(UI_STEP_NONE);
+	UI_STEP_END_OLD(UI_STEP_NONE);
 }
 
 // derive the key described by ctx->pathSpec and run the ui state machine accordingly

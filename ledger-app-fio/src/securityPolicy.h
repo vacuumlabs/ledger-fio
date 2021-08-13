@@ -12,7 +12,9 @@ typedef enum {
 } security_policy_t;
 
 security_policy_t policyForGetPublicKey(const bip44_path_t* pathSpec);
-
+security_policy_t policyForSignTxInit();
+security_policy_t policyForSignTxFee();
+security_policy_t policyForSignTxWitnesses(const bip44_path_t* pathSpec);
 
 static inline void ENSURE_NOT_DENIED(security_policy_t policy)
 {

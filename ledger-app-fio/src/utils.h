@@ -1,5 +1,5 @@
-#ifndef H_CARDANO_APP_UTILS
-#define H_CARDANO_APP_UTILS
+#ifndef H_FIO_APP_UTILS
+#define H_FIO_APP_UTILS
 
 #include "assert.h"
 
@@ -69,20 +69,20 @@
 // UI_STEP(2) {do something & setup callback}
 // UI_STEP_END(-1); // invalid state
 
-#define UI_STEP_BEGIN(VAR) \
+#define UI_STEP_BEGIN_OLD(VAR) \
 	{ \
 		int* __ui_step_ptr = &(VAR); \
 		switch(*__ui_step_ptr) { \
 			default: { \
 				ASSERT(false);
 
-#define UI_STEP(NEXT_STEP) \
+#define UI_STEP_OLD(NEXT_STEP) \
 				*__ui_step_ptr = NEXT_STEP; \
 				break; \
 			} \
 			case NEXT_STEP: {
 
-#define UI_STEP_END(INVALID_STEP) \
+#define UI_STEP_END_OLD(INVALID_STEP) \
 				*__ui_step_ptr = INVALID_STEP; \
 				break; \
 			} \
@@ -167,4 +167,4 @@ extern unsigned int app_stack_canary;
 #define TRACE_STACK_USAGE()
 #endif // DEVEL
 
-#endif // H_CARDANO_APP_UTILS
+#endif // H_FIO_APP_UTILS

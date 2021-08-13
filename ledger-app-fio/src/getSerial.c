@@ -19,6 +19,8 @@ void getSerial_handleAPDU(
 	STATIC_ASSERT(sizeof(uint8_t) == sizeof(unsigned char), "bad unsigned char size");
 	STATIC_ASSERT(sizeof(size_t) >= sizeof(unsigned int), "bad unsigned int size");
 
+	TRACE();
+
 	const size_t SERIAL_LENGTH = 7; // if too short, exception 2 is thrown by os_serial
 	uint8_t response[SERIAL_LENGTH];
 	size_t len = os_serial(response, SERIAL_LENGTH);

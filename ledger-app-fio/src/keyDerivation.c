@@ -30,21 +30,16 @@ void derivePrivateKey(
 
 	BEGIN_TRY {
 		TRY {
-            TRACE();
 			STATIC_ASSERT(CX_APILEVEL >= 5, "unsupported api level");
 
-            TRACE();
 			io_seproxyhal_io_heartbeat();
-            TRACE();
 			os_perso_derive_node_bip32(
 			        CX_CURVE_SECP256K1,
 			        pathSpec->path,
 			        pathSpec->length,
 			        privateKeySeed,
 			        NULL);
-            TRACE();
 			io_seproxyhal_io_heartbeat();
-            TRACE();
 
             cx_ecfp_init_private_key(CX_CURVE_SECP256K1, privateKeySeed, 32, privateKey);  
 		}
@@ -62,19 +57,13 @@ void derivePublicKey(
 	private_key_t privateKey;
 	BEGIN_TRY {
 		TRY {
-			TRACE();
 			derivePrivateKey(pathSpec, &privateKey);	
 			// We should do cx_ecfp_generate_pair here, but it does not work in SDK < 1.5.4,
 			// should work with the new SDK
-			TRACE();
 			io_seproxyhal_io_heartbeat();
-			TRACE();
 			cx_ecfp_init_public_key(CX_CURVE_SECP256K1, NULL, 0, publicKey);
-			TRACE();
 			cx_ecfp_generate_pair(CX_CURVE_SECP256K1, publicKey, &privateKey, 1); //1 - private key preserved	
-			TRACE();
 			io_seproxyhal_io_heartbeat();
-			TRACE();
 		}
 		FINALLY {
 			explicit_bzero(&privateKey, SIZEOF(privateKey));
