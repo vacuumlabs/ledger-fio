@@ -114,7 +114,7 @@ void signTx_handleInitAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataS
 		TRACE_BUFFER(wireDataBuffer, wireDataSize);
 
 		struct {
-			uint8_t chainId[64];
+			uint8_t chainId[32];
 		}* wireData = (void*) wireDataBuffer;
 
 		TRACE("%d, %d, wireDataSize", SIZEOF(*wireData), wireDataSize);
@@ -254,7 +254,7 @@ static void signTx_handleWitnesses_ui_runStep()
 	}
 
 	UI_STEP(HANDLE_WITTNESSES_STEP_RESPOND) {
-  	    io_send_buf(SUCCESS, G_io_apdu_buffer, 75 + 32);
+  	    io_send_buf(SUCCESS, G_io_apdu_buffer, 65 + 32);
 		ui_displayBusy(); // needs to happen after I/O
 		advanceStage();
 	}
@@ -349,7 +349,7 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
         }
         else
         {
-			TRACE("Try %d unsuccesfull.", tries);
+			TRACE("Try %d unsuccesfull! We will not get correct signature!!!!!!!!!!!!!!!!!!!!!!!!!", tries);
             tries++;
         }
     }
@@ -357,8 +357,8 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
     memset(&privateKey, 0, sizeof(privateKey));
 
     TRACE("ecdsa_der_to_sig_result:");
-    TRACE_BUFFER(G_io_apdu_buffer, 75);
-	memcpy(G_io_apdu_buffer + 75, hashBuf, 32);
+    TRACE_BUFFER(G_io_apdu_buffer, 65);
+	memcpy(G_io_apdu_buffer + 65, hashBuf, 32);
 
 	{
 		// select UI steps
