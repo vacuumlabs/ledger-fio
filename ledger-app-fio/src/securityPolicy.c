@@ -51,3 +51,8 @@ security_policy_t policyForSignTxWitnesses(const bip44_path_t* pathSpec)
 
 	PROMPT();
 }
+
+
+
+
+

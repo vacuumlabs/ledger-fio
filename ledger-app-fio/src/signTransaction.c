@@ -311,7 +311,7 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
     TRACE_BUFFER(privateKey.d, privateKey.d_len);
 
     //We sign the hash
-	//Taken from EOS app
+	//Code producing signatures is taken from EOS app
     uint32_t tx = 0;
     uint8_t V[33];
     uint8_t K[32];
@@ -334,7 +334,7 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
                            hashBuf, 32, 
                            G_io_apdu_buffer + 100, 100,
                            &infos);
-
+		TRACE_BUFFER(G_io_apdu_buffer + 100, 100);
 		
         if ((infos & CX_ECCINFO_PARITY_ODD) != 0)
         {
@@ -342,6 +342,8 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
         }
         G_io_apdu_buffer[0] = 27 + 4 + (G_io_apdu_buffer[100] & 0x01);
         ecdsa_der_to_sig(G_io_apdu_buffer + 100, G_io_apdu_buffer + 1);
+		TRACE_BUFFER(G_io_apdu_buffer , 65);
+
         if (check_canonical(G_io_apdu_buffer + 1))
         {
             tx = 1 + 64;
