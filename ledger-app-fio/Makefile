@@ -91,7 +91,7 @@ endif
 
 ## Use developer build
 DEVEL = 1
-DEFINES += HEADLESS
+#DEFINES += HEADLESS
 
 # Enabling debug PRINTF
 ifeq ($(DEVEL), 1)

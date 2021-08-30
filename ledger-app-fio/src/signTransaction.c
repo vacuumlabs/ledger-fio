@@ -8,6 +8,7 @@
 #include "eos_utils.h"
 #include "securityPolicy.h"
 #include "uiHelpers.h"
+#include "uiScreens.h"
 
 static ins_sign_transaction_context_t* ctx = &(instructionState.signTransactionContext);
 
@@ -117,9 +118,7 @@ void signTx_handleInitAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataS
 			uint8_t chainId[32];
 		}* wireData = (void*) wireDataBuffer;
 
-		TRACE("%d, %d, wireDataSize", SIZEOF(*wireData), wireDataSize);
 		VALIDATE(SIZEOF(*wireData) == wireDataSize, ERR_INVALID_DATA);
-
 
     	TRACE("SHA_256_init");
 	    sha_256_init(&ctx->hashContext);
@@ -147,37 +146,55 @@ void signTx_handleInitAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataS
 
 // ============================== FEE ==============================
 enum {
-	HANDLE_FEE_STEP_DISPLAY_DETAILS = 200,
-	HANDLE_FEE_STEP_RESPOND,
-	HANDLE_FEE_STEP_INVALID,
+	HANDLE_HEADER_STEP_EXPIRATION = 200,
+	HANDLE_HEADER_STEP_REF_BLOCK_NUM,
+	HANDLE_HEADER_STEP_REF_BLOCK_PREFIX,
+	HANDLE_HEADER_STEP_RESPOND,
+	HANDLE_HEADER_STEP_INVALID,
 } ;
 
-static void signTx_handleFee_ui_runStep()
+static void signTx_handleHeader_ui_runStep()
 {
 	TRACE("UI step %d", ctx->ui_step);
 	TRACE_STACK_USAGE();
-	ui_callback_fn_t* this_fn = signTx_handleFee_ui_runStep;
+	ui_callback_fn_t* this_fn = signTx_handleHeader_ui_runStep;
 
 	UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
-	UI_STEP(HANDLE_FEE_STEP_DISPLAY_DETAILS) {
-		ui_displayPaginatedText(
-				"Here will be",
-				"Fee",
+	UI_STEP(HANDLE_HEADER_STEP_EXPIRATION) {
+		ui_displayTimeScreen(
+				"Expiration",
+				ctx->expiration,
 				this_fn
 		);
 	}
 
-	UI_STEP(HANDLE_FEE_STEP_RESPOND) {
+	UI_STEP(HANDLE_HEADER_STEP_REF_BLOCK_NUM) {
+		ui_displayUint64Screen(
+				"Ref Block Num",
+				ctx->refBlockNum,
+				this_fn
+		);
+	}
+
+	UI_STEP(HANDLE_HEADER_STEP_REF_BLOCK_PREFIX) {
+		ui_displayUint64Screen(
+				"Ref Block Prefix",
+				ctx->refBlockPrefix,
+				this_fn
+		);
+	}
+
+	UI_STEP(HANDLE_HEADER_STEP_RESPOND) {
 		respondSuccessEmptyMsg();
 		advanceStage();
 	}
 
-	UI_STEP_END(HANDLE_FEE_STEP_INVALID);
+	UI_STEP_END(HANDLE_HEADER_STEP_INVALID);
 }
 
 __noinline_due_to_stack__
-void signTx_handleFeeAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize) {
+void signTx_handleHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize) {
 	TRACE_STACK_USAGE();
 	{
 		// sanity checks
@@ -192,31 +209,47 @@ void signTx_handleFeeAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSi
 		TRACE_BUFFER(wireDataBuffer, wireDataSize);
 
 		struct {
-			uint8_t fee[8];
+			uint8_t expiration[4];
+			uint8_t refBlockNum[2];
+			uint8_t refBlockPrefix[4];
 		}* wireData = (void*) wireDataBuffer;
 
 		VALIDATE(SIZEOF(*wireData) == wireDataSize, ERR_INVALID_DATA);
 
     	TRACE("SHA_256_append");
-		TRACE_BUFFER(wireData->fee, SIZEOF(wireData->fee))
-		sha_256_append(&ctx->hashContext, wireData->fee, SIZEOF(wireData->fee));
+		ctx->expiration = u4be_read(wireData->expiration);
+		TRACE_BUFFER(&ctx->expiration, sizeof(ctx->expiration)) //SIZEOF does not work for 4-byte stuff
+		sha_256_append(&ctx->hashContext, (uint8_t *)&ctx->expiration, sizeof(ctx->expiration));
+
+		ctx->refBlockNum = u2be_read(wireData->refBlockNum);
+		TRACE_BUFFER(&ctx->refBlockNum, SIZEOF(wireData->refBlockNum))
+		sha_256_append(&ctx->hashContext, (uint8_t *)&ctx->refBlockNum, SIZEOF(wireData->refBlockNum));
+
+		ctx->refBlockPrefix = u4be_read(wireData->refBlockPrefix);
+		TRACE_BUFFER(&ctx->refBlockPrefix, sizeof(ctx->expiration))
+		sha_256_append(&ctx->hashContext, (uint8_t *)&ctx->refBlockPrefix, sizeof(ctx->expiration));
+
+        uint8_t buf[4]; //max_net_usage_words, max_cpu_usage_ms, delay_sec, context_free_actions
+    	explicit_bzero(buf, 4);
+		TRACE_BUFFER(buf, 4)
+		sha_256_append(&ctx->hashContext, buf, sizeof(ctx->expiration));
 	}
 		
-	security_policy_t policy = policyForSignTxFee();
+	security_policy_t policy = policyForSignTxHeader();
 	TRACE("Policy: %d", (int) policy);
 	ENSURE_NOT_DENIED(policy);
 	{
 		// select UI steps
 		switch (policy) {
 #	define  CASE(POLICY, UI_STEP) case POLICY: {ctx->ui_step=UI_STEP; break;}
-			CASE(POLICY_SHOW_BEFORE_RESPONSE, HANDLE_FEE_STEP_DISPLAY_DETAILS);
+			CASE(POLICY_SHOW_BEFORE_RESPONSE, HANDLE_HEADER_STEP_EXPIRATION);
 #	undef   CASE
 		default:
 			THROW(ERR_NOT_IMPLEMENTED);
 		}
 	}
 
-	signTx_handleFee_ui_runStep();
+	signTx_handleHeader_ui_runStep();
 }
 
 // ============================== WITNESS ==============================
@@ -387,7 +420,7 @@ static subhandler_fn_t* lookup_subhandler(uint8_t p1)
 #	define  CASE(P1, HANDLER) case P1: return HANDLER;
 #	define  DEFAULT(HANDLER)  default: return HANDLER;
 		CASE(0x01, signTx_handleInitAPDU);
-		CASE(0x02, signTx_handleFeeAPDU);
+		CASE(0x02, signTx_handleHeaderAPDU);
 		CASE(0x03, signTx_handleWitnessesAPDU);
 		DEFAULT(NULL)
 #	undef   CASE

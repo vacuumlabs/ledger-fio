@@ -143,11 +143,8 @@ static void fio_main(void)
 					currentInstruction = header->ins;
 				} else
 				{
-					TRACE();
 					VALIDATE(header->ins == currentInstruction, ERR_STILL_IN_CALL);
 				}
-
-				TRACE("Is new call: %d", isNewCall);
 
 				// Note: handlerFn is responsible for calling io_send
 				// either during its call or subsequent UI actions

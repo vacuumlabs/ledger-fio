@@ -39,6 +39,15 @@ void ui_displayUint64Screen(
 	);
 }
 
+void ui_displayTimeScreen(
+        const char* screenHeader,
+        uint32_t value,
+        ui_callback_fn_t callback
+)
+{
+	ui_displayUint64Screen(screenHeader, value, callback); // for now
+}
+
 void ui_displayHexBufferScreen(
         const char* screenHeader,
         const uint8_t* buffer, size_t bufferSize,

@@ -12,6 +12,9 @@ typedef struct {
 	int stage;
 
     //We will need to save memory, theese will e in union eventualy
+	uint32_t expiration;
+	uint16_t refBlockNum;
+	uint32_t refBlockPrefix;
 	bip44_path_t path;
 	uint8_t signature[64];
 } ins_sign_transaction_context_t; 

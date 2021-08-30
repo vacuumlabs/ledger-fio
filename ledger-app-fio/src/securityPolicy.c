@@ -38,7 +38,7 @@ security_policy_t policyForSignTxInit()
 	SHOW();
 }
 
-security_policy_t policyForSignTxFee()
+security_policy_t policyForSignTxHeader()
 {
 	SHOW();
 }
