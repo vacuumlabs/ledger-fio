@@ -9,12 +9,12 @@ size_t str_formatUint64(uint64_t number, char* out, size_t outSize);
 
 #ifdef DEVEL
 void str_traceFIOAmount(const char *prefix, uint64_t amount);
-#define TRACE_ADA_AMOUNT(PREFIX, AMOUNT) \
+#define TRACE_FIO_AMOUNT(PREFIX, AMOUNT) \
 	do { \
-		str_traceAdaAmount(PREFIX, AMOUNT); \
+		str_traceFioAmount(PREFIX, AMOUNT); \
 	} while(0)
 #else
-#define TRACE_ADA_AMOUNT(PREFIX, AMOUNT)
+#define TRACE_FIO_AMOUNT(PREFIX, AMOUNT)
 #endif // DEVEL
 
 #ifdef DEVEL

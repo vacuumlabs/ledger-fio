@@ -8,7 +8,7 @@
 		ptr++; \
 	}
 
-size_t str_formatAdaAmount(uint64_t amount, char* out, size_t outSize)
+size_t str_formatFIOAmount(uint64_t amount, char* out, size_t outSize)
 {
 	ASSERT(outSize < BUFFER_SIZE_PARANOIA);
 
@@ -40,7 +40,7 @@ size_t str_formatAdaAmount(uint64_t amount, char* out, size_t outSize)
 	STATIC_ASSERT(sizeof(ptr - scratchBuffer) == sizeof(size_t), "bad size_t size");
 	size_t rawSize = (size_t) (ptr - scratchBuffer);
 
-	const char *suffix = " ADA";
+	const char *suffix = " FIO";
 	const size_t suffixLength = strlen(suffix);
 
 	if (rawSize + suffixLength + 1 > outSize) {
@@ -96,17 +96,17 @@ size_t str_formatUint64(uint64_t number, char* out, size_t outSize)
 }
 
 #ifdef DEVEL
-void str_traceAdaAmount(const char* prefix, uint64_t amount)
+void str_traceFIOAmount(const char* prefix, uint64_t amount)
 {
-	char adaAmountStr[100];
+	char fioAmountStr[100];
 
 	const size_t prefixLen = strlen(prefix);
 	ASSERT(prefixLen <= 50);
-	snprintf(adaAmountStr, SIZEOF(adaAmountStr), "%s", prefix);
-	ASSERT(strlen(adaAmountStr) == prefixLen);
+	snprintf(fioAmountStr, SIZEOF(fioAmountStr), "%s", prefix);
+	ASSERT(strlen(fioAmountStr) == prefixLen);
 
-	str_formatAdaAmount(amount, adaAmountStr + prefixLen, SIZEOF(adaAmountStr) - prefixLen);
-	TRACE("%s", adaAmountStr);
+	str_formatFIOAmount(amount, fioAmountStr + prefixLen, SIZEOF(fioAmountStr) - prefixLen);
+	TRACE("%s", fioAmountStr);
 }
 
 void str_traceUint64(uint64_t number)

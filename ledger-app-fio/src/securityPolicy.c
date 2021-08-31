@@ -52,6 +52,11 @@ security_policy_t policyForSignTxActionHeader(action_type_t action)
 	SHOW();
 }
 
+security_policy_t policyForSignTxActionAuthorization()
+{
+	SHOW();
+}
+
 security_policy_t policyForSignTxWitnesses(const bip44_path_t* pathSpec)
 {
 	DENY_UNLESS(bip44_hasValidFIOPrefix(pathSpec));

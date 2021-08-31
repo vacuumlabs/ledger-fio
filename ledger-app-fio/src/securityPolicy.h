@@ -16,6 +16,7 @@ security_policy_t policyForGetPublicKey(const bip44_path_t* pathSpec);
 security_policy_t policyForSignTxInit(network_type_t network);
 security_policy_t policyForSignTxHeader();
 security_policy_t policyForSignTxActionHeader(action_type_t action);
+security_policy_t policyForSignTxActionAuthorization();
 security_policy_t policyForSignTxWitnesses(const bip44_path_t* pathSpec);
 
 static inline void ENSURE_NOT_DENIED(security_policy_t policy)

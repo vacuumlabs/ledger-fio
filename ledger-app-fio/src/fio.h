@@ -3,33 +3,27 @@
 
 #include "common.h"
 
-// Just a trick to make the numbers readable
-#define __CONCAT4(A,B,C,D) A ## B ## C ## D
+typedef enum  {
+	NETWORK_MAINNET = 0,
+	NETWORK_TESTNET = 1,
+	NETWORK_UNKNOWN = 2,
+} network_type_t; 
 
-/*#define LOVELACE_MAX_SUPPLY (__CONCAT4(45, 000, 000, 000) * 1000000)
-#define LOVELACE_INVALID    (__CONCAT4(47, 000, 000, 000) * 1000000)
+#define CHAIN_ID_LENGTH 32
+network_type_t getNetworkByChainId(uint8_t *chainId, size_t length);
 
-STATIC_ASSERT(LOVELACE_MAX_SUPPLY < LOVELACE_INVALID, "bad LOVELACE_INVALID");*/
+typedef enum {
+	ACTION_TYPE_TRNSFIOPUBKY = 0,
+	ACTION_TYPE_UNKNOWN = 1,
+} action_type_t; 
 
-/*#define ADDRESS_KEY_HASH_LENGTH 28
-#define POOL_KEY_HASH_LENGTH 28
-#define VRF_KEY_HASH_LENGTH 32
-#define TX_HASH_LENGTH 32
-#define AUX_DATA_HASH_LENGTH 32
-#define POOL_METADATA_HASH_LENGTH 32
-#define ED25519_SIGNATURE_LENGTH 64
+#define CONTRACT_ACCOUNT_NAME_LENGTH 16
+action_type_t getActionTypeByContractAccountName(network_type_t network, uint8_t * contractAccountName, size_t length);
 
-#define MINTING_POLICY_ID_SIZE 28
-#define ASSET_NAME_SIZE_MAX 32
+//name compressed to 8 bytes, uncompresed up to 13 bytes, last byte for 0
+#define NAME_VAR_LENGHT 8
+typedef uint64_t name_t;
+#define NAME_STRING_MAX_LENGTH 14
+void name_to_string(name_t value, char *out, size_t size); 
 
-#define REWARD_ACCOUNT_SIZE (1 + ADDRESS_KEY_HASH_LENGTH)*/
-
-#define MAX_ADDRESS_SIZE 128
-#define MAX_HUMAN_ADDRESS_SIZE 150
-#define MAX_HUMAN_REWARD_ACCOUNT_SIZE 65
-
-#define MAINNET_NETWORK_ID 1
-
-#define TESTNET_NETWORK_ID 0
-
-#endif // H_CARDANO_APP_CARDANO
+#endif // H_FIO_APP_FIO

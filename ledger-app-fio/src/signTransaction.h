@@ -3,19 +3,9 @@
 
 #include "handlers.h"
 #include "hash.h"
+#include "fio.h"
 
 handler_fn_t signTransaction_handleAPDU;
-
-typedef enum {
-	ACTION_TYPE_TRNSFIOPUBKY = 0,
-	ACTION_TYPE_UNKNOWN = 1,
-} action_type_t; 
-
-typedef enum  {
-	NETWORK_MAINNET = 0,
-	NETWORK_TESTNET = 1,
-	NETWORK_UNKNOWN = 2,
-} network_type_t; 
 
 typedef struct {
     sha_256_context_t hashContext;
@@ -30,6 +20,9 @@ typedef struct {
 	uint32_t expiration;
 	uint16_t refBlockNum;
 	uint32_t refBlockPrefix;
+
+	char actionValidationActor[NAME_STRING_MAX_LENGTH];
+	char actionValidationPermission[NAME_STRING_MAX_LENGTH];
 
 	uint8_t signature[64];
 } ins_sign_transaction_context_t; 

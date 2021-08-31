@@ -17,7 +17,8 @@ typedef enum {
 	SIGN_STAGE_INIT = 23,
 	SIGN_STAGE_HEADER = 24,
 	SIGN_STAGE_ACTION_HEADER = 25,
-	SIGN_STAGE_WITNESSES = 26,
+	SIGN_STAGE_ACTION_AUTHORIZATION = 26,
+	SIGN_STAGE_WITNESSES = 27,
 } sign_tx_stage_t;
 
 // this is supposed to be called at the beginning of each APDU handler
@@ -43,6 +44,10 @@ static inline void advanceStage()
 		break;
 
 	case SIGN_STAGE_ACTION_HEADER:
+		ctx->stage = SIGN_STAGE_ACTION_AUTHORIZATION;
+		break;
+
+	case SIGN_STAGE_ACTION_AUTHORIZATION:
 		ctx->stage = SIGN_STAGE_WITNESSES;
 		break;
 
@@ -72,38 +77,6 @@ uint8_t const SECP256K1_N[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 								0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe,
 								0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b,
 								0xbf, 0xd2, 0x5e, 0x8c, 0xd0, 0x36, 0x41, 0x41};
-
-#define CHAIN_ID_LENGTH 32
-static network_type_t getNetworkByChainId(uint8_t *chainId, size_t length) {
-	ASSERT(length == CHAIN_ID_LENGTH);
-	const uint8_t testnetId[CHAIN_ID_LENGTH] = {0xb2, 0x09, 0x01, 0x38, 0x0a, 0xf4, 0x4e, 0xf5, 
-	                                            0x9c, 0x59, 0x18, 0x43, 0x9a, 0x1f, 0x9a, 0x41,
-									            0xd8, 0x36, 0x69, 0x02, 0x03, 0x19, 0xa8, 0x05,
-							            		0x74, 0xb8, 0x04, 0xa5, 0xf9, 0x5c, 0xbd, 0x7e};
-	if (!memcmp(chainId, testnetId, CHAIN_ID_LENGTH)) {
-		return NETWORK_TESTNET;
-	}
-
-	return NETWORK_UNKNOWN;
-}
-
-#define CONTRACT_ACCOUNT_NAME_LENGTH 16
-static action_type_t getActionTypeByContractAccountName(uint8_t * contractAccountName, size_t length) {
-	ASSERT(length == CONTRACT_ACCOUNT_NAME_LENGTH);
-	const uint8_t testnetTrnsfiopubky[CONTRACT_ACCOUNT_NAME_LENGTH] = {0x00, 0x00, 0x98, 0x0a, 0xd2, 0x0c, 0xa8, 0x5b,
-	                                                                   0xe0, 0xe1, 0xd1, 0x95, 0xba, 0x85, 0xe7, 0xcd};
-	if (ctx->network == NETWORK_TESTNET) {
-		if (!memcmp(contractAccountName, testnetTrnsfiopubky, CONTRACT_ACCOUNT_NAME_LENGTH)) {
-			return ACTION_TYPE_TRNSFIOPUBKY;
-		}
-		return ACTION_TYPE_UNKNOWN;
-	}
-	if (ctx->network == NETWORK_MAINNET) {
-		return ACTION_TYPE_UNKNOWN;
-	}
-
-	return ACTION_TYPE_UNKNOWN;
-}
 
 // ============================== INIT ==============================
 enum {
@@ -204,7 +177,7 @@ static void signTx_handleHeader_ui_runStep()
 
 	UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
-	UI_STEP(HANDLE_HEADER_STEP_EXPIRATION) {
+/*	UI_STEP(HANDLE_HEADER_STEP_EXPIRATION) {
 		ui_displayTimeScreen(
 				"Expiration",
 				ctx->expiration,
@@ -226,7 +199,7 @@ static void signTx_handleHeader_ui_runStep()
 				ctx->refBlockPrefix,
 				this_fn
 		);
-	}
+	}*/
 
 	UI_STEP(HANDLE_HEADER_STEP_RESPOND) {
 		respondSuccessEmptyMsg();
@@ -285,7 +258,7 @@ void signTx_handleHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDat
 		// select UI steps
 		switch (policy) {
 #	define  CASE(POLICY, UI_STEP) case POLICY: {ctx->ui_step=UI_STEP; break;}
-			CASE(POLICY_SHOW_BEFORE_RESPONSE, HANDLE_HEADER_STEP_EXPIRATION);
+			CASE(POLICY_SHOW_BEFORE_RESPONSE, HANDLE_HEADER_STEP_RESPOND);
 #	undef   CASE
 		default:
 			THROW(ERR_NOT_IMPLEMENTED);
@@ -298,10 +271,10 @@ void signTx_handleHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDat
 // ============================== ACTION HEADER ==============================
 
 enum {
-	HANDLE_ACTION_HEADER_STEP_SHOW_TYPE = 200,
+	HANDLE_ACTION_HEADER_STEP_SHOW_TYPE = 300,
 	HANDLE_ACTION_HEADER_STEP_RESPOND,
 	HANDLE_ACTION_HEADER_STEP_INVALID,
-} ;
+};
 
 static void signTx_handleActionHeader_ui_runStep()
 {
@@ -358,7 +331,8 @@ void signTx_handleActionHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t w
 		TRACE_BUFFER(wireData, SIZEOF(*wireData)) 
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData, SIZEOF(*wireData));
 
-		ctx->action_type = getActionTypeByContractAccountName(wireData->contractAccountName, CONTRACT_ACCOUNT_NAME_LENGTH);
+		ctx->action_type = getActionTypeByContractAccountName(ctx->network, wireData->contractAccountName, 
+				CONTRACT_ACCOUNT_NAME_LENGTH);
 		TRACE("Action type %d:", ctx->action_type);
 	}
 		
@@ -377,6 +351,104 @@ void signTx_handleActionHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t w
 	}
 
 	signTx_handleActionHeader_ui_runStep();
+}
+
+// ============================== ACTION AUTHORIZATION ==============================
+
+enum {
+	HANDLE_ACTION_AUTHORIZATION_STEP_SHOW_ACTOR = 400,
+	HANDLE_ACTION_AUTHORIZATION_STEP_SHOW_PERMISSION,
+	HANDLE_ACTION_AUTHORIZATION_STEP_RESPOND,
+	HANDLE_ACTION_AUTHORIZATION_STEP_INVALID,
+};
+
+static void signTx_handleActionAuthorization_ui_runStep()
+{
+	TRACE("UI step %d", ctx->ui_step);
+	TRACE_STACK_USAGE();
+	ui_callback_fn_t* this_fn = signTx_handleActionAuthorization_ui_runStep;
+
+	UI_STEP_BEGIN(ctx->ui_step, this_fn);
+
+	UI_STEP(HANDLE_ACTION_AUTHORIZATION_STEP_SHOW_ACTOR) {
+		ui_displayPaginatedText(
+				"Actor",
+				ctx->actionValidationActor,
+				this_fn
+		);
+	}
+
+	UI_STEP(HANDLE_ACTION_AUTHORIZATION_STEP_SHOW_PERMISSION) {
+		ui_displayPaginatedText(
+				"Permission",
+				ctx->actionValidationPermission,
+				this_fn
+		);
+	}
+
+	UI_STEP(HANDLE_ACTION_AUTHORIZATION_STEP_RESPOND) {
+		respondSuccessEmptyMsg();
+		advanceStage();
+	}
+
+	UI_STEP_END(HANDLE_ACTION_AUTHORIZATION_STEP_INVALID);
+}
+
+__noinline_due_to_stack__
+void signTx_handleActionAuthorizationAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize) {
+	TRACE_STACK_USAGE();
+	{
+		// sanity checks
+		CHECK_STAGE(SIGN_STAGE_ACTION_AUTHORIZATION);
+
+		VALIDATE(p2 == P2_UNUSED, ERR_INVALID_REQUEST_PARAMETERS);
+		ASSERT(wireDataSize < BUFFER_SIZE_PARANOIA);
+	}
+
+    {
+		// parse data
+		TRACE_BUFFER(wireDataBuffer, wireDataSize);
+
+		struct {
+			uint8_t actor[NAME_VAR_LENGHT];
+			uint8_t permission[NAME_VAR_LENGHT];
+		}* wireData = (void*) wireDataBuffer;
+
+		VALIDATE(SIZEOF(*wireData) == wireDataSize, ERR_INVALID_DATA);
+
+    	TRACE("SHA_256_append");
+		uint8_t buf[1]; 
+		buf[0] = 1; 
+		TRACE_BUFFER(buf, SIZEOF(buf)) 
+		sha_256_append(&ctx->hashContext, buf, SIZEOF(buf)); //one authorization
+		TRACE_BUFFER(wireData->actor, SIZEOF(wireData->actor)) 
+		sha_256_append(&ctx->hashContext, (uint8_t *) wireData->actor, SIZEOF(wireData->actor));
+		TRACE_BUFFER(wireData->permission, SIZEOF(wireData->permission)) 
+		sha_256_append(&ctx->hashContext, (uint8_t *) wireData->permission, SIZEOF(wireData->permission));
+
+		name_t tmp;
+		memcpy(&tmp, wireData->actor, NAME_VAR_LENGHT);
+		name_to_string(tmp, ctx->actionValidationActor, NAME_STRING_MAX_LENGTH);
+
+		memcpy(&tmp, wireData->permission, NAME_VAR_LENGHT);
+		name_to_string(tmp, ctx->actionValidationPermission, NAME_STRING_MAX_LENGTH);
+	}
+		
+	security_policy_t policy = policyForSignTxActionAuthorization();
+	TRACE("Policy: %d", (int) policy);
+	ENSURE_NOT_DENIED(policy);
+	{
+		// select UI steps
+		switch (policy) {
+#	define  CASE(POLICY, UI_STEP) case POLICY: {ctx->ui_step=UI_STEP; break;}
+			CASE(POLICY_SHOW_BEFORE_RESPONSE, HANDLE_ACTION_AUTHORIZATION_STEP_SHOW_ACTOR);
+#	undef   CASE
+		default:
+			THROW(ERR_NOT_IMPLEMENTED);
+		}
+	}
+
+	signTx_handleActionAuthorization_ui_runStep();
 }
 
 // ============================== WITNESS ==============================
@@ -549,6 +621,7 @@ static subhandler_fn_t* lookup_subhandler(uint8_t p1)
 		CASE(0x01, signTx_handleInitAPDU);
 		CASE(0x02, signTx_handleHeaderAPDU);
 		CASE(0x03, signTx_handleActionHeaderAPDU);
+		CASE(0x04, signTx_handleActionAuthorizationAPDU);
 		CASE(0x10, signTx_handleWitnessesAPDU);
 		DEFAULT(NULL)
 #	undef   CASE
