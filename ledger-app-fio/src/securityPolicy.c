@@ -1,6 +1,8 @@
 #include "bip44.h"
+#include "signTransaction.h"
 
 #include "securityPolicy.h"
+
 
 
 
@@ -33,13 +35,20 @@ security_policy_t policyForGetPublicKey(const bip44_path_t* pathSpec)
 	PROMPT();
 }
 
-security_policy_t policyForSignTxInit()
+security_policy_t policyForSignTxInit(network_type_t network)
 {
+	DENY_IF(network == NETWORK_UNKNOWN);
 	SHOW();
 }
 
 security_policy_t policyForSignTxHeader()
 {
+	SHOW();
+}
+
+security_policy_t policyForSignTxActionHeader(action_type_t action)
+{
+	DENY_IF(action == ACTION_TYPE_UNKNOWN);
 	SHOW();
 }
 
