@@ -2,6 +2,7 @@
 #include "signTransaction.h"
 
 #include "securityPolicy.h"
+#include "fio.h"
 
 
 
@@ -57,8 +58,9 @@ security_policy_t policyForSignTxActionAuthorization()
 	SHOW();
 }
 
-security_policy_t policyForSignTxActionData()
+security_policy_t policyForSignTxActionData(char* validation_actor, char* data_actor)
 {
+	DENY_IF(strncmp(validation_actor, data_actor, NAME_STRING_MAX_LENGTH))
 	SHOW();
 }
 

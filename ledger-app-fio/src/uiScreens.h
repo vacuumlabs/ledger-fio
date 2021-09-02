@@ -25,12 +25,6 @@ void ui_displayUint64Screen(
         ui_callback_fn_t callback
 );
 
-void ui_displayTimeScreen(
-        const char* screenHeader,
-        uint32_t value,
-        ui_callback_fn_t callback
-);
-
 __noinline_due_to_stack__
 void ui_displayHexBufferScreen(
         const char* screenHeader,

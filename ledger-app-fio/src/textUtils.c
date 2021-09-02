@@ -19,7 +19,7 @@ size_t str_formatFIOAmount(uint64_t amount, char* out, size_t outSize)
 	// We print in reverse
 
 	// decimal digits
-	for (int dec = 0; dec < 6; dec++) {
+	for (int dec = 0; dec < 9; dec++) {
 		WRITE_CHAR(ptr, end, '0' + (amount % 10));
 		amount /= 10;
 	}

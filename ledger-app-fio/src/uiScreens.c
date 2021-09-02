@@ -39,14 +39,18 @@ void ui_displayUint64Screen(
 	);
 }
 
-void ui_displayTimeScreen(
+__noinline_due_to_stack__
+void ui_displayFIOAmountScreen(
         const char* screenHeader,
-        uint32_t value,
+        uint64_t amount,
         ui_callback_fn_t callback
-)
-{
-	ui_displayUint64Screen(screenHeader, value, callback); // for now
+) {
+	char buf[35]; //20 digits 1x '.', 4x '.', ' FIO', terminating 0 + reserve
+	str_formatFIOAmount(amount, buf, SIZEOF(buf));
+	ui_displayPaginatedText(screenHeader, buf, callback);
+		
 }
+
 
 void ui_displayHexBufferScreen(
         const char* screenHeader,
@@ -76,43 +80,5 @@ void ui_displayHexBufferScreen(
 	);
 }
 
-#define BECH32_BUFFER_SIZE_MAX 150
-#define BECH32_PREFIX_LENGTH_MAX 10
-
-// works for bufferSize <= 150 and prefix length <= 10
-void ui_displayBech32Screen(
-        const char* screenHeader,
-        const char* bech32Prefix,
-        const uint8_t* buffer, size_t bufferSize,
-        ui_callback_fn_t callback
-)
-{
-	{
-		// assert inputs
-		ASSERT(strlen(screenHeader) > 0);
-		ASSERT(strlen(screenHeader) < BUFFER_SIZE_PARANOIA);
-
-		ASSERT(strlen(bech32Prefix) > 0);
-		ASSERT(strlen(bech32Prefix) <= BECH32_PREFIX_LENGTH_MAX);
-
-		ASSERT(bufferSize <= BECH32_BUFFER_SIZE_MAX);
-	}
-
-	char encodedStr[10 + BECH32_PREFIX_LENGTH_MAX + 2 * BECH32_BUFFER_SIZE_MAX]; // rough upper bound on required size
-	explicit_bzero(encodedStr, SIZEOF(encodedStr));
-
-	{
-		size_t len = bech32_encode(bech32Prefix, buffer, bufferSize, encodedStr, SIZEOF(encodedStr));
-
-		ASSERT(len == strlen(encodedStr));
-		ASSERT(len + 1 <= SIZEOF(encodedStr));
-	}
-
-	ui_displayPaginatedText(
-	        screenHeader,
-	        encodedStr,
-	        callback
-	);
-}
 
 

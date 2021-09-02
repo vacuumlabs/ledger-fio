@@ -485,7 +485,7 @@ static void signTx_handleActionData_ui_runStep()
 	}
 
 	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_AMOUNT) {
-		ui_displayUint64Screen(
+		ui_displayFIOAmountScreen(
 				"Amount",
 				ctx->amount,
 				this_fn
@@ -493,20 +493,20 @@ static void signTx_handleActionData_ui_runStep()
 	}
 
 	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_MAX_FEE) {
-		ui_displayUint64Screen(
+		ui_displayFIOAmountScreen(
 				"Max fee",
 				ctx->maxFee,
 				this_fn
 		);
 	}
 
-	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_ACTOR) {
+/*	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_ACTOR) {
 		ui_displayPaginatedText(
 				"Actor",
 				ctx->actionDataActor,
 				this_fn
 		);
-	}
+	}*/
 
 	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_TPID) {
 		ui_displayPaginatedText(
@@ -587,7 +587,7 @@ void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wir
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData2->tpid, wireData2->tpidLength[0]);
 	}
 		
-	security_policy_t policy = policyForSignTxActionData();
+	security_policy_t policy = policyForSignTxActionData(ctx->actionValidationActor, ctx->actionDataActor);
 	TRACE("Policy: %d", (int) policy);
 	ENSURE_NOT_DENIED(policy);
 	{
@@ -622,9 +622,9 @@ static void signTx_handleWitnesses_ui_runStep()
 	UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
 	UI_STEP(HANDLE_WITTNESSES_STEP_DISPLAY_DETAILS) {
-		ui_displayPaginatedText(
-				"Here will be",
-				"Path",
+		ui_displayPathScreen(
+				"Sign with:",
+				&ctx->path,
 				this_fn
 		);
 	}
