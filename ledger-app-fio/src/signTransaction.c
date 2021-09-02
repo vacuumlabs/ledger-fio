@@ -140,9 +140,10 @@ void signTx_handleInitAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataS
 
     	TRACE("SHA_256_init");
 	    sha_256_init(&ctx->hashContext);
-    	TRACE("SHA_256_append");
+    	TRACE("SHA_256_append_begin");
 		TRACE_BUFFER(wireData->chainId, SIZEOF(wireData->chainId))
 		sha_256_append(&ctx->hashContext, wireData->chainId, SIZEOF(wireData->chainId));
+    	TRACE("SHA_256_append_end");
 
 		ctx->network = getNetworkByChainId(wireData->chainId, SIZEOF(wireData->chainId));
 		TRACE("Network %d:", ctx->network);
@@ -237,7 +238,7 @@ void signTx_handleHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDat
 
 		VALIDATE(SIZEOF(*wireData) == wireDataSize, ERR_INVALID_DATA);
 
-    	TRACE("SHA_256_append");
+    	TRACE("SHA_256_append_begin");
 		ctx->expiration = u4be_read(wireData->expiration);
 		TRACE_BUFFER(&ctx->expiration, sizeof(ctx->expiration)) //SIZEOF does not work for 4-byte stuff
 		sha_256_append(&ctx->hashContext, (uint8_t *)&ctx->expiration, sizeof(ctx->expiration));
@@ -254,6 +255,7 @@ void signTx_handleHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDat
     	explicit_bzero(buf, sizeof(buf)); //SIZEOF does no work for 4
 		TRACE_BUFFER(buf, sizeof(buf))
 		sha_256_append(&ctx->hashContext, buf, sizeof(buf));
+    	TRACE("SHA_256_append_end");
 	}
 		
 	security_policy_t policy = policyForSignTxHeader();
@@ -328,13 +330,14 @@ void signTx_handleActionHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t w
 
 		VALIDATE(SIZEOF(*wireData) == wireDataSize, ERR_INVALID_DATA);
 
-    	TRACE("SHA_256_append");
+    	TRACE("SHA_256_append_begin");
 		uint8_t buf[1]; 
 		buf[0] = 1; 
 		TRACE_BUFFER(buf, SIZEOF(buf)) 
 		sha_256_append(&ctx->hashContext, buf, SIZEOF(buf)); //one action
 		TRACE_BUFFER(wireData, SIZEOF(*wireData)) 
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData, SIZEOF(*wireData));
+    	TRACE("SHA_256_append_end");
 
 		ctx->action_type = getActionTypeByContractAccountName(ctx->network, wireData->contractAccountName, 
 				CONTRACT_ACCOUNT_NAME_LENGTH);
@@ -421,7 +424,7 @@ void signTx_handleActionAuthorizationAPDU(uint8_t p2, uint8_t* wireDataBuffer, s
 
 		VALIDATE(SIZEOF(*wireData) == wireDataSize, ERR_INVALID_DATA);
 
-    	TRACE("SHA_256_append");
+    	TRACE("SHA_256_append_begin");
 		uint8_t buf[1]; 
 		buf[0] = 1; 
 		TRACE_BUFFER(buf, SIZEOF(buf)) 
@@ -430,6 +433,7 @@ void signTx_handleActionAuthorizationAPDU(uint8_t p2, uint8_t* wireDataBuffer, s
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData->actor, SIZEOF(wireData->actor));
 		TRACE_BUFFER(wireData->permission, SIZEOF(wireData->permission)) 
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData->permission, SIZEOF(wireData->permission));
+    	TRACE("SHA_256_append_end");
 
 		name_t tmp;
 		memcpy(&tmp, wireData->actor, NAME_VAR_LENGHT);
@@ -567,7 +571,7 @@ void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wir
 		ctx -> tpid = (char *) wireData2->tpid;
 
 
-    	TRACE("SHA_256_append");
+    	TRACE("SHA_256_append_begin");
 		TRACE_BUFFER(wireData1->dataLength, SIZEOF(wireData1->dataLength));
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData1->dataLength, SIZEOF(wireData1->dataLength));
 		TRACE_BUFFER(wireData1->pubkeyLength, SIZEOF(wireData1->pubkeyLength));
@@ -585,6 +589,7 @@ void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wir
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData2->tpidLength, SIZEOF(wireData2->tpidLength));
 		TRACE_BUFFER(wireData2->tpid, wireData2->tpidLength[0]);
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData2->tpid, wireData2->tpidLength[0]);
+    	TRACE("SHA_256_append_end");
 	}
 		
 	security_policy_t policy = policyForSignTxActionData(ctx->actionValidationActor, ctx->actionDataActor);
@@ -676,7 +681,7 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
 		ENSURE_NOT_DENIED(policy);
 	}
 
-	TRACE("SHA_256_append");
+	TRACE("SHA_256_append_begin");
     //Extension points
 	uint8_t buf[1]; 
 	explicit_bzero(buf, SIZEOF(buf));
@@ -687,10 +692,11 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
 	explicit_bzero(hashBuf, SIZEOF(hashBuf));
 	TRACE_BUFFER(hashBuf, SIZEOF(hashBuf));
 	sha_256_append(&ctx->hashContext, hashBuf, SIZEOF(hashBuf));
+	TRACE("SHA_256_append_end");
 	//we get the resulting hash
 	TRACE("SHA_256_finalize");
     sha_256_finalize(&ctx->hashContext, hashBuf, SIZEOF(hashBuf));
-    TRACE("Resulting hash!!!!!!!!!!!!");
+    TRACE("Resulting hash:");
     TRACE_BUFFER(hashBuf, 32);
 
     //We derive the private key
