@@ -71,4 +71,6 @@ Ordinarily, Ledger computes a rolling hash of the serialized transaction body, b
 
 4. Send a single `signTx` call to Ledger (e.g. by running `yarn test-integration --grep "<some-signTx-test>"`).
 
-5. After the call is processed, the terminal running console printing now contains all log messages resulting from that `signTx` call. (See the `TRACE*` macros.) 
+5. After the call is processed, the terminal running console printing now contains all log messages resulting from that `signTx` call. (See the `TRACE*` macros.). You can build the transactions using data between SHA_256_append_begin
+ and SHA_256_append_end.
+
