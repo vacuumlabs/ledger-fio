@@ -24,6 +24,13 @@ typedef struct {
 	char actionValidationActor[NAME_STRING_MAX_LENGTH];
 	char actionValidationPermission[NAME_STRING_MAX_LENGTH];
 
+	char *pubkey;
+	uint64_t amount;
+	uint64_t maxFee;
+	char actionDataActor[NAME_STRING_MAX_LENGTH];
+	char *tpid;
+
+
 	uint8_t signature[64];
 } ins_sign_transaction_context_t; 
 

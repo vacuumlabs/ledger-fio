@@ -62,3 +62,10 @@ void name_to_string(name_t value, char *out, size_t size) {
     } while (out[i] == '.' && i != 0);
 }
 
+void uint8array_name_to_string(uint8_t *value, size_t valueSize, char *out, size_t outSize) {
+    ASSERT(valueSize == NAME_VAR_LENGHT);
+	name_t tmp;
+	memcpy(&tmp, value, valueSize);
+	name_to_string(tmp, out, outSize);
+}
+

@@ -25,5 +25,10 @@ action_type_t getActionTypeByContractAccountName(network_type_t network, uint8_t
 typedef uint64_t name_t;
 #define NAME_STRING_MAX_LENGTH 14
 void name_to_string(name_t value, char *out, size_t size); 
+void uint8array_name_to_string(uint8_t *value, size_t valueSize, char *out, size_t outSize);
+
+#define MAX_PUB_KEY_LENGTH 61
+
+#define MAX_TPID_LENGTH 21
 
 #endif // H_FIO_APP_FIO
