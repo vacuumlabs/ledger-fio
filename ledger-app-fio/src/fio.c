@@ -10,6 +10,14 @@ network_type_t getNetworkByChainId(uint8_t *chainId, size_t length) {
 		return NETWORK_TESTNET;
 	}
 
+    const uint8_t mainnetId[CHAIN_ID_LENGTH] = {0x21, 0xdc, 0xae, 0x42, 0xc0, 0x18, 0x22, 0x00,
+	                                            0xe9, 0x3f, 0x95, 0x4a, 0x07, 0x40, 0x11, 0xf9,
+												0x04, 0x8a, 0x76, 0x24, 0xc6, 0xfe, 0x81, 0xd3,
+												0xc9, 0x54, 0x1a, 0x61, 0x4a, 0x88, 0xbd, 0x1c};
+	if (!memcmp(chainId, mainnetId, CHAIN_ID_LENGTH)) {
+		return NETWORK_MAINNET;
+	}
+
 	return NETWORK_UNKNOWN;
 }
 
@@ -17,13 +25,10 @@ action_type_t getActionTypeByContractAccountName(network_type_t network, uint8_t
 	ASSERT(length == CONTRACT_ACCOUNT_NAME_LENGTH);
 	const uint8_t testnetTrnsfiopubky[CONTRACT_ACCOUNT_NAME_LENGTH] = {0x00, 0x00, 0x98, 0x0a, 0xd2, 0x0c, 0xa8, 0x5b,
 	                                                                   0xe0, 0xe1, 0xd1, 0x95, 0xba, 0x85, 0xe7, 0xcd};
-	if (network == NETWORK_TESTNET) {
+	if (network == NETWORK_TESTNET || network == NETWORK_MAINNET) {
 		if (!memcmp(contractAccountName, testnetTrnsfiopubky, CONTRACT_ACCOUNT_NAME_LENGTH)) {
 			return ACTION_TYPE_TRNSFIOPUBKY;
 		}
-		return ACTION_TYPE_UNKNOWN;
-	}
-	if (network == NETWORK_MAINNET) {
 		return ACTION_TYPE_UNKNOWN;
 	}
 
