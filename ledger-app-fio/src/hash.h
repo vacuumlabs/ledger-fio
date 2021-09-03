@@ -107,6 +107,7 @@ static __attribute__((always_inline, unused)) void sha_256_init(sha_256_context_
 static __attribute__((always_inline, unused)) void sha_256_append(sha_256_context_t* ctx,
                                                                   const uint8_t* inBuffer, size_t inSize) { 
 	ASSERT(ctx->initialized_magic == HASH_CONTEXT_INITIALIZED_MAGIC); 
+	TRACE_BUFFER(inBuffer, inSize);
 	cx_hash( 
 				& ctx->cx_ctx.header, 
 				0, /* Do not output the hash, yet */ 

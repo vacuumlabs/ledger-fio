@@ -15,7 +15,6 @@ static int UI_STEP_NONE = 0;
 
 static inline void CHECK_STAGE(get_key_stage_t expected)
 {
-	TRACE("Checking stage... current one is %d, expected %d", ctx->stage, expected);
 	VALIDATE(ctx->stage == expected, ERR_INVALID_STATE);
 }
 
@@ -35,7 +34,7 @@ static void advanceStage()
 	}
 }
 
-// ============================== derivation and UI state machine ==============================
+// ============================== Derivation and UI state machine ==============================
 
 enum {
 	GET_KEY_UI_STEP_WARNING = 200,

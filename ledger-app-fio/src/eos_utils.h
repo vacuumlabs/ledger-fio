@@ -21,18 +21,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-bool b58enc(uint8_t *data, uint32_t binsz, char *b58, uint32_t *b58sz);
-
-void array_hexstr(char *strbuf, const void *bin, unsigned int len);
-
-char* i64toa(int64_t i, char b[]);
-char* ui64toa(uint64_t i, char b[]);
-
-bool tlvTryDecode(uint8_t *buffer,
-                  uint32_t bufferLength,
-                  uint32_t *fieldLenght,
-                  bool *valid);
-
 unsigned char check_canonical(uint8_t *rs);
 
 int ecdsa_der_to_sig(const uint8_t *der, uint8_t *sig);

@@ -29,9 +29,6 @@ typedef struct {
 	uint64_t maxFee;
 	char actionDataActor[NAME_STRING_MAX_LENGTH];
 	char *tpid;
-
-
-	uint8_t signature[64];
 } ins_sign_transaction_context_t; 
 
 #endif // H_FIO_APP_SIGN_TRANSACTION

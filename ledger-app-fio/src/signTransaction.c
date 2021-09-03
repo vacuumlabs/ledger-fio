@@ -25,7 +25,6 @@ typedef enum {
 // this is supposed to be called at the beginning of each APDU handler
 static inline void CHECK_STAGE(sign_tx_stage_t expected)
 {
-	TRACE("Checking stage... current one is %d, expected %d", ctx->stage, expected);
 	VALIDATE(ctx->stage == expected, ERR_INVALID_STATE);
 }
 
@@ -140,10 +139,7 @@ void signTx_handleInitAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataS
 
     	TRACE("SHA_256_init");
 	    sha_256_init(&ctx->hashContext);
-    	TRACE("SHA_256_append_begin");
-		TRACE_BUFFER(wireData->chainId, SIZEOF(wireData->chainId))
 		sha_256_append(&ctx->hashContext, wireData->chainId, SIZEOF(wireData->chainId));
-    	TRACE("SHA_256_append_end");
 
 		ctx->network = getNetworkByChainId(wireData->chainId, SIZEOF(wireData->chainId));
 		TRACE("Network %d:", ctx->network);
@@ -238,24 +234,18 @@ void signTx_handleHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDat
 
 		VALIDATE(SIZEOF(*wireData) == wireDataSize, ERR_INVALID_DATA);
 
-    	TRACE("SHA_256_append_begin");
 		ctx->expiration = u4be_read(wireData->expiration);
-		TRACE_BUFFER(&ctx->expiration, sizeof(ctx->expiration)) //SIZEOF does not work for 4-byte stuff
 		sha_256_append(&ctx->hashContext, (uint8_t *)&ctx->expiration, sizeof(ctx->expiration));
 
 		ctx->refBlockNum = u2be_read(wireData->refBlockNum);
-		TRACE_BUFFER(&ctx->refBlockNum, SIZEOF(wireData->refBlockNum))
 		sha_256_append(&ctx->hashContext, (uint8_t *)&ctx->refBlockNum, SIZEOF(wireData->refBlockNum));
 
 		ctx->refBlockPrefix = u4be_read(wireData->refBlockPrefix);
-		TRACE_BUFFER(&ctx->refBlockPrefix, sizeof(ctx->expiration))
 		sha_256_append(&ctx->hashContext, (uint8_t *)&ctx->refBlockPrefix, sizeof(ctx->expiration));
 
         uint8_t buf[4]; //max_net_usage_words, max_cpu_usage_ms, delay_sec, context_free_actions
     	explicit_bzero(buf, sizeof(buf)); //SIZEOF does no work for 4
-		TRACE_BUFFER(buf, sizeof(buf))
 		sha_256_append(&ctx->hashContext, buf, sizeof(buf));
-    	TRACE("SHA_256_append_end");
 	}
 		
 	security_policy_t policy = policyForSignTxHeader();
@@ -330,14 +320,10 @@ void signTx_handleActionHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t w
 
 		VALIDATE(SIZEOF(*wireData) == wireDataSize, ERR_INVALID_DATA);
 
-    	TRACE("SHA_256_append_begin");
 		uint8_t buf[1]; 
 		buf[0] = 1; 
-		TRACE_BUFFER(buf, SIZEOF(buf)) 
 		sha_256_append(&ctx->hashContext, buf, SIZEOF(buf)); //one action
-		TRACE_BUFFER(wireData, SIZEOF(*wireData)) 
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData, SIZEOF(*wireData));
-    	TRACE("SHA_256_append_end");
 
 		ctx->action_type = getActionTypeByContractAccountName(ctx->network, wireData->contractAccountName, 
 				CONTRACT_ACCOUNT_NAME_LENGTH);
@@ -424,23 +410,14 @@ void signTx_handleActionAuthorizationAPDU(uint8_t p2, uint8_t* wireDataBuffer, s
 
 		VALIDATE(SIZEOF(*wireData) == wireDataSize, ERR_INVALID_DATA);
 
-    	TRACE("SHA_256_append_begin");
 		uint8_t buf[1]; 
 		buf[0] = 1; 
-		TRACE_BUFFER(buf, SIZEOF(buf)) 
 		sha_256_append(&ctx->hashContext, buf, SIZEOF(buf)); //one authorization
-		TRACE_BUFFER(wireData->actor, SIZEOF(wireData->actor)) 
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData->actor, SIZEOF(wireData->actor));
-		TRACE_BUFFER(wireData->permission, SIZEOF(wireData->permission)) 
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData->permission, SIZEOF(wireData->permission));
-    	TRACE("SHA_256_append_end");
 
-		name_t tmp;
-		memcpy(&tmp, wireData->actor, NAME_VAR_LENGHT);
-		name_to_string(tmp, ctx->actionValidationActor, NAME_STRING_MAX_LENGTH);
-
-		memcpy(&tmp, wireData->permission, NAME_VAR_LENGHT);
-		name_to_string(tmp, ctx->actionValidationPermission, NAME_STRING_MAX_LENGTH);
+		uint8array_name_to_string(wireData->actor, NAME_VAR_LENGHT, ctx->actionValidationActor, NAME_STRING_MAX_LENGTH);
+		uint8array_name_to_string(wireData->permission, NAME_VAR_LENGHT, ctx->actionValidationPermission, NAME_STRING_MAX_LENGTH);
 	}
 		
 	security_policy_t policy = policyForSignTxActionAuthorization();
@@ -571,25 +548,15 @@ void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wir
 		ctx -> tpid = (char *) wireData2->tpid;
 
 
-    	TRACE("SHA_256_append_begin");
-		TRACE_BUFFER(wireData1->dataLength, SIZEOF(wireData1->dataLength));
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData1->dataLength, SIZEOF(wireData1->dataLength));
-		TRACE_BUFFER(wireData1->pubkeyLength, SIZEOF(wireData1->pubkeyLength));
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData1->pubkeyLength, SIZEOF(wireData1->pubkeyLength));
-		TRACE_BUFFER(wireData1->pubkey, wireData1->pubkeyLength[0]);
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData1->pubkey, wireData1->pubkeyLength[0]);
 
-		TRACE_BUFFER((uint8_t *)&ctx->amount, SIZEOF(ctx->amount));
 		sha_256_append(&ctx->hashContext, (uint8_t *) &ctx->amount, SIZEOF(ctx->amount));
-		TRACE_BUFFER((uint8_t *)&ctx->maxFee, SIZEOF(ctx->maxFee));
 		sha_256_append(&ctx->hashContext, (uint8_t *) &ctx->maxFee, SIZEOF(ctx->maxFee));
-		TRACE_BUFFER(wireData2->actor, SIZEOF(wireData2->actor));
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData2->actor, SIZEOF(wireData2->actor));
-		TRACE_BUFFER(wireData2->tpidLength, SIZEOF(wireData2->tpidLength));
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData2->tpidLength, SIZEOF(wireData2->tpidLength));
-		TRACE_BUFFER(wireData2->tpid, wireData2->tpidLength[0]);
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData2->tpid, wireData2->tpidLength[0]);
-    	TRACE("SHA_256_append_end");
 	}
 		
 	security_policy_t policy = policyForSignTxActionData(ctx->actionValidationActor, ctx->actionDataActor);
@@ -663,7 +630,6 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
 	}
 
 	explicit_bzero(&ctx->path, SIZEOF(ctx->path));
-	explicit_bzero(&ctx->signature, SIZEOF(ctx->signature));
 
 	{
 		// parse
@@ -681,22 +647,19 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
 		ENSURE_NOT_DENIED(policy);
 	}
 
-	TRACE("SHA_256_append_begin");
     //Extension points
 	uint8_t buf[1]; 
 	explicit_bzero(buf, SIZEOF(buf));
-	TRACE_BUFFER(buf, SIZEOF(buf))
 	sha_256_append(&ctx->hashContext, buf, SIZEOF(buf));
+
     //We finish the hash appending a 32-byte empty buffer
     uint8_t hashBuf[32];
 	explicit_bzero(hashBuf, SIZEOF(hashBuf));
-	TRACE_BUFFER(hashBuf, SIZEOF(hashBuf));
 	sha_256_append(&ctx->hashContext, hashBuf, SIZEOF(hashBuf));
-	TRACE("SHA_256_append_end");
+
 	//we get the resulting hash
-	TRACE("SHA_256_finalize");
     sha_256_finalize(&ctx->hashContext, hashBuf, SIZEOF(hashBuf));
-    TRACE("Resulting hash:");
+    TRACE("SHA_256_finalize, resulting hash:");
     TRACE_BUFFER(hashBuf, 32);
 
     //We derive the private key
@@ -712,48 +675,58 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
     uint8_t V[33];
     uint8_t K[32];
     int tries = 0;
-
+	
     // Loop until a candidate matching the canonical signature is found
-	// TODO This probably should not use G_io_apdu_buffer
-    for (;;)
-    {
-        if (tries == 0)
-        {
-            rng_rfc6979(G_io_apdu_buffer + 100, hashBuf, privateKey.d, privateKey.d_len, SECP256K1_N, 32, V, K);
-        }
-        else
-        {
-            rng_rfc6979(G_io_apdu_buffer + 100, hashBuf, NULL, 0, SECP256K1_N, 32, V, K);
-        }
-        uint32_t infos;
-        tx = cx_ecdsa_sign(&privateKey, CX_NO_CANONICAL | CX_RND_PROVIDED | CX_LAST, CX_SHA256,
-                           hashBuf, 32, 
-                           G_io_apdu_buffer + 100, 100,
-                           &infos);
-		TRACE_BUFFER(G_io_apdu_buffer + 100, 100);
-		
-        if ((infos & CX_ECCINFO_PARITY_ODD) != 0)
-        {
-            G_io_apdu_buffer[100] |= 0x01;
-        }
-        G_io_apdu_buffer[0] = 27 + 4 + (G_io_apdu_buffer[100] & 0x01);
-        ecdsa_der_to_sig(G_io_apdu_buffer + 100, G_io_apdu_buffer + 1);
-		TRACE_BUFFER(G_io_apdu_buffer , 65);
+	// Taken from EOS app
+	// We use G_io_apdu_buffer to save memory (and also to minimize changes to EOS code)
+	// The code produces the signature right where we need it for the respons
+	BEGIN_TRY {
+		TRY {
+			explicit_bzero(G_io_apdu_buffer, SIZEOF(G_io_apdu_buffer));
+			for (;;)
+			{
+				if (tries == 0)
+				{
+					rng_rfc6979(G_io_apdu_buffer + 100, hashBuf, privateKey.d, privateKey.d_len, SECP256K1_N, 32, V, K);
+				}
+				else
+				{
+					rng_rfc6979(G_io_apdu_buffer + 100, hashBuf, NULL, 0, SECP256K1_N, 32, V, K);
+				}
+				uint32_t infos;
+				tx = cx_ecdsa_sign(&privateKey, CX_NO_CANONICAL | CX_RND_PROVIDED | CX_LAST, CX_SHA256,
+								hashBuf, 32, 
+								G_io_apdu_buffer + 100, 100,
+								&infos);
+				TRACE_BUFFER(G_io_apdu_buffer + 100, 100);
+				
+				if ((infos & CX_ECCINFO_PARITY_ODD) != 0)
+				{
+					G_io_apdu_buffer[100] |= 0x01;
+				}
+				G_io_apdu_buffer[0] = 27 + 4 + (G_io_apdu_buffer[100] & 0x01);
+				ecdsa_der_to_sig(G_io_apdu_buffer + 100, G_io_apdu_buffer + 1);
+				TRACE_BUFFER(G_io_apdu_buffer , 65);
 
-        if (check_canonical(G_io_apdu_buffer + 1))
-        {
-            tx = 1 + 64;
-            break;
-        }
-        else
-        {
-			TRACE("Try %d unsuccesfull! We will not get correct signature!!!!!!!!!!!!!!!!!!!!!!!!!", tries);
-            tries++;
-        }
-    }
-    // delete private key We should use try macros later TODO
-    memset(&privateKey, 0, sizeof(privateKey));
+				if (check_canonical(G_io_apdu_buffer + 1))
+				{
+					tx = 1 + 64;
+					break;
+				}
+				else
+				{
+					TRACE("Try %d unsuccesfull! We will not get correct signature!!!!!!!!!!!!!!!!!!!!!!!!!", tries);
+					tries++;
+				}
+			}
+		}
+		FINALLY {
+			memset(&privateKey, 0, sizeof(privateKey));
+		}
+	}
+	END_TRY; 
 
+	//We add hash to the response
     TRACE("ecdsa_der_to_sig_result:");
     TRACE_BUFFER(G_io_apdu_buffer, 65);
 	memcpy(G_io_apdu_buffer + 65, hashBuf, 32);
