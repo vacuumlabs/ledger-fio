@@ -5,7 +5,6 @@
 #include "errors.h"
 #include "keyDerivation.h"
 #include "hash.h"
-#include "crc32.h"
 #include "utils.h"
 #include "endian.h"
 #include "fio.h"

@@ -95,82 +95,6 @@ size_t str_formatUint64(uint64_t number, char* out, size_t outSize)
 	return rawSize;
 }
 
-#ifdef DEVEL
-void str_traceFIOAmount(const char* prefix, uint64_t amount)
-{
-	char fioAmountStr[100];
-
-	const size_t prefixLen = strlen(prefix);
-	ASSERT(prefixLen <= 50);
-	snprintf(fioAmountStr, SIZEOF(fioAmountStr), "%s", prefix);
-	ASSERT(strlen(fioAmountStr) == prefixLen);
-
-	str_formatFIOAmount(amount, fioAmountStr + prefixLen, SIZEOF(fioAmountStr) - prefixLen);
-	TRACE("%s", fioAmountStr);
-}
-
-void str_traceUint64(uint64_t number)
-{
-	char numberStr[30];
-	str_formatUint64(number, numberStr, SIZEOF(numberStr));
-	TRACE("%s", numberStr);
-}
-#endif // DEVEL
-
-
-// TODO: This is valid only for mainnet
-static struct {
-	uint64_t startSlotNumber;
-	uint64_t startEpoch;
-	uint64_t slotsInEpoch;
-} EPOCH_SLOTS_CONFIG[] = {
-	{4492800, 208, 432000},
-	{0, 0, 21600}
-};
-
-size_t str_formatValidityBoundary(uint64_t slotNumber, char* out, size_t outSize)
-{
-	ASSERT(outSize < BUFFER_SIZE_PARANOIA);
-
-	unsigned i = 0;
-	while (slotNumber < EPOCH_SLOTS_CONFIG[i].startSlotNumber) {
-		i++;
-		ASSERT(i < ARRAY_LEN(EPOCH_SLOTS_CONFIG));
-	}
-
-	ASSERT(slotNumber >= EPOCH_SLOTS_CONFIG[i].startSlotNumber);
-
-	uint64_t startSlotNumber = EPOCH_SLOTS_CONFIG[i].startSlotNumber;
-	uint64_t startEpoch = EPOCH_SLOTS_CONFIG[i].startEpoch;
-	uint64_t slotsInEpoch = EPOCH_SLOTS_CONFIG[i].slotsInEpoch;
-
-	uint64_t epoch = startEpoch + (slotNumber - startSlotNumber) / slotsInEpoch;
-	uint64_t slotInEpoch = (slotNumber - startSlotNumber) % slotsInEpoch;
-
-	ASSERT(sizeof(int) >= sizeof(uint32_t));
-
-	ASSERT(outSize > 0); // so we can write null terminator
-	if (epoch > 1000000)  {
-		// thousands of years
-		snprintf(out, outSize, "epoch more than 1000000");
-	} else {
-		snprintf(out, outSize, "epoch %d / slot %d", (int) epoch, (int) slotInEpoch);
-	}
-
-	// snprintf does not return length written
-	size_t len = strlen(out);
-	// make sure we did not truncate
-	ASSERT(len + 1 < outSize);
-
-	return strlen(out);
-}
-
-// returns length of the resulting string
-size_t str_formatMetadata(const uint8_t* metadataHash, size_t metadataHashSize, char* out, size_t outSize)
-{
-	return encode_hex(metadataHash, metadataHashSize, out, outSize);
-}
-
 // check if it is ASCII between 32 and 126
 void str_validateTextBuffer(const uint8_t* text, size_t textSize)
 {
@@ -181,25 +105,3 @@ void str_validateTextBuffer(const uint8_t* text, size_t textSize)
 		VALIDATE(text[i] >= 32, ERR_INVALID_DATA);
 	}
 }
-
-
-#ifdef DEVEL
-
-// converts a text to bytes (suitable for CBORization) and validates if chars are allowed
-size_t str_textToBuffer(const char* text, uint8_t* buffer, size_t bufferSize)
-{
-	size_t textLength = strlen(text);
-	ASSERT(textLength < BUFFER_SIZE_PARANOIA);
-	ASSERT(bufferSize < BUFFER_SIZE_PARANOIA);
-	ASSERT(bufferSize >= textLength);
-
-	for (size_t i = 0; i < textLength; i++) {
-		buffer[i] = text[i];
-	}
-
-	str_validateTextBuffer(buffer, textLength);
-
-	return textLength;
-}
-
-#endif // DEVEL
