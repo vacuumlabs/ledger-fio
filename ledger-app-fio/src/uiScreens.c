@@ -1,5 +1,4 @@
 #include "uiScreens.h"
-#include "bech32.h"
 #include "hexUtils.h"
 #include "textUtils.h"
 

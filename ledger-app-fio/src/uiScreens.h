@@ -32,16 +32,6 @@ void ui_displayHexBufferScreen(
         ui_callback_fn_t callback
 );
 
-__noinline_due_to_stack__
-void ui_displayBech32Screen(
-        const char* screenHeader,
-        const char* bech32Prefix,
-        const uint8_t* buffer, size_t bufferSize,
-        ui_callback_fn_t callback
-);
-
-
-
 #ifdef DEVEL
 void run_uiScreens_test();
 #endif // DEVEL

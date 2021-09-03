@@ -3,7 +3,6 @@
 #include "uiHelpers.h"
 #include "uiScreens.h"
 #include "getPublicKey.h"
-#include "bufView.h"
 #include "utils.h"
 
 static int16_t RESPONSE_READY_MAGIC = 23456;
@@ -18,13 +17,6 @@ static inline void CHECK_STAGE(get_key_stage_t expected)
 {
 	TRACE("Checking stage... current one is %d, expected %d", ctx->stage, expected);
 	VALIDATE(ctx->stage == expected, ERR_INVALID_STATE);
-}
-
-// read a path from view into ctx->pathSpec
-static void parsePath(read_view_t* view)
-{
-	view_skipBytes(view, bip44_parseFromWire(&ctx->pathSpec, VIEW_REMAINING_TO_TUPLE_BUF_SIZE(view)));
-	BIP44_PRINTF(&ctx->pathSpec);
 }
 
 static void advanceStage()
@@ -147,9 +139,13 @@ void getPublicKey_handleAPDU(
     CHECK_STAGE(GET_KEY_STAGE_INIT);
 	ASSERT(wireDataSize < BUFFER_SIZE_PARANOIA);
 
-	read_view_t view = make_read_view(wireDataBuffer, wireDataBuffer + wireDataSize);
-	parsePath(&view);
-	VALIDATE(view_remainingSize(&view) == 0, ERR_INVALID_DATA);
+	{
+		// parse
+		TRACE_BUFFER(wireDataBuffer, wireDataSize);
+
+		size_t parsedSize = bip44_parseFromWire(&ctx->pathSpec, wireDataBuffer, wireDataSize);
+		VALIDATE(parsedSize == wireDataSize, ERR_INVALID_DATA);
+	}
 
 	runGetPublicKeyUIFlow();
 }

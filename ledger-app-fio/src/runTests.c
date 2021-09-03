@@ -2,10 +2,8 @@
 
 #include "runTests.h"
 #include "testUtils.h"
-#include "cbor.h"
+//#include "cbor.h"
 #include "crc32.h"
-#include "base58.h"
-#include "bech32.h"
 #include "hexUtils.h"
 #include "hash.h"
 #include "bip44.h"
@@ -29,13 +27,11 @@ void handleRunTests(
 	BEGIN_ASSERT_NOEXCEPT {
 		PRINTF("Running tests\n");
 		run_hex_test();
-		run_base58_test();
-		run_bech32_test();
 		run_crc32_test();
 		run_endian_test();
 		run_textUtils_test();
 		run_hash_test();
-		run_cbor_test();
+//		run_cbor_test();
 		run_bip44_test();
 		run_key_derivation_test();
 		PRINTF("All tests done\n");
