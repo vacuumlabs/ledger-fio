@@ -105,3 +105,17 @@ void str_validateTextBuffer(const uint8_t* text, size_t textSize)
 		VALIDATE(text[i] >= 32, ERR_INVALID_DATA);
 	}
 }
+
+//text[textSize] has to be 0
+void str_validateNullTerminatedTextBuffer(const uint8_t* text, size_t textSize)
+{
+	ASSERT(textSize < BUFFER_SIZE_PARANOIA);
+
+	size_t i = 0;
+	for (; i < textSize; i++) {
+		VALIDATE(text[i] <= 126, ERR_INVALID_DATA);
+		VALIDATE(text[i] >= 32, ERR_INVALID_DATA);
+	}
+	VALIDATE(text[i] == 0, ERR_INVALID_DATA);
+}
+

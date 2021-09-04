@@ -9,6 +9,7 @@
 #include "securityPolicy.h"
 #include "uiHelpers.h"
 #include "uiScreens.h"
+#include "textUtils.h"
 
 static ins_sign_transaction_context_t* ctx = &(instructionState.signTransactionContext);
 
@@ -536,10 +537,17 @@ void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wir
 
 		uint8_t expectedDataLength = 1 + 1 + wireData1->pubkeyLength[0] 
 				+ 1 + 8 + 8 + NAME_VAR_LENGHT + 1 + wireData2->tpidLength[0]  + 1;
-		TRACE("PubKeyLength: %d, TpidLength: %d", wireData1->pubkeyLength[0], wireData2->tpidLength[0]);
-		TRACE("Expected: %d, WireDataSize: %d", expectedDataLength, wireDataSize);
+
 		VALIDATE(expectedDataLength == wireDataSize, ERR_INVALID_DATA);
 		VALIDATE(wireData1->dataLength[0] == wireDataSize - 3, ERR_INVALID_DATA); //-1 for data length, -2 fo trailing 0's
+		VALIDATE(wireData1->dataLength[0] <= MAX_SINGLE_BYTE_LENGTH, ERR_INVALID_DATA);
+		VALIDATE(wireData1->pubkeyLength[0] < MAX_SINGLE_BYTE_LENGTH, ERR_INVALID_DATA); // < for terminating 0
+		VALIDATE(wireData1->pubkeyLength[0] < MAX_PUB_KEY_LENGTH, ERR_INVALID_DATA); // < for terminating 0
+		str_validateNullTerminatedTextBuffer(wireData1->pubkey, wireData1->pubkeyLength[0]);
+
+		VALIDATE(wireData2->tpidLength[0] < MAX_SINGLE_BYTE_LENGTH, ERR_INVALID_DATA); // < for terminating 0
+		VALIDATE(wireData2->tpidLength[0] < MAX_TPID_LENGTH, ERR_INVALID_DATA); // < for terminating 0
+		str_validateNullTerminatedTextBuffer(wireData2->tpid, wireData2->tpidLength[0]);
 
 		ctx -> pubkey = (char *) wireData1->pubkey;
 		ctx -> amount = u8be_read(wireData2->amount);
