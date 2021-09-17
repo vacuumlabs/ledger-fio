@@ -23,13 +23,13 @@ void testcase_derivePrivateKey(uint32_t* path, uint32_t pathLen, const char* exp
 
 	private_key_t privateKey;
 	derivePrivateKey(&pathSpec, &privateKey);
-    TRACE("%d", SIZEOF(privateKey.d));
-    TRACE_BUFFER(privateKey.d, SIZEOF(privateKey.d));
+	TRACE("%d", SIZEOF(privateKey.d));
+	TRACE_BUFFER(privateKey.d, SIZEOF(privateKey.d));
 
 	uint8_t expected[32];
 	size_t expectedSize = decode_hex(expectedHex, expected, SIZEOF(expected));
-    TRACE("%d", SIZEOF(expected));
-    TRACE_BUFFER(expected, SIZEOF(expected));
+	TRACE("%d", SIZEOF(expected));
+	TRACE_BUFFER(expected, SIZEOF(expected));
 
 	EXPECT_EQ_BYTES(expected, privateKey.d, expectedSize);
 }
@@ -85,13 +85,13 @@ void testcase_derivePublicKey(uint32_t* path, uint32_t pathLen, const char* expe
 
 	public_key_t publicKey;
 	derivePublicKey(&pathSpec, &publicKey);
-    TRACE("%d", SIZEOF(publicKey.W));
-    TRACE_BUFFER(publicKey.W, SIZEOF(publicKey.W));
+	TRACE("%d", SIZEOF(publicKey.W));
+	TRACE_BUFFER(publicKey.W, SIZEOF(publicKey.W));
 
 	uint8_t expected[65];
 	decode_hex(expectedHex, expected, SIZEOF(expected));
-    TRACE("%d", SIZEOF(expected));
-    TRACE_BUFFER(expected, SIZEOF(expected));
+	TRACE("%d", SIZEOF(expected));
+	TRACE_BUFFER(expected, SIZEOF(expected));
 
 	EXPECT_EQ_BYTES(expected, publicKey.W, SIZEOF(expected));
 }

@@ -71,9 +71,9 @@ static void getPublicKey_ui_runStep()
 	}
 	UI_STEP(GET_KEY_UI_STEP_RESPOND) {
 		ASSERT(ctx->responseReadyMagic == RESPONSE_READY_MAGIC);
-        
+
 		io_send_buf(SUCCESS, ctx->pubKey.W, SIZEOF(ctx->pubKey.W));
-		ctx->responseReadyMagic = 0; // just for safety 
+		ctx->responseReadyMagic = 0; // just for safety
 		ui_displayBusy(); // needs to happen after I/O
 
 		TRACE("Export done.");
@@ -135,7 +135,7 @@ void getPublicKey_handleAPDU(
 	ctx->stage = GET_KEY_STAGE_INIT;
 	ctx->ui_step = UI_STEP_NONE;
 
-    CHECK_STAGE(GET_KEY_STAGE_INIT);
+	CHECK_STAGE(GET_KEY_STAGE_INIT);
 	ASSERT(wireDataSize < BUFFER_SIZE_PARANOIA);
 
 	{

@@ -8,7 +8,7 @@
 
 #define MAX_PUBLIC_KEYS 1000
 
- typedef enum {
+typedef enum {
 	GET_KEY_STAGE_NONE = 0,
 	GET_KEY_STAGE_INIT = 20,
 } get_key_stage_t;
@@ -22,7 +22,7 @@ typedef struct {
 	uint16_t responseReadyMagic;
 
 	int ui_step;
-} ins_get_key_context_t; 
+} ins_get_key_context_t;
 
 handler_fn_t getPublicKey_handleAPDU;
 

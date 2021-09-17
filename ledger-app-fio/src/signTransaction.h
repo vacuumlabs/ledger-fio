@@ -8,7 +8,7 @@
 handler_fn_t signTransaction_handleAPDU;
 
 typedef struct {
-    sha_256_context_t hashContext;
+	sha_256_context_t hashContext;
 	int ui_step;
 	int stage;
 
@@ -16,7 +16,7 @@ typedef struct {
 	action_type_t action_type;
 	bip44_path_t path;
 
-    //We will need to save memory, theese will e in union eventualy
+	//We will need to save memory, theese will e in union eventualy
 	uint32_t expiration;
 	uint16_t refBlockNum;
 	uint32_t refBlockPrefix;
@@ -29,6 +29,6 @@ typedef struct {
 	uint64_t maxFee;
 	char actionDataActor[NAME_STRING_MAX_LENGTH];
 	char *tpid;
-} ins_sign_transaction_context_t; 
+} ins_sign_transaction_context_t;
 
 #endif // H_FIO_APP_SIGN_TRANSACTION

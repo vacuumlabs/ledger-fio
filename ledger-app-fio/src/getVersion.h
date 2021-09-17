@@ -7,7 +7,7 @@
 // Must be in format x.y.z
 #ifndef APPVERSION
 #error "Missing -DAPPVERSION=x.y.z in Makefile"
-#endif 
+#endif
 
 handler_fn_t getVersion_handleAPDU;
 

@@ -22,7 +22,7 @@ void derivePrivateKey(
 	// Sanity check
 	ASSERT(pathSpec->length < ARRAY_LEN(pathSpec->path));
 
-    TRACE();
+	TRACE();
 	uint8_t privateKeySeed[PRIVATE_KEY_SEED_LEN];
 
 	BEGIN_TRY {
@@ -38,7 +38,7 @@ void derivePrivateKey(
 			        NULL);
 			io_seproxyhal_io_heartbeat();
 
-            cx_ecfp_init_private_key(CX_CURVE_SECP256K1, privateKeySeed, 32, privateKey);  
+			cx_ecfp_init_private_key(CX_CURVE_SECP256K1, privateKeySeed, 32, privateKey);
 		}
 		FINALLY {
 			explicit_bzero(privateKeySeed, SIZEOF(privateKeySeed));
@@ -54,12 +54,12 @@ void derivePublicKey(
 	private_key_t privateKey;
 	BEGIN_TRY {
 		TRY {
-			derivePrivateKey(pathSpec, &privateKey);	
+			derivePrivateKey(pathSpec, &privateKey);
 			// We should do cx_ecfp_generate_pair here, but it does not work in SDK < 1.5.4,
 			// should work with the new SDK
 			io_seproxyhal_io_heartbeat();
 			cx_ecfp_init_public_key(CX_CURVE_SECP256K1, NULL, 0, publicKey);
-			cx_ecfp_generate_pair(CX_CURVE_SECP256K1, publicKey, &privateKey, 1); //1 - private key preserved	
+			cx_ecfp_generate_pair(CX_CURVE_SECP256K1, publicKey, &privateKey, 1); //1 - private key preserved
 			io_seproxyhal_io_heartbeat();
 		}
 		FINALLY {

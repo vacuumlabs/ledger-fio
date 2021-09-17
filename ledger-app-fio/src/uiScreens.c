@@ -43,11 +43,12 @@ void ui_displayFIOAmountScreen(
         const char* screenHeader,
         uint64_t amount,
         ui_callback_fn_t callback
-) {
+)
+{
 	char buf[35]; //20 digits 1x '.', 4x '.', ' FIO', terminating 0 + reserve
 	str_formatFIOAmount(amount, buf, SIZEOF(buf));
 	ui_displayPaginatedText(screenHeader, buf, callback);
-		
+
 }
 
 

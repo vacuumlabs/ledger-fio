@@ -14,7 +14,7 @@
 *  See the License for the specific language governing permissions and
 *  limitations under the License.
 ********************************************************************************/
-#include <string.h> 
+#include <string.h>
 #include "eos_utils.h"
 #include "os.h"
 #include "cx.h"
@@ -24,60 +24,50 @@
 */
 unsigned char check_canonical(uint8_t *rs)
 {
-    return !(rs[0] & 0x80) 
-        && !(rs[0] == 0 && !(rs[1] & 0x80)) 
-        && !(rs[32] & 0x80) 
-        && !(rs[32] == 0 && !(rs[33] & 0x80));
+	return !(rs[0] & 0x80)
+	       && !(rs[0] == 0 && !(rs[1] & 0x80))
+	       && !(rs[32] & 0x80)
+	       && !(rs[32] == 0 && !(rs[33] & 0x80));
 }
 
 int ecdsa_der_to_sig(const uint8_t *der, uint8_t *sig)
 {
-    int length;
-    int offset = 2;
-    int delta = 0;
-    if (der[offset + 2] == 0)
-    {
-        length = der[offset + 1] - 1;
-        offset += 3;
-    }
-    else
-    {
-        length = der[offset + 1];
-        offset += 2;
-    }
-    if ((length < 0) || (length > 32))
-    {
-        return 0;
-    }
-    while ((length + delta) < 32)
-    {
-        sig[delta++] = 0;
-    }
-    memcpy(sig + delta, der + offset, length);
+	int length;
+	int offset = 2;
+	int delta = 0;
+	if (der[offset + 2] == 0) {
+		length = der[offset + 1] - 1;
+		offset += 3;
+	} else {
+		length = der[offset + 1];
+		offset += 2;
+	}
+	if ((length < 0) || (length > 32)) {
+		return 0;
+	}
+	while ((length + delta) < 32) {
+		sig[delta++] = 0;
+	}
+	memcpy(sig + delta, der + offset, length);
 
-    delta = 0;
-    offset += length;
-    if (der[offset + 2] == 0)
-    {
-        length = der[offset + 1] - 1;
-        offset += 3;
-    }
-    else
-    {
-        length = der[offset + 1];
-        offset += 2;
-    }
-    if ((length < 0) || (length > 32))
-    {
-        return 0;
-    }
-    while ((length + delta) < 32)
-    {
-        sig[32 + delta++] = 0;
-    }
-    memcpy(sig + 32 + delta, der + offset, length);
+	delta = 0;
+	offset += length;
+	if (der[offset + 2] == 0) {
+		length = der[offset + 1] - 1;
+		offset += 3;
+	} else {
+		length = der[offset + 1];
+		offset += 2;
+	}
+	if ((length < 0) || (length > 32)) {
+		return 0;
+	}
+	while ((length + delta) < 32) {
+		sig[32 + delta++] = 0;
+	}
+	memcpy(sig + 32 + delta, der + offset, length);
 
-    return 1;
+	return 1;
 }
 
 /**
@@ -88,7 +78,7 @@ int ecdsa_der_to_sig(const uint8_t *der, uint8_t *sig)
  * - h1 - hash, in
  * - x - private key, in
  * - x_len - private key length
- * - q - SECP256K1_N, in 
+ * - q - SECP256K1_N, in
  * - q_len - 32, in
  * - V, out
  * - K, out
@@ -99,83 +89,75 @@ void rng_rfc6979(unsigned char *rnd,
                  const unsigned char *q, unsigned int q_len,
                  unsigned char *V, unsigned char *K)
 {
-    unsigned int h_len, found, i;
-    cx_hmac_sha256_t hmac;
+	unsigned int h_len, found, i;
+	cx_hmac_sha256_t hmac;
 
-    h_len = 32;
-    //a. h1 as input
+	h_len = 32;
+	//a. h1 as input
 
-    //loop for a candidate
-    found = 0;
-    while (!found)
-    {
-        if (x)
-        {
-            //b.  Set:          V = 0x01 0x01 0x01 ... 0x01
-            memset(V, 0x01, h_len);
-            //c. Set: K = 0x00 0x00 0x00 ... 0x00
-            memset(K, 0x00, h_len);
-            //d.  Set: K = HMAC_K(V || 0x00 || int2octets(x) || bits2octets(h1))
-            V[h_len] = 0;
-            cx_hmac_sha256_init(&hmac, K, 32);
-            cx_hmac((cx_hmac_t *)&hmac, 0, V, h_len + 1, K, 32);
-            cx_hmac((cx_hmac_t *)&hmac, 0, x, x_len, K, 32);
-            cx_hmac((cx_hmac_t *)&hmac, CX_LAST, h1, h_len, K, 32);
-            //e.  Set: V = HMAC_K(V)
-            cx_hmac_sha256_init(&hmac, K, 32);
-            cx_hmac((cx_hmac_t *)&hmac, CX_LAST, V, h_len, V, 32);
-            //f.  Set:  K = HMAC_K(V || 0x01 || int2octets(x) || bits2octets(h1))
-            V[h_len] = 1;
-            cx_hmac_sha256_init(&hmac, K, 32);
-            cx_hmac((cx_hmac_t *)&hmac, 0, V, h_len + 1, K, 32);
-            cx_hmac((cx_hmac_t *)&hmac, 0, x, x_len, K, 32);
-            cx_hmac((cx_hmac_t *)&hmac, CX_LAST, h1, h_len, K, 32);
-            //g. Set: V = HMAC_K(V) --
-            cx_hmac_sha256_init(&hmac, K, 32);
-            cx_hmac((cx_hmac_t *)&hmac, CX_LAST, V, h_len, V, 32);
-            // initial setup only once
-            x = NULL;
-        }
-        else
-        {
-            // h.3  K = HMAC_K(V || 0x00)
-            V[h_len] = 0;
-            cx_hmac_sha256_init(&hmac, K, 32);
-            cx_hmac((cx_hmac_t *)&hmac, CX_LAST, V, h_len + 1, K, 32);
-            // h.3 V = HMAC_K(V)
-            cx_hmac_sha256_init(&hmac, K, 32);
-            cx_hmac((cx_hmac_t *)&hmac, CX_LAST, V, h_len, V, 32);
-        }
+	//loop for a candidate
+	found = 0;
+	while (!found) {
+		if (x) {
+			//b.  Set:          V = 0x01 0x01 0x01 ... 0x01
+			memset(V, 0x01, h_len);
+			//c. Set: K = 0x00 0x00 0x00 ... 0x00
+			memset(K, 0x00, h_len);
+			//d.  Set: K = HMAC_K(V || 0x00 || int2octets(x) || bits2octets(h1))
+			V[h_len] = 0;
+			cx_hmac_sha256_init(&hmac, K, 32);
+			cx_hmac((cx_hmac_t *)&hmac, 0, V, h_len + 1, K, 32);
+			cx_hmac((cx_hmac_t *)&hmac, 0, x, x_len, K, 32);
+			cx_hmac((cx_hmac_t *)&hmac, CX_LAST, h1, h_len, K, 32);
+			//e.  Set: V = HMAC_K(V)
+			cx_hmac_sha256_init(&hmac, K, 32);
+			cx_hmac((cx_hmac_t *)&hmac, CX_LAST, V, h_len, V, 32);
+			//f.  Set:  K = HMAC_K(V || 0x01 || int2octets(x) || bits2octets(h1))
+			V[h_len] = 1;
+			cx_hmac_sha256_init(&hmac, K, 32);
+			cx_hmac((cx_hmac_t *)&hmac, 0, V, h_len + 1, K, 32);
+			cx_hmac((cx_hmac_t *)&hmac, 0, x, x_len, K, 32);
+			cx_hmac((cx_hmac_t *)&hmac, CX_LAST, h1, h_len, K, 32);
+			//g. Set: V = HMAC_K(V) --
+			cx_hmac_sha256_init(&hmac, K, 32);
+			cx_hmac((cx_hmac_t *)&hmac, CX_LAST, V, h_len, V, 32);
+			// initial setup only once
+			x = NULL;
+		} else {
+			// h.3  K = HMAC_K(V || 0x00)
+			V[h_len] = 0;
+			cx_hmac_sha256_init(&hmac, K, 32);
+			cx_hmac((cx_hmac_t *)&hmac, CX_LAST, V, h_len + 1, K, 32);
+			// h.3 V = HMAC_K(V)
+			cx_hmac_sha256_init(&hmac, K, 32);
+			cx_hmac((cx_hmac_t *)&hmac, CX_LAST, V, h_len, V, 32);
+		}
 
-        //generate candidate
-        /* Shortcut: As only secp256k1/sha256 is supported, the step h.2 :
-         *   While tlen < qlen, do the following:
-         *     V = HMAC_K(V)
-         *     T = T || V
-         * is replace by 
-         *     V = HMAC_K(V)
-         */
-        x_len = q_len;
-        while (x_len)
-        {
-            if (x_len < h_len)
-            {
-                h_len = x_len;
-            }
-            cx_hmac_sha256_init(&hmac, K, 32);
-            cx_hmac((cx_hmac_t *)&hmac, CX_LAST, V, h_len, V, 32);
-            memcpy(rnd, V, h_len);
-            x_len -= h_len;
-        }
+		//generate candidate
+		/* Shortcut: As only secp256k1/sha256 is supported, the step h.2 :
+		 *   While tlen < qlen, do the following:
+		 *     V = HMAC_K(V)
+		 *     T = T || V
+		 * is replace by
+		 *     V = HMAC_K(V)
+		 */
+		x_len = q_len;
+		while (x_len) {
+			if (x_len < h_len) {
+				h_len = x_len;
+			}
+			cx_hmac_sha256_init(&hmac, K, 32);
+			cx_hmac((cx_hmac_t *)&hmac, CX_LAST, V, h_len, V, 32);
+			memcpy(rnd, V, h_len);
+			x_len -= h_len;
+		}
 
-        // h.3 Check T is < n
-        for (i = 0; i < q_len; i++)
-        {
-            if (V[i] < q[i])
-            {
-                found = 1;
-                break;
-            }
-        }
-    }
+		// h.3 Check T is < n
+		for (i = 0; i < q_len; i++) {
+			if (V[i] < q[i]) {
+				found = 1;
+				break;
+			}
+		}
+	}
 }

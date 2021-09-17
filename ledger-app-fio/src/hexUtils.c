@@ -137,10 +137,10 @@ void test_hex_parsing()
 	}
 }
 
-#ifdef DEVEL 
+#ifdef DEVEL
 void run_hex_test()
 {
 	test_hex_nibble_parsing();
 	test_hex_parsing();
 }
-#endif //DEVEL 
+#endif //DEVEL

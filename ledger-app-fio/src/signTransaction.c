@@ -79,9 +79,10 @@ void respondSuccessEmptyMsg()
 }
 
 uint8_t const SECP256K1_N[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-								0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe,
-								0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b,
-								0xbf, 0xd2, 0x5e, 0x8c, 0xd0, 0x36, 0x41, 0x41};
+                               0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe,
+                               0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b,
+                               0xbf, 0xd2, 0x5e, 0x8c, 0xd0, 0x36, 0x41, 0x41
+                              };
 
 // ============================== INIT ==============================
 enum {
@@ -118,7 +119,8 @@ static void signTx_handleInit_ui_runStep()
 }
 
 __noinline_due_to_stack__
-void signTx_handleInitAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize) {
+void signTx_handleInitAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize)
+{
 	TRACE_STACK_USAGE();
 	{
 		// sanity checks
@@ -128,7 +130,7 @@ void signTx_handleInitAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataS
 		ASSERT(wireDataSize < BUFFER_SIZE_PARANOIA);
 	}
 
-    {
+	{
 		// parse data
 		TRACE_BUFFER(wireDataBuffer, wireDataSize);
 
@@ -138,14 +140,14 @@ void signTx_handleInitAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataS
 
 		VALIDATE(SIZEOF(*wireData) == wireDataSize, ERR_INVALID_DATA);
 
-    	TRACE("SHA_256_init");
-	    sha_256_init(&ctx->hashContext);
+		TRACE("SHA_256_init");
+		sha_256_init(&ctx->hashContext);
 		sha_256_append(&ctx->hashContext, wireData->chainId, SIZEOF(wireData->chainId));
 
 		ctx->network = getNetworkByChainId(wireData->chainId, SIZEOF(wireData->chainId));
 		TRACE("Network %d:", ctx->network);
 	}
-		
+
 	security_policy_t policy = policyForSignTxInit(ctx->network);
 	TRACE("Policy: %d", (int) policy);
 	ENSURE_NOT_DENIED(policy);
@@ -180,29 +182,29 @@ static void signTx_handleHeader_ui_runStep()
 
 	UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
-/*	UI_STEP(HANDLE_HEADER_STEP_EXPIRATION) {
-		ui_displayTimeScreen(
-				"Expiration",
-				ctx->expiration,
-				this_fn
-		);
-	}
+	/*	UI_STEP(HANDLE_HEADER_STEP_EXPIRATION) {
+			ui_displayTimeScreen(
+					"Expiration",
+					ctx->expiration,
+					this_fn
+			);
+		}
 
-	UI_STEP(HANDLE_HEADER_STEP_REF_BLOCK_NUM) {
-		ui_displayUint64Screen(
-				"Ref Block Num",
-				ctx->refBlockNum,
-				this_fn
-		);
-	}
+		UI_STEP(HANDLE_HEADER_STEP_REF_BLOCK_NUM) {
+			ui_displayUint64Screen(
+					"Ref Block Num",
+					ctx->refBlockNum,
+					this_fn
+			);
+		}
 
-	UI_STEP(HANDLE_HEADER_STEP_REF_BLOCK_PREFIX) {
-		ui_displayUint64Screen(
-				"Ref Block Prefix",
-				ctx->refBlockPrefix,
-				this_fn
-		);
-	}*/
+		UI_STEP(HANDLE_HEADER_STEP_REF_BLOCK_PREFIX) {
+			ui_displayUint64Screen(
+					"Ref Block Prefix",
+					ctx->refBlockPrefix,
+					this_fn
+			);
+		}*/
 
 	UI_STEP(HANDLE_HEADER_STEP_RESPOND) {
 		respondSuccessEmptyMsg();
@@ -213,7 +215,8 @@ static void signTx_handleHeader_ui_runStep()
 }
 
 __noinline_due_to_stack__
-void signTx_handleHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize) {
+void signTx_handleHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize)
+{
 	TRACE_STACK_USAGE();
 	{
 		// sanity checks
@@ -223,7 +226,7 @@ void signTx_handleHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDat
 		ASSERT(wireDataSize < BUFFER_SIZE_PARANOIA);
 	}
 
-    {
+	{
 		// parse data
 		TRACE_BUFFER(wireDataBuffer, wireDataSize);
 
@@ -244,11 +247,11 @@ void signTx_handleHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDat
 		ctx->refBlockPrefix = u4be_read(wireData->refBlockPrefix);
 		sha_256_append(&ctx->hashContext, (uint8_t *)&ctx->refBlockPrefix, sizeof(ctx->expiration));
 
-        uint8_t buf[4]; //max_net_usage_words, max_cpu_usage_ms, delay_sec, context_free_actions
-    	explicit_bzero(buf, sizeof(buf)); //SIZEOF does no work for 4
+		uint8_t buf[4]; //max_net_usage_words, max_cpu_usage_ms, delay_sec, context_free_actions
+		explicit_bzero(buf, sizeof(buf)); //SIZEOF does no work for 4
 		sha_256_append(&ctx->hashContext, buf, sizeof(buf));
 	}
-		
+
 	security_policy_t policy = policyForSignTxHeader();
 	TRACE("Policy: %d", (int) policy);
 	ENSURE_NOT_DENIED(policy);
@@ -301,7 +304,8 @@ static void signTx_handleActionHeader_ui_runStep()
 }
 
 __noinline_due_to_stack__
-void signTx_handleActionHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize) {
+void signTx_handleActionHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize)
+{
 	TRACE_STACK_USAGE();
 	{
 		// sanity checks
@@ -311,7 +315,7 @@ void signTx_handleActionHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t w
 		ASSERT(wireDataSize < BUFFER_SIZE_PARANOIA);
 	}
 
-    {
+	{
 		// parse data
 		TRACE_BUFFER(wireDataBuffer, wireDataSize);
 
@@ -321,16 +325,16 @@ void signTx_handleActionHeaderAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t w
 
 		VALIDATE(SIZEOF(*wireData) == wireDataSize, ERR_INVALID_DATA);
 
-		uint8_t buf[1]; 
-		buf[0] = 1; 
+		uint8_t buf[1];
+		buf[0] = 1;
 		sha_256_append(&ctx->hashContext, buf, SIZEOF(buf)); //one action
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData, SIZEOF(*wireData));
 
-		ctx->action_type = getActionTypeByContractAccountName(ctx->network, wireData->contractAccountName, 
-				CONTRACT_ACCOUNT_NAME_LENGTH);
+		ctx->action_type = getActionTypeByContractAccountName(ctx->network, wireData->contractAccountName,
+		                   CONTRACT_ACCOUNT_NAME_LENGTH);
 		TRACE("Action type %d:", ctx->action_type);
 	}
-		
+
 	security_policy_t policy = policyForSignTxActionHeader(ctx->action_type);
 	TRACE("Policy: %d", (int) policy);
 	ENSURE_NOT_DENIED(policy);
@@ -367,17 +371,17 @@ static void signTx_handleActionAuthorization_ui_runStep()
 
 	UI_STEP(HANDLE_ACTION_AUTHORIZATION_STEP_SHOW_ACTOR) {
 		ui_displayPaginatedText(
-				"Actor",
-				ctx->actionValidationActor,
-				this_fn
+		        "Actor",
+		        ctx->actionValidationActor,
+		        this_fn
 		);
 	}
 
 	UI_STEP(HANDLE_ACTION_AUTHORIZATION_STEP_SHOW_PERMISSION) {
 		ui_displayPaginatedText(
-				"Permission",
-				ctx->actionValidationPermission,
-				this_fn
+		        "Permission",
+		        ctx->actionValidationPermission,
+		        this_fn
 		);
 	}
 
@@ -390,7 +394,8 @@ static void signTx_handleActionAuthorization_ui_runStep()
 }
 
 __noinline_due_to_stack__
-void signTx_handleActionAuthorizationAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize) {
+void signTx_handleActionAuthorizationAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize)
+{
 	TRACE_STACK_USAGE();
 	{
 		// sanity checks
@@ -400,7 +405,7 @@ void signTx_handleActionAuthorizationAPDU(uint8_t p2, uint8_t* wireDataBuffer, s
 		ASSERT(wireDataSize < BUFFER_SIZE_PARANOIA);
 	}
 
-    {
+	{
 		// parse data
 		TRACE_BUFFER(wireDataBuffer, wireDataSize);
 
@@ -411,8 +416,8 @@ void signTx_handleActionAuthorizationAPDU(uint8_t p2, uint8_t* wireDataBuffer, s
 
 		VALIDATE(SIZEOF(*wireData) == wireDataSize, ERR_INVALID_DATA);
 
-		uint8_t buf[1]; 
-		buf[0] = 1; 
+		uint8_t buf[1];
+		buf[0] = 1;
 		sha_256_append(&ctx->hashContext, buf, SIZEOF(buf)); //one authorization
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData->actor, SIZEOF(wireData->actor));
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData->permission, SIZEOF(wireData->permission));
@@ -420,7 +425,7 @@ void signTx_handleActionAuthorizationAPDU(uint8_t p2, uint8_t* wireDataBuffer, s
 		uint8array_name_to_string(wireData->actor, NAME_VAR_LENGHT, ctx->actionValidationActor, NAME_STRING_MAX_LENGTH);
 		uint8array_name_to_string(wireData->permission, NAME_VAR_LENGHT, ctx->actionValidationPermission, NAME_STRING_MAX_LENGTH);
 	}
-		
+
 	security_policy_t policy = policyForSignTxActionAuthorization();
 	TRACE("Policy: %d", (int) policy);
 	ENSURE_NOT_DENIED(policy);
@@ -460,41 +465,41 @@ static void signTx_handleActionData_ui_runStep()
 
 	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_PUBKEY) {
 		ui_displayPaginatedText(
-				"Payee Pubkey",
-				ctx->pubkey,
-				this_fn
+		        "Payee Pubkey",
+		        ctx->pubkey,
+		        this_fn
 		);
 	}
 
 	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_AMOUNT) {
 		ui_displayFIOAmountScreen(
-				"Amount",
-				ctx->amount,
-				this_fn
+		        "Amount",
+		        ctx->amount,
+		        this_fn
 		);
 	}
 
 	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_MAX_FEE) {
 		ui_displayFIOAmountScreen(
-				"Max fee",
-				ctx->maxFee,
-				this_fn
+		        "Max fee",
+		        ctx->maxFee,
+		        this_fn
 		);
 	}
 
-/*	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_ACTOR) {
-		ui_displayPaginatedText(
-				"Actor",
-				ctx->actionDataActor,
-				this_fn
-		);
-	}*/
+	/*	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_ACTOR) {
+			ui_displayPaginatedText(
+					"Actor",
+					ctx->actionDataActor,
+					this_fn
+			);
+		}*/
 
 	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_TPID) {
 		ui_displayPaginatedText(
-				"Tpid",
-				ctx->tpid,
-				this_fn
+		        "Tpid",
+		        ctx->tpid,
+		        this_fn
 		);
 	}
 
@@ -507,7 +512,8 @@ static void signTx_handleActionData_ui_runStep()
 }
 
 __noinline_due_to_stack__
-void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize) {
+void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize)
+{
 	TRACE_STACK_USAGE();
 	{
 		// sanity checks
@@ -517,7 +523,7 @@ void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wir
 		ASSERT(wireDataSize < BUFFER_SIZE_PARANOIA);
 	}
 
-    {
+	{
 		// parse data
 		TRACE_BUFFER(wireDataBuffer, wireDataSize);
 
@@ -526,17 +532,17 @@ void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wir
 			uint8_t pubkeyLength[1];
 			uint8_t pubkey[MAX_PUB_KEY_LENGTH]; // null terminated
 		}* wireData1 = (void*) wireDataBuffer;
-			
+
 		struct {
 			uint8_t amount[8];
 			uint8_t maxFee[8];
-			uint8_t actor[NAME_VAR_LENGHT]; 
+			uint8_t actor[NAME_VAR_LENGHT];
 			uint8_t tpidLength[1];
 			uint8_t tpid[MAX_TPID_LENGTH]; // null terminated
 		}* wireData2 = ((void*) wireDataBuffer) + 1 + 1 + wireData1->pubkeyLength[0] + 1; //last one for trailing 0
 
-		uint8_t expectedDataLength = 1 + 1 + wireData1->pubkeyLength[0] 
-				+ 1 + 8 + 8 + NAME_VAR_LENGHT + 1 + wireData2->tpidLength[0]  + 1;
+		uint8_t expectedDataLength = 1 + 1 + wireData1->pubkeyLength[0]
+		                             + 1 + 8 + 8 + NAME_VAR_LENGHT + 1 + wireData2->tpidLength[0]  + 1;
 
 		VALIDATE(expectedDataLength == wireDataSize, ERR_INVALID_DATA);
 		VALIDATE(wireData1->dataLength[0] == wireDataSize - 3, ERR_INVALID_DATA); //-1 for data length, -2 fo trailing 0's
@@ -566,7 +572,7 @@ void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wir
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData2->tpidLength, SIZEOF(wireData2->tpidLength));
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData2->tpid, wireData2->tpidLength[0]);
 	}
-		
+
 	security_policy_t policy = policyForSignTxActionData(ctx->actionValidationActor, ctx->actionDataActor);
 	TRACE("Policy: %d", (int) policy);
 	ENSURE_NOT_DENIED(policy);
@@ -603,9 +609,9 @@ static void signTx_handleWitnesses_ui_runStep()
 
 	UI_STEP(HANDLE_WITTNESSES_STEP_DISPLAY_DETAILS) {
 		ui_displayPathScreen(
-				"Sign with:",
-				&ctx->path,
-				this_fn
+		        "Sign with:",
+		        &ctx->path,
+		        this_fn
 		);
 	}
 
@@ -619,7 +625,7 @@ static void signTx_handleWitnesses_ui_runStep()
 	}
 
 	UI_STEP(HANDLE_WITTNESSES_STEP_RESPOND) {
-  	    io_send_buf(SUCCESS, G_io_apdu_buffer, 65 + 32);
+		io_send_buf(SUCCESS, G_io_apdu_buffer, 65 + 32);
 		ui_displayBusy(); // needs to happen after I/O
 		advanceStage();
 	}
@@ -628,7 +634,8 @@ static void signTx_handleWitnesses_ui_runStep()
 }
 
 __noinline_due_to_stack__
-void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize) {
+void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize)
+{
 	TRACE_STACK_USAGE();
 	{
 		// sanity checks
@@ -655,36 +662,36 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
 		ENSURE_NOT_DENIED(policy);
 	}
 
-    //Extension points
-	uint8_t buf[1]; 
+	//Extension points
+	uint8_t buf[1];
 	explicit_bzero(buf, SIZEOF(buf));
 	sha_256_append(&ctx->hashContext, buf, SIZEOF(buf));
 
-    //We finish the hash appending a 32-byte empty buffer
-    uint8_t hashBuf[32];
+	//We finish the hash appending a 32-byte empty buffer
+	uint8_t hashBuf[32];
 	explicit_bzero(hashBuf, SIZEOF(hashBuf));
 	sha_256_append(&ctx->hashContext, hashBuf, SIZEOF(hashBuf));
 
 	//we get the resulting hash
-    sha_256_finalize(&ctx->hashContext, hashBuf, SIZEOF(hashBuf));
-    TRACE("SHA_256_finalize, resulting hash:");
-    TRACE_BUFFER(hashBuf, 32);
+	sha_256_finalize(&ctx->hashContext, hashBuf, SIZEOF(hashBuf));
+	TRACE("SHA_256_finalize, resulting hash:");
+	TRACE_BUFFER(hashBuf, 32);
 
-    //We derive the private key
+	//We derive the private key
 	private_key_t privateKey;
-    bip44_path_t pathSpec = {{44 + HARDENED_BIP32, 235 + HARDENED_BIP32, 0 + HARDENED_BIP32, 0, 0}, 5};
-    derivePrivateKey(&pathSpec, &privateKey);
+	bip44_path_t pathSpec = {{44 + HARDENED_BIP32, 235 + HARDENED_BIP32, 0 + HARDENED_BIP32, 0, 0}, 5};
+	derivePrivateKey(&pathSpec, &privateKey);
 	TRACE("privateKey.d:");
-    TRACE_BUFFER(privateKey.d, privateKey.d_len);
+	TRACE_BUFFER(privateKey.d, privateKey.d_len);
 
-    //We sign the hash
+	//We sign the hash
 	//Code producing signatures is taken from EOS app
-    uint32_t tx = 0;
-    uint8_t V[33];
-    uint8_t K[32];
-    int tries = 0;
-	
-    // Loop until a candidate matching the canonical signature is found
+	uint32_t tx = 0;
+	uint8_t V[33];
+	uint8_t K[32];
+	int tries = 0;
+
+	// Loop until a candidate matching the canonical signature is found
 	// Taken from EOS app
 	// We use G_io_apdu_buffer to save memory (and also to minimize changes to EOS code)
 	// The code produces the signature right where we need it for the respons
@@ -693,36 +700,29 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
 			explicit_bzero(G_io_apdu_buffer, SIZEOF(G_io_apdu_buffer));
 			for (;;)
 			{
-				if (tries == 0)
-				{
+				if (tries == 0) {
 					rng_rfc6979(G_io_apdu_buffer + 100, hashBuf, privateKey.d, privateKey.d_len, SECP256K1_N, 32, V, K);
-				}
-				else
-				{
+				} else {
 					rng_rfc6979(G_io_apdu_buffer + 100, hashBuf, NULL, 0, SECP256K1_N, 32, V, K);
 				}
 				uint32_t infos;
 				tx = cx_ecdsa_sign(&privateKey, CX_NO_CANONICAL | CX_RND_PROVIDED | CX_LAST, CX_SHA256,
-								hashBuf, 32, 
-								G_io_apdu_buffer + 100, 100,
-								&infos);
+				                   hashBuf, 32,
+				                   G_io_apdu_buffer + 100, 100,
+				                   &infos);
 				TRACE_BUFFER(G_io_apdu_buffer + 100, 100);
-				
-				if ((infos & CX_ECCINFO_PARITY_ODD) != 0)
-				{
+
+				if ((infos & CX_ECCINFO_PARITY_ODD) != 0) {
 					G_io_apdu_buffer[100] |= 0x01;
 				}
 				G_io_apdu_buffer[0] = 27 + 4 + (G_io_apdu_buffer[100] & 0x01);
 				ecdsa_der_to_sig(G_io_apdu_buffer + 100, G_io_apdu_buffer + 1);
-				TRACE_BUFFER(G_io_apdu_buffer , 65);
+				TRACE_BUFFER(G_io_apdu_buffer, 65);
 
-				if (check_canonical(G_io_apdu_buffer + 1))
-				{
+				if (check_canonical(G_io_apdu_buffer + 1)) {
 					tx = 1 + 64;
 					break;
-				}
-				else
-				{
+				} else {
 					TRACE("Try %d unsuccesfull! We will not get correct signature!!!!!!!!!!!!!!!!!!!!!!!!!", tries);
 					tries++;
 				}
@@ -732,11 +732,11 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
 			memset(&privateKey, 0, sizeof(privateKey));
 		}
 	}
-	END_TRY; 
+	END_TRY;
 
 	//We add hash to the response
-    TRACE("ecdsa_der_to_sig_result:");
-    TRACE_BUFFER(G_io_apdu_buffer, 65);
+	TRACE("ecdsa_der_to_sig_result:");
+	TRACE_BUFFER(G_io_apdu_buffer, 65);
 	memcpy(G_io_apdu_buffer + 65, hashBuf, 32);
 
 	{
