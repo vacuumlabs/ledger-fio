@@ -34,6 +34,7 @@ By BIP44, we refer here both to the original BIP44 scheme and its Cardano Shelle
 |  P1 | signing phase |
 |  P2 | (specific for each subcall) |
 
+The phases must follow in sequence, each call exactly once. Ledger is computing the rolling hash of the serialized transaction.
 
 ### Initialize signing
 
@@ -52,6 +53,9 @@ Initializes signing request.
 |------|-----|-----|
 | chainId                                | 32 |  |
 
+*Serialization*
+
+Serializes chainId as it is.
 
 ### Transaction header
 
@@ -71,6 +75,10 @@ So only the hash is transferred and displayed and the user has to use other mean
 | Ref block num | 2 | little endian |
 | Ref block prefix | 4 | little endian |
 
+*Serialization*
+
+Converts all three integer to big endian for serialization. Then it adds 4 zero bytes which stand for `max_net_usage_words`, `max_cpu_usage_ms`, `delay_sec`, and number of context-free actions. 
+
 
 ### Action header
 
@@ -85,7 +93,13 @@ So only the hash is transferred and displayed and the user has to use other mean
 
 |Field| Length | Comments|
 |-----|--------|--------|
-| Contract Account Name | 16 |  serialized asthey go into the transaction |
+| Contract, Account, Name | 16 |  serialized as they go into the transaction |
+
+Ledger knows and recognizes the constant and asigns correct actiion to it.
+
+*Serialization*
+
+Adds one byte with value 1, this stands for one action. 16 bytes from APDU data follows.
 
 
 ### Action Authorization
@@ -95,14 +109,18 @@ So only the hash is transferred and displayed and the user has to use other mean
 |Field|Value|
 |-----|-----|
 |  P1 | `0x04` |
-|  P2 | `0x30` |
+|  P2 | unused |
 
 *Data*
 
 |Field| Length | Comments|
 |-----|--------|--------|
 | Actor | 8 | Serialized as `name`|
-| Authorization | 8 | Serialized as `name`|
+| Permission | 8 | Serialized as `name`|
+
+*Serialization*
+
+Adds one byte with value 1, this stands for one auhorization. Actor and Permission follow (8+8 bytes).
 
 
 ### Action Data
@@ -112,7 +130,7 @@ As of now, only Transfer FIO tokens action is implemented.
 |Field|Value|
 |-----|-----|
 |  P1 | `0x05` |
-|  P2 | (unused) |
+|  P2 | unused |
 
 *Data*
 
@@ -131,6 +149,13 @@ We add trailing zeroes to he string. Thus APDU data length will be Data length (
 | tpid | tpid lenght | |
 | 0 | 1 | Tpid trailing `0` |
 
+*Serialization*
+
+The data are serialized as in APDU, except:
+- the two trailing 0's are ommited
+- amount and fee are converted to big endian.
+The Data length field must be equal to the ledgth of the rest of serialized data.
+
 ### Compute witnesses
 
 Given a valid BIP44 path, sign TxHash by Ledger. Return the hash and the signature.
@@ -141,8 +166,12 @@ The caller is responsible for assembling the actual witness.
 |Field|Value|
 |-----|-----|
 |  P1 | `0x10` |
-|  P2 | (unused) |
+|  P2 | unused |
 | data | BIP44 path. See [GetExtPubKey call](ins_get_public_key.md) for a format example |
+
+*Serialization*
+
+Adds 33 empty bytes. This stands for extension points (1 byte) and context-free data (32 bytes).
 
 **Response**
 
