@@ -1,8 +1,0 @@
-App compatibility
-Clean up unittests
-Example app and tests crash at the end
-Returned errors do not have desired DeviceStatusError type
--------------------------------------------------------------
-Signatures always work (not only if cannonical signature is found on first)
-Sign actual transaction not the fake one
-
