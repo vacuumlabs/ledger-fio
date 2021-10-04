@@ -410,8 +410,8 @@ void signTx_handleActionAuthorizationAPDU(uint8_t p2, uint8_t* wireDataBuffer, s
 		TRACE_BUFFER(wireDataBuffer, wireDataSize);
 
 		struct {
-			uint8_t actor[NAME_VAR_LENGHT];
-			uint8_t permission[NAME_VAR_LENGHT];
+			uint8_t actor[NAME_VAR_LENGTH];
+			uint8_t permission[NAME_VAR_LENGTH];
 		}* wireData = (void*) wireDataBuffer;
 
 		VALIDATE(SIZEOF(*wireData) == wireDataSize, ERR_INVALID_DATA);
@@ -422,8 +422,8 @@ void signTx_handleActionAuthorizationAPDU(uint8_t p2, uint8_t* wireDataBuffer, s
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData->actor, SIZEOF(wireData->actor));
 		sha_256_append(&ctx->hashContext, (uint8_t *) wireData->permission, SIZEOF(wireData->permission));
 
-		uint8array_name_to_string(wireData->actor, NAME_VAR_LENGHT, ctx->actionValidationActor, NAME_STRING_MAX_LENGTH);
-		uint8array_name_to_string(wireData->permission, NAME_VAR_LENGHT, ctx->actionValidationPermission, NAME_STRING_MAX_LENGTH);
+		uint8array_name_to_string(wireData->actor, NAME_VAR_LENGTH, ctx->actionValidationActor, NAME_STRING_MAX_LENGTH);
+		uint8array_name_to_string(wireData->permission, NAME_VAR_LENGTH, ctx->actionValidationPermission, NAME_STRING_MAX_LENGTH);
 	}
 
 	security_policy_t policy = policyForSignTxActionAuthorization();
@@ -536,13 +536,13 @@ void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wir
 		struct {
 			uint8_t amount[8];
 			uint8_t maxFee[8];
-			uint8_t actor[NAME_VAR_LENGHT];
+			uint8_t actor[NAME_VAR_LENGTH];
 			uint8_t tpidLength[1];
 			uint8_t tpid[MAX_TPID_LENGTH]; // null terminated
 		}* wireData2 = ((void*) wireDataBuffer) + 1 + 1 + wireData1->pubkeyLength[0] + 1; //last one for trailing 0
 
 		uint8_t expectedDataLength = 1 + 1 + wireData1->pubkeyLength[0]
-		                             + 1 + 8 + 8 + NAME_VAR_LENGHT + 1 + wireData2->tpidLength[0]  + 1;
+		                             + 1 + 8 + 8 + NAME_VAR_LENGTH + 1 + wireData2->tpidLength[0]  + 1;
 
 		VALIDATE(expectedDataLength == wireDataSize, ERR_INVALID_DATA);
 		VALIDATE(wireData1->dataLength[0] == wireDataSize - 3, ERR_INVALID_DATA); //-1 for data length, -2 fo trailing 0's

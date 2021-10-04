@@ -46,7 +46,7 @@ bool bip44_hasValidFIOPrefix(const bip44_path_t* pathSpec)
 #define CHECK(cond) if (!(cond)) return false
 	CHECK(pathSpec->length > BIP44_I_COIN_TYPE);
 	CHECK(pathSpec->path[BIP44_I_PURPOSE] == (PURPOSE_FIO | HARDENED_BIP32));
-	CHECK(pathSpec->path[BIP44_I_COIN_TYPE] == (FIO_COIN_TYPE | HARDENED_BIP32));
+	CHECK(pathSpec->path[BIP44_I_COIN_TYPE] == (COIN_TYPE_FIO | HARDENED_BIP32));
 	CHECK(pathSpec->path[BIP44_I_ACCOUNT] == (0 | HARDENED_BIP32));
 	CHECK(pathSpec->path[BIP44_I_CHAIN] == (0));
 	return true;
@@ -73,7 +73,7 @@ bool bip44_hasReasonableAddress(const bip44_path_t* pathSpec)
 	return (address <= MAX_REASONABLE_ADDRESS);
 }
 
-// Futher
+// Further
 bool bip44_containsMoreThanAddress(const bip44_path_t* pathSpec)
 {
 	return (pathSpec->length > BIP44_I_ADDRESS + 1);

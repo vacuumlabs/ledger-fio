@@ -15,7 +15,7 @@ typedef struct {
 
 
 static const uint32_t PURPOSE_FIO = 44;
-static const uint32_t FIO_COIN_TYPE = 235;
+static const uint32_t COIN_TYPE_FIO = 235;
 
 static const uint32_t HARDENED_BIP32 = ((uint32_t) 1 << 31);
 

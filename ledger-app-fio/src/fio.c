@@ -27,11 +27,11 @@ network_type_t getNetworkByChainId(uint8_t *chainId, size_t length)
 action_type_t getActionTypeByContractAccountName(network_type_t network, uint8_t * contractAccountName, size_t length)
 {
 	ASSERT(length == CONTRACT_ACCOUNT_NAME_LENGTH);
-	const uint8_t testnetTrnsfiopubky[CONTRACT_ACCOUNT_NAME_LENGTH] = {0x00, 0x00, 0x98, 0x0a, 0xd2, 0x0c, 0xa8, 0x5b,
+	const uint8_t trnsfiopubky[CONTRACT_ACCOUNT_NAME_LENGTH] = {0x00, 0x00, 0x98, 0x0a, 0xd2, 0x0c, 0xa8, 0x5b,
 	                                                                   0xe0, 0xe1, 0xd1, 0x95, 0xba, 0x85, 0xe7, 0xcd
 	                                                                  };
 	if (network == NETWORK_TESTNET || network == NETWORK_MAINNET) {
-		if (!memcmp(contractAccountName, testnetTrnsfiopubky, CONTRACT_ACCOUNT_NAME_LENGTH)) {
+		if (!memcmp(contractAccountName, trnsfiopubky, CONTRACT_ACCOUNT_NAME_LENGTH)) {
 			return ACTION_TYPE_TRNSFIOPUBKY;
 		}
 		return ACTION_TYPE_UNKNOWN;
@@ -46,15 +46,17 @@ static const char* charmap = ".12345abcdefghijklmnopqrstuvwxyz";
 // From EOS app, slightly modified
 void name_to_string(name_t value, char *out, size_t size)
 {
-	ASSERT(size >= NAME_STRING_MAX_LENGTH);
 
 	uint32_t i = 0;
-	uint32_t actual_size = NAME_STRING_MAX_LENGTH;
 	uint64_t tmp = value;
+
+	uint32_t actual_size = 13;
 	char str[13] = {'.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'};
 
 	for (i = 0; i <= 12; ++i) {
-		char c = charmap[tmp & (i == 0 ? 0x0f : 0x1f)];
+		uint8_t index = tmp & (i == 0 ? 0x0f : 0x1f);
+		ASSERT(index < strlen(charmap));
+		char c = charmap[index];
 		str[12 - i] = c;
 		tmp >>= (i == 0 ? 4 : 5);
 	}
@@ -63,21 +65,17 @@ void name_to_string(name_t value, char *out, size_t size)
 		actual_size--;
 	}
 
+	ASSERT(actual_size + 1 < size);
 	memcpy(out, str, actual_size);
-
-	//clear trailing dots
-	i = NAME_STRING_MAX_LENGTH - 1;
-	do {
-		out[i] = 0;
-		i--;
-	} while (out[i] == '.' && i != 0);
+	out[actual_size] = 0;
 }
 
 // Wrapper
 void uint8array_name_to_string(uint8_t *value, size_t valueSize, char *out, size_t outSize)
 {
-	ASSERT(valueSize == NAME_VAR_LENGHT);
+	ASSERT(valueSize == NAME_VAR_LENGTH);
 	name_t tmp;
+	ASSERT(sizeof(tmp) >= valueSize);
 	memcpy(&tmp, value, valueSize);
 	name_to_string(tmp, out, outSize);
 }

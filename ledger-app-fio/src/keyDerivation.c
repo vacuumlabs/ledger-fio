@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "endian.h"
 #include "fio.h"
+#include "securityPolicy.h"
 
 #define PRIVATE_KEY_SEED_LEN 32
 
@@ -16,9 +17,8 @@ void derivePrivateKey(
         private_key_t* privateKey
 )
 {
-	if (!bip44_hasValidFIOPrefix(pathSpec)) {
-		THROW(ERR_INVALID_BIP44_PATH);
-	}
+	ENSURE_NOT_DENIED(policyDerivePrivateKey(pathSpec));
+
 	// Sanity check
 	ASSERT(pathSpec->length < ARRAY_LEN(pathSpec->path));
 

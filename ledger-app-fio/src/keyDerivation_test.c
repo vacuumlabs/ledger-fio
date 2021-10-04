@@ -68,9 +68,10 @@ void testPrivateKeyDerivation()
 		EXPECT_THROWS(testcase_derivePrivateKey(path, ARRAY_LEN(path), ""), error_ ); \
 	}
 
-	TESTCASE( (HD + 43, HD + 235), ERR_INVALID_BIP44_PATH);
-	TESTCASE( (HD + 44, 235, HD + 1), ERR_INVALID_BIP44_PATH);
-	TESTCASE( (HD + 44, HD + 234, HD + 1), ERR_INVALID_BIP44_PATH);
+	TESTCASE( (HD + 43, HD + 235, HD + 0, 0), ERR_REJECTED_BY_POLICY);
+	TESTCASE( (HD + 44, 235, HD + 1, 0, 0), ERR_REJECTED_BY_POLICY);
+	TESTCASE( (HD + 44, HD + 234, HD + 1, 0, 0), ERR_REJECTED_BY_POLICY);
+	TESTCASE( (HD + 44, HD + 235, HD + 1, 0, 0, 0), ERR_REJECTED_BY_POLICY);
 #undef TESTCASE
 }
 

@@ -27,7 +27,6 @@ void handleRunTests(
 		run_hex_test();
 		run_endian_test();
 		run_textUtils_test();
-		run_hash_test();
 		run_bip44_test();
 		run_key_derivation_test();
 		PRINTF("All tests done\n");
