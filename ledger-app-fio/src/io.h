@@ -11,14 +11,7 @@ enum  {
 	P2_UNUSED = 0
 };
 
-// `io_send_*` are helper functions for sending response APDUs.
-// Note that the IO_RETURN_AFTER_TX flag is set so that the function
-// does not receive next APDU.
-// 'tx' is the conventional name for the size of the response APDU,
-
-void _io_send_G_io_apdu_buffer(uint16_t code, uint16_t tx);
-
-// Normal code should use just this helper function
+// helper function for sending response APDUs.
 void io_send_buf(uint16_t code, uint8_t* buffer, size_t bufferSize);
 
 // Asserts that the response fits into response buffer

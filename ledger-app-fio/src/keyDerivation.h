@@ -8,7 +8,6 @@
 
 #define PUBLIC_KEY_SIZE      (32)
 #define CHAIN_CODE_SIZE      (32)
-#define EXTENDED_PUBKEY_SIZE (CHAIN_CODE_SIZE + PUBLIC_KEY_SIZE)
 
 typedef cx_ecfp_private_key_t private_key_t;
 typedef cx_ecfp_public_key_t public_key_t;

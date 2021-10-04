@@ -610,7 +610,7 @@ static void signTx_handleWitnesses_ui_runStep()
 	UI_STEP(HANDLE_WITTNESSES_STEP_DISPLAY_DETAILS) {
 		ui_displayPathScreen(
 		        "Sign with:",
-		        &ctx->path,
+		        &ctx->wittness_path,
 		        this_fn
 		);
 	}
@@ -644,20 +644,20 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
 		ASSERT(wireDataSize < BUFFER_SIZE_PARANOIA);
 	}
 
-	explicit_bzero(&ctx->path, SIZEOF(ctx->path));
+	explicit_bzero(&ctx->wittness_path, SIZEOF(ctx->wittness_path));
 
 	{
 		// parse
 		TRACE_BUFFER(wireDataBuffer, wireDataSize);
 
-		size_t parsedSize = bip44_parseFromWire(&ctx->path, wireDataBuffer, wireDataSize);
+		size_t parsedSize = bip44_parseFromWire(&ctx->wittness_path, wireDataBuffer, wireDataSize);
 		VALIDATE(parsedSize == wireDataSize, ERR_INVALID_DATA);
 	}
 
 	security_policy_t policy = POLICY_DENY;
 	{
 		// get policy
-		policy = policyForSignTxWitnesses(&ctx->path);
+		policy = policyForSignTxWitnesses(&ctx->wittness_path);
 		TRACE("Policy: %d", (int) policy);
 		ENSURE_NOT_DENIED(policy);
 	}
