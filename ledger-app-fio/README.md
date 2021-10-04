@@ -31,14 +31,13 @@ Make sure you have:
 - SDK >= 2.0.0
 - MCU >= 1.11
 
-Environment setup and developer documentation is sufficiently provided in Ledger’s [Read the Docs](https://ledger.readthedocs.io/en/latest/userspace/debugging.html).
+Environment setup and developer documentation is sufficiently provided in Ledger’s [Read the Docs](https://developers.ledger.com/docs/nano-app/quickstart/).
 
 You want a debug version of the MCU firmware (but it blocks SDK firmware updates, so for the purpose of upgrading SDK, replace it temporarily with a non-debug one). Instructions for swapping MCU versions: https://github.com/LedgerHQ/ledger-dev-doc/blob/master/source/userspace/debugging.rst
 
-### Setting udev rules
+### Troubleshooting connection problems
 
-You might need to setup udev rules before your device can communicate with the system.
-- https://ledger.readthedocs.io/en/latest/userspace/setup.html
+The quickstart guide's script sets up your udev rules, but there still might be problems.
 - https://support.ledger.com/hc/en-us/articles/115005165269-Fix-connection-issues
 
 ## Development
@@ -71,6 +70,5 @@ Ordinarily, Ledger computes a rolling hash of the serialized transaction body, b
 
 4. Send a single `signTx` call to Ledger (e.g. by running `yarn test-integration --grep "<some-signTx-test>"`).
 
-5. After the call is processed, the terminal running console printing now contains all log messages resulting from that `signTx` call. (See the `TRACE*` macros.). You can build the transactions using data between SHA_256_append_begin
- and SHA_256_append_end.
+5. After the call is processed, the terminal running console printing now contains all log messages resulting from that `signTx` call. (See the `TRACE*` macros.). You can build the transactions using data between logged within sha_256_append function.
 

@@ -16,7 +16,6 @@ Get a public key for a given BIP32 path.
 
 **Data**
 
-For the initial APDU message, use
 
 | Field                             | Length | Comments                           |
 | --------------------------------- | ------ | ---------------------------------- |
@@ -28,7 +27,7 @@ For the initial APDU message, use
 | (optional) Last derivation index  | 4      | Big endian                         |
 | (optional) No. of remaining keys  | 4      | Big endian                         |
 
-For each of the following messages (one for each of the remaining keys), the last field (No. of remaining keys) must not be included.
+Ledger will will process only certain paths, other paths will be rejected by app policy (see Ledger responsibilities section). 
 
 **Response**
 

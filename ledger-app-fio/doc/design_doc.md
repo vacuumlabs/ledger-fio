@@ -56,7 +56,7 @@ Instructions related to general app status
 
 Instructions related to public keys/addresses
 
-- `0x10` [Get extended public key](ins_get_public_key.md)
+- `0x10` [Get public key](ins_get_public_key.md)
 
 ### `INS=0x2*` group
 
@@ -74,4 +74,4 @@ Instructions related to debug mode of the app. These instructions *must not* be 
 
 In order to ensure safe forward compatibility, sender *must* set any *unused* field to zero. When upgrading protocol, any unused field that is no longer unused *must* define only values != 0. This will ensure that clients using old protocol will receive errors instead of an unexpected behavior.
 
-❓(VL,IOHK): Do we want to force clients to check app version (mis)match, e.g. by having an explicit handshake? A custom (non `ledgerjs`-based) client app might omit version checks which might lead to potential problems
+❓(VL): Do we want to force clients to check app version (mis)match, e.g. by having an explicit handshake? A custom (non `ledgerjs`-based) client app might omit version checks which might lead to potential problems
