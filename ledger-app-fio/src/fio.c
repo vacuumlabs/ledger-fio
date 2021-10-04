@@ -28,8 +28,8 @@ action_type_t getActionTypeByContractAccountName(network_type_t network, uint8_t
 {
 	ASSERT(length == CONTRACT_ACCOUNT_NAME_LENGTH);
 	const uint8_t trnsfiopubky[CONTRACT_ACCOUNT_NAME_LENGTH] = {0x00, 0x00, 0x98, 0x0a, 0xd2, 0x0c, 0xa8, 0x5b,
-	                                                                   0xe0, 0xe1, 0xd1, 0x95, 0xba, 0x85, 0xe7, 0xcd
-	                                                                  };
+	                                                            0xe0, 0xe1, 0xd1, 0x95, 0xba, 0x85, 0xe7, 0xcd
+	                                                           };
 	if (network == NETWORK_TESTNET || network == NETWORK_MAINNET) {
 		if (!memcmp(contractAccountName, trnsfiopubky, CONTRACT_ACCOUNT_NAME_LENGTH)) {
 			return ACTION_TYPE_TRNSFIOPUBKY;

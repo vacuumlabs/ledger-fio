@@ -3,6 +3,7 @@
 #include "textUtils.h"
 
 
+__noinline_due_to_stack__
 void ui_displayPathScreen(
         const char* screenHeader,
         const bip44_path_t* path,
@@ -22,6 +23,7 @@ void ui_displayPathScreen(
 	);
 }
 
+__noinline_due_to_stack__
 void ui_displayUint64Screen(
         const char* screenHeader,
         uint64_t value,
@@ -52,6 +54,7 @@ void ui_displayFIOAmountScreen(
 }
 
 
+__noinline_due_to_stack__
 void ui_displayHexBufferScreen(
         const char* screenHeader,
         const uint8_t* buffer, size_t bufferSize,

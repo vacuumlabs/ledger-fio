@@ -63,7 +63,7 @@ security_policy_t policyForSignTxActionData(char* validation_actor, char* data_a
 	SHOW();
 }
 
-security_policy_t policyForSignTxWitnesses(const bip44_path_t* pathSpec)
+security_policy_t policyForSignTxWitness(const bip44_path_t* pathSpec)
 {
 	DENY_UNLESS(bip44_hasValidFIOPrefix(pathSpec));
 	DENY_UNLESS(bip44_containsAddress(pathSpec));

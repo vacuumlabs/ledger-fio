@@ -23,7 +23,7 @@ action_type_t getActionTypeByContractAccountName(network_type_t network, uint8_t
 //name compressed to 8 bytes, uncompresed up to 13 bytes, last byte for 0
 #define NAME_VAR_LENGTH 8
 typedef uint64_t name_t;
-#define NAME_STRING_MAX_LENGTH 14 
+#define NAME_STRING_MAX_LENGTH 14
 void name_to_string(name_t value, char *out, size_t size);
 void uint8array_name_to_string(uint8_t *value, size_t valueSize, char *out, size_t outSize);
 

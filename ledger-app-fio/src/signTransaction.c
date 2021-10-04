@@ -20,7 +20,7 @@ typedef enum {
 	SIGN_STAGE_ACTION_HEADER = 25,
 	SIGN_STAGE_ACTION_AUTHORIZATION = 26,
 	SIGN_STAGE_ACTION_DATA = 27,
-	SIGN_STAGE_WITNESSES = 28,
+	SIGN_STAGE_WITNESS = 28,
 } sign_tx_stage_t;
 
 // this is supposed to be called at the beginning of each APDU handler
@@ -53,17 +53,17 @@ static inline void advanceStage()
 		break;
 
 	case SIGN_STAGE_ACTION_DATA:
-		ctx->stage = SIGN_STAGE_WITNESSES;
+		ctx->stage = SIGN_STAGE_WITNESS;
 		break;
 
-	case SIGN_STAGE_WITNESSES:
+	case SIGN_STAGE_WITNESS:
 		ctx->stage = SIGN_STAGE_NONE;
 		ui_idle(); // we are done with this tx
 		break;
 
 	case SIGN_STAGE_NONE:
-		THROW(ERR_INVALID_STATE);
-
+		// advanceStage() not supposed to be called after tx processing is finished
+		ASSERT(false);
 	default:
 		ASSERT(false);
 	}
@@ -78,6 +78,7 @@ void respondSuccessEmptyMsg()
 	ui_displayBusy(); // needs to happen after I/O
 }
 
+//Taken from EOS app. Needed to produce signatures.
 uint8_t const SECP256K1_N[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
                                0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe,
                                0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b,
@@ -101,7 +102,7 @@ static void signTx_handleInit_ui_runStep()
 
 	UI_STEP(HANDLE_INIT_STEP_DISPLAY_DETAILS) {
 		switch(ctx->network) {
-#	define  CASE(NETWORK, STRING) case NETWORK: {ui_displayPaginatedText("Chain:", STRING, this_fn); break;}
+#	define  CASE(NETWORK, CHAIN_STRING) case NETWORK: {ui_displayPaginatedText("Chain", CHAIN_STRING, this_fn); break;}
 			CASE(NETWORK_MAINNET, "Mainnet");
 			CASE(NETWORK_TESTNET, "Testnet");
 #	undef   CASE
@@ -287,7 +288,7 @@ static void signTx_handleActionHeader_ui_runStep()
 
 	UI_STEP(HANDLE_ACTION_HEADER_STEP_SHOW_TYPE) {
 		switch(ctx->action_type) {
-#	define  CASE(ACTION, STRING) case ACTION: {ui_displayPaginatedText("Action:", STRING, this_fn); break;}
+#	define  CASE(ACTION, STRING) case ACTION: {ui_displayPaginatedText("Action", STRING, this_fn); break;}
 			CASE(ACTION_TYPE_TRNSFIOPUBKY, "Transfer FIO tokens");
 #	undef   CASE
 		default:
@@ -419,8 +420,8 @@ void signTx_handleActionAuthorizationAPDU(uint8_t p2, uint8_t* wireDataBuffer, s
 		uint8_t buf[1];
 		buf[0] = 1;
 		sha_256_append(&ctx->hashContext, buf, SIZEOF(buf)); //one authorization
-		sha_256_append(&ctx->hashContext, (uint8_t *) wireData->actor, SIZEOF(wireData->actor));
-		sha_256_append(&ctx->hashContext, (uint8_t *) wireData->permission, SIZEOF(wireData->permission));
+		sha_256_append(&ctx->hashContext, wireData->actor, SIZEOF(wireData->actor));
+		sha_256_append(&ctx->hashContext, wireData->permission, SIZEOF(wireData->permission));
 
 		uint8array_name_to_string(wireData->actor, NAME_VAR_LENGTH, ctx->actionValidationActor, NAME_STRING_MAX_LENGTH);
 		uint8array_name_to_string(wireData->permission, NAME_VAR_LENGTH, ctx->actionValidationPermission, NAME_STRING_MAX_LENGTH);
@@ -449,7 +450,6 @@ enum {
 	HANDLE_ACTION_DATA_STEP_SHOW_PUBKEY = 400,
 	HANDLE_ACTION_DATA_STEP_SHOW_AMOUNT,
 	HANDLE_ACTION_DATA_STEP_SHOW_MAX_FEE,
-	HANDLE_ACTION_DATA_STEP_SHOW_ACTOR,
 	HANDLE_ACTION_DATA_STEP_SHOW_TPID,
 	HANDLE_ACTION_DATA_STEP_RESPOND,
 	HANDLE_ACTION_DATA_STEP_INVALID,
@@ -486,14 +486,6 @@ static void signTx_handleActionData_ui_runStep()
 		        this_fn
 		);
 	}
-
-	/*	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_ACTOR) {
-			ui_displayPaginatedText(
-					"Actor",
-					ctx->actionDataActor,
-					this_fn
-			);
-		}*/
 
 	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_TPID) {
 		ui_displayPaginatedText(
@@ -532,6 +524,7 @@ void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wir
 			uint8_t pubkeyLength[1];
 			uint8_t pubkey[MAX_PUB_KEY_LENGTH]; // null terminated
 		}* wireData1 = (void*) wireDataBuffer;
+		const uint8_t expectedWireData1Length = SIZEOF(*wireData1) - MAX_PUB_KEY_LENGTH + wireData1->pubkeyLength[0] + 1;
 
 		struct {
 			uint8_t amount[8];
@@ -539,12 +532,10 @@ void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wir
 			uint8_t actor[NAME_VAR_LENGTH];
 			uint8_t tpidLength[1];
 			uint8_t tpid[MAX_TPID_LENGTH]; // null terminated
-		}* wireData2 = ((void*) wireDataBuffer) + 1 + 1 + wireData1->pubkeyLength[0] + 1; //last one for trailing 0
+		}* wireData2 = ((void*) wireDataBuffer) + expectedWireData1Length; 
+		const uint8_t expectedWireData2Length = SIZEOF(*wireData2) - MAX_TPID_LENGTH + wireData2->tpidLength[0] + 1;
 
-		uint8_t expectedDataLength = 1 + 1 + wireData1->pubkeyLength[0]
-		                             + 1 + 8 + 8 + NAME_VAR_LENGTH + 1 + wireData2->tpidLength[0]  + 1;
-
-		VALIDATE(expectedDataLength == wireDataSize, ERR_INVALID_DATA);
+		VALIDATE(expectedWireData1Length + expectedWireData2Length == wireDataSize, ERR_INVALID_DATA);
 		VALIDATE(wireData1->dataLength[0] == wireDataSize - 3, ERR_INVALID_DATA); //-1 for data length, -2 fo trailing 0's
 		VALIDATE(wireData1->dataLength[0] <= MAX_SINGLE_BYTE_LENGTH, ERR_INVALID_DATA);
 		VALIDATE(wireData1->pubkeyLength[0] < MAX_SINGLE_BYTE_LENGTH, ERR_INVALID_DATA); // < for terminating 0
@@ -593,29 +584,29 @@ void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wir
 // ============================== WITNESS ==============================
 
 enum {
-	HANDLE_WITTNESSES_STEP_DISPLAY_DETAILS = 1000,
-	HANDLE_WITTNESSES_STEP_CONFIRM,
-	HANDLE_WITTNESSES_STEP_RESPOND,
-	HANDLE_WITTNESSES_STEP_INVALID,
+	HANDLE_WITNESS_STEP_DISPLAY_DETAILS = 1000,
+	HANDLE_WITNESS_STEP_CONFIRM,
+	HANDLE_WITNESS_STEP_RESPOND,
+	HANDLE_WITNESS_STEP_INVALID,
 } ;
 
-static void signTx_handleWitnesses_ui_runStep()
+static void signTx_handleWitness_ui_runStep()
 {
 	TRACE("UI step %d", ctx->ui_step);
 	TRACE_STACK_USAGE();
-	ui_callback_fn_t* this_fn = signTx_handleWitnesses_ui_runStep;
+	ui_callback_fn_t* this_fn = signTx_handleWitness_ui_runStep;
 
 	UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
-	UI_STEP(HANDLE_WITTNESSES_STEP_DISPLAY_DETAILS) {
+	UI_STEP(HANDLE_WITNESS_STEP_DISPLAY_DETAILS) {
 		ui_displayPathScreen(
-		        "Sign with:",
-		        &ctx->wittness_path,
+		        "Sign with",
+		        &ctx->wittnessPath,
 		        this_fn
 		);
 	}
 
-	UI_STEP(HANDLE_WITTNESSES_STEP_CONFIRM) {
+	UI_STEP(HANDLE_WITNESS_STEP_CONFIRM) {
 		ui_displayPrompt(
 		        "Sign",
 		        "transaction?",
@@ -624,40 +615,40 @@ static void signTx_handleWitnesses_ui_runStep()
 		);
 	}
 
-	UI_STEP(HANDLE_WITTNESSES_STEP_RESPOND) {
+	UI_STEP(HANDLE_WITNESS_STEP_RESPOND) {
 		io_send_buf(SUCCESS, G_io_apdu_buffer, 65 + 32);
 		ui_displayBusy(); // needs to happen after I/O
 		advanceStage();
 	}
 
-	UI_STEP_END(HANDLE_WITTNESSES_STEP_INVALID);
+	UI_STEP_END(HANDLE_WITNESS_STEP_INVALID);
 }
 
 __noinline_due_to_stack__
-void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize)
+void signTx_handleWitnessAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDataSize)
 {
 	TRACE_STACK_USAGE();
 	{
 		// sanity checks
-		CHECK_STAGE(SIGN_STAGE_WITNESSES);
+		CHECK_STAGE(SIGN_STAGE_WITNESS);
 		VALIDATE(p2 == P2_UNUSED, ERR_INVALID_REQUEST_PARAMETERS);
 		ASSERT(wireDataSize < BUFFER_SIZE_PARANOIA);
 	}
 
-	explicit_bzero(&ctx->wittness_path, SIZEOF(ctx->wittness_path));
+	explicit_bzero(&ctx->wittnessPath, SIZEOF(ctx->wittnessPath));
 
 	{
 		// parse
 		TRACE_BUFFER(wireDataBuffer, wireDataSize);
 
-		size_t parsedSize = bip44_parseFromWire(&ctx->wittness_path, wireDataBuffer, wireDataSize);
+		size_t parsedSize = bip44_parseFromWire(&ctx->wittnessPath, wireDataBuffer, wireDataSize);
 		VALIDATE(parsedSize == wireDataSize, ERR_INVALID_DATA);
 	}
 
 	security_policy_t policy = POLICY_DENY;
 	{
 		// get policy
-		policy = policyForSignTxWitnesses(&ctx->wittness_path);
+		policy = policyForSignTxWitness(&ctx->wittnessPath);
 		TRACE("Policy: %d", (int) policy);
 		ENSURE_NOT_DENIED(policy);
 	}
@@ -679,8 +670,7 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
 
 	//We derive the private key
 	private_key_t privateKey;
-	bip44_path_t pathSpec = {{44 + HARDENED_BIP32, 235 + HARDENED_BIP32, 0 + HARDENED_BIP32, 0, 0}, 5};
-	derivePrivateKey(&pathSpec, &privateKey);
+	derivePrivateKey(&ctx->wittnessPath, &privateKey);
 	TRACE("privateKey.d:");
 	TRACE_BUFFER(privateKey.d, privateKey.d_len);
 
@@ -743,14 +733,14 @@ void signTx_handleWitnessesAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wire
 		// select UI steps
 		switch (policy) {
 #	define  CASE(POLICY, UI_STEP) case POLICY: {ctx->ui_step=UI_STEP; break;}
-			CASE(POLICY_PROMPT_BEFORE_RESPONSE, HANDLE_WITTNESSES_STEP_DISPLAY_DETAILS);
+			CASE(POLICY_PROMPT_BEFORE_RESPONSE, HANDLE_WITNESS_STEP_DISPLAY_DETAILS);
 #	undef   CASE
 		default:
 			THROW(ERR_NOT_IMPLEMENTED);
 		}
 	}
 
-	signTx_handleWitnesses_ui_runStep();
+	signTx_handleWitness_ui_runStep();
 }
 
 
@@ -768,7 +758,7 @@ static subhandler_fn_t* lookup_subhandler(uint8_t p1)
 		CASE(0x03, signTx_handleActionHeaderAPDU);
 		CASE(0x04, signTx_handleActionAuthorizationAPDU);
 		CASE(0x05, signTx_handleActionDataAPDU);
-		CASE(0x10, signTx_handleWitnessesAPDU);
+		CASE(0x10, signTx_handleWitnessAPDU);
 		DEFAULT(NULL)
 #	undef   CASE
 #	undef   DEFAULT
