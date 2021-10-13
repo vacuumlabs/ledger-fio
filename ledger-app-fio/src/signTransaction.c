@@ -599,10 +599,11 @@ static void signTx_handleWitness_ui_runStep()
 	UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
 	UI_STEP(HANDLE_WITNESS_STEP_DISPLAY_DETAILS) {
-		ui_displayPathScreen(
-		        "Sign with",
-		        &ctx->wittnessPath,
-		        this_fn
+		ui_displayHexBufferScreen(
+			"Sign with:",
+			ctx->wittnessPathPubkey.W,
+			SIZEOF(ctx->wittnessPathPubkey.W),
+			this_fn
 		);
 	}
 
@@ -673,6 +674,10 @@ void signTx_handleWitnessAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wireDa
 	derivePrivateKey(&ctx->wittnessPath, &privateKey);
 	TRACE("privateKey.d:");
 	TRACE_BUFFER(privateKey.d, privateKey.d_len);
+
+	//We want to show pubkey, thus we derive it
+	derivePublicKey(&ctx->wittnessPath, &ctx->wittnessPathPubkey);
+	TRACE_BUFFER(ctx->wittnessPathPubkey.W, SIZEOF(ctx->wittnessPathPubkey.W));
 
 	//We sign the hash
 	//Code producing signatures is taken from EOS app

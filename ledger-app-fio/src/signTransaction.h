@@ -4,6 +4,7 @@
 #include "handlers.h"
 #include "hash.h"
 #include "fio.h"
+#include "keyDerivation.h"
 
 handler_fn_t signTransaction_handleAPDU;
 
@@ -36,6 +37,7 @@ typedef struct {
 
 	//only used in WITNESS step
 	bip44_path_t wittnessPath;
+	public_key_t wittnessPathPubkey;
 
 } ins_sign_transaction_context_t;
 
