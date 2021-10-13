@@ -38,7 +38,8 @@ static void advanceStage()
 
 enum {
 	GET_KEY_UI_STEP_WARNING = 200,
-	GET_KEY_UI_STEP_DISPLAY,
+	GET_KEY_UI_STEP_DISPLAY_PATH,
+	GET_KEY_UI_STEP_DISPLAY_PUBKEY,
 	GET_KEY_UI_STEP_CONFIRM,
 	GET_KEY_UI_STEP_RESPOND,
 	GET_KEY_UI_STEP_INVALID,
@@ -58,8 +59,11 @@ static void getPublicKey_ui_runStep()
 		        this_fn
 		);
 	}
-	UI_STEP(GET_KEY_UI_STEP_DISPLAY) {
+	UI_STEP(GET_KEY_UI_STEP_DISPLAY_PATH) {
 		ui_displayPathScreen("Export public key", &ctx->pathSpec, this_fn);
+	}
+	UI_STEP(GET_KEY_UI_STEP_DISPLAY_PUBKEY) {
+		ui_displayHexBufferScreen("Public key", ctx->pubKey.W, SIZEOF(ctx->pubKey.W), this_fn);
 	}
 	UI_STEP(GET_KEY_UI_STEP_CONFIRM) {
 		ui_displayPrompt(
@@ -91,7 +95,7 @@ static void runGetPublicKeyUIFlow()
 	ctx->responseReadyMagic = 0;
 
 	// Check security policy
-	security_policy_t policy = policyForGetPublicKey(&ctx->pathSpec);
+	security_policy_t policy = policyForGetPublicKey(&ctx->pathSpec, ctx->show_or_not);
 	TRACE("Policy: %d", (int) policy);
 	ENSURE_NOT_DENIED(policy);
 
@@ -107,7 +111,7 @@ static void runGetPublicKeyUIFlow()
 	switch (policy) {
 #	define  CASE(policy, step) case policy: {ctx->ui_step = step; break;}
 		CASE(POLICY_PROMPT_WARN_UNUSUAL,    GET_KEY_UI_STEP_WARNING);
-		CASE(POLICY_PROMPT_BEFORE_RESPONSE, GET_KEY_UI_STEP_DISPLAY);
+		CASE(POLICY_PROMPT_BEFORE_RESPONSE, GET_KEY_UI_STEP_DISPLAY_PUBKEY);
 		CASE(POLICY_ALLOW_WITHOUT_PROMPT,   GET_KEY_UI_STEP_RESPOND);
 #	undef   CASE
 	default:
@@ -128,7 +132,7 @@ void getPublicKey_handleAPDU(
 )
 {
 	VALIDATE(isNewCall, ERR_INVALID_STATE);
-	VALIDATE(p1 == P1_UNUSED, ERR_INVALID_REQUEST_PARAMETERS);
+	VALIDATE(p1 == P1_SHOW_PUBKEY || p1 == P1_DO_NOT_SHOW_PUBKEY, ERR_INVALID_REQUEST_PARAMETERS);
 	VALIDATE(p2 == P2_UNUSED, ERR_INVALID_REQUEST_PARAMETERS);
 
 	explicit_bzero(ctx, SIZEOF(*ctx));
@@ -139,6 +143,8 @@ void getPublicKey_handleAPDU(
 	ASSERT(wireDataSize < BUFFER_SIZE_PARANOIA);
 
 	{
+		ctx->show_or_not = p1;
+
 		// parse
 		TRACE_BUFFER(wireDataBuffer, wireDataSize);
 

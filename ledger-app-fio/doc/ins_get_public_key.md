@@ -10,12 +10,13 @@ Get a public key for a given BIP32 path.
 | ----- | -------- |
 | CLA   | `0xD7`   |
 | INS   | `0x10`   |
-| P1    | unused   |
+| P1    | show (`0x01`) or not (`0x02`) |
 | P2    | unused   |
 | Lc    | variable |
 
-**Data**
+The public key and derivation path will be shown either way if the derivation path is suspicious.
 
+**Data**
 
 | Field                             | Length | Comments                           |
 | --------------------------------- | ------ | ---------------------------------- |

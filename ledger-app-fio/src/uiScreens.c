@@ -64,9 +64,9 @@ void ui_displayHexBufferScreen(
 	ASSERT(strlen(screenHeader) > 0);
 	ASSERT(strlen(screenHeader) < BUFFER_SIZE_PARANOIA);
 	ASSERT(bufferSize > 0);
-	ASSERT(bufferSize <= 32); // this is used for hashes, all are <= 32 bytes
+	ASSERT(bufferSize <= 65); // this is used for hashes, and pubkeys, they are all smaller
 
-	char bufferHex[2 * 32 + 1];
+	char bufferHex[2 * 65 + 1];
 	explicit_bzero(bufferHex, SIZEOF(bufferHex));
 
 	size_t length = encode_hex(

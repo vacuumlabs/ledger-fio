@@ -2,6 +2,7 @@
 #define H_FIO_APP_SECURITY_POLICY
 
 #include "bip44.h"
+#include "getPublicKey.h"
 
 typedef enum {
 	POLICY_DENY = 1,
@@ -11,7 +12,7 @@ typedef enum {
 	POLICY_SHOW_BEFORE_RESPONSE = 5, // Show on display but do not ask for explicit confirmation
 } security_policy_t;
 
-security_policy_t policyForGetPublicKey(const bip44_path_t* pathSpec);
+security_policy_t policyForGetPublicKey(const bip44_path_t* pathSpec, get_key_p1_t show_or_not);
 
 security_policy_t policyForSignTxInit(network_type_t network);
 security_policy_t policyForSignTxHeader();

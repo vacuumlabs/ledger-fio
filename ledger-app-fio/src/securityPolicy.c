@@ -25,14 +25,15 @@
 #define SHOW_UNLESS(expr)  if (!(expr)) return POLICY_SHOW_BEFORE_RESPONSE;
 
 
-security_policy_t policyForGetPublicKey(const bip44_path_t* pathSpec)
+security_policy_t policyForGetPublicKey(const bip44_path_t* pathSpec, get_key_p1_t show_or_not)
 {
 	DENY_UNLESS(bip44_hasValidFIOPrefix(pathSpec));
 	DENY_UNLESS(bip44_containsAddress(pathSpec));
 	DENY_IF(bip44_containsMoreThanAddress(pathSpec));
 	WARN_UNLESS(bip44_hasReasonableAddress(pathSpec));
+	PROMPT_IF(show_or_not != P1_DO_NOT_SHOW_PUBKEY);
 
-	PROMPT();
+	ALLOW();
 }
 
 security_policy_t policyForSignTxInit(network_type_t network)
