@@ -144,6 +144,8 @@ We add trailing zeroes to the string. Thus APDU data length will be Data length 
 | tpid | tpid length | |
 | 0 | 1 | Tpid trailing `0` |
 
+For both pubkey and tpid we have both length and trailing 0. The reason for this is that it makes the code on ledger slightly easier, while it has very little impact on JS code.
+
 *Serialization*
 
 The data are serialized as in APDU, except:

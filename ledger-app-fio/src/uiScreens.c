@@ -1,7 +1,8 @@
 #include "uiScreens.h"
 #include "hexUtils.h"
 #include "textUtils.h"
-
+#include "eos_utils.h"
+#include "fio.h"
 
 __noinline_due_to_stack__
 void ui_displayPathScreen(
@@ -83,5 +84,26 @@ void ui_displayHexBufferScreen(
 	);
 }
 
+__noinline_due_to_stack__
+void ui_displayPubkeyScreen(
+        const char* screenHeader,
+        const public_key_t* pubkey,
+        ui_callback_fn_t callback
+)
+{
+	ASSERT(strlen(screenHeader) > 0);
+	ASSERT(strlen(screenHeader) < BUFFER_SIZE_PARANOIA);
+    
+	char buffer[MAX_WIF_PUBKEY_LENGTH + 1];
+	uint32_t outlen = public_key_to_wif(pubkey->W, SIZEOF(pubkey->W), buffer, SIZEOF(buffer));
+	ASSERT(outlen < MAX_WIF_PUBKEY_LENGTH + 1);
+	buffer[outlen] = 0;
+
+	ui_displayPaginatedText(
+	        screenHeader,
+	        buffer,
+	        callback
+	);
+}
 
 

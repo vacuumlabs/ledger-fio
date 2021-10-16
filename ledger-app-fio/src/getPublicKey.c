@@ -4,6 +4,7 @@
 #include "uiScreens.h"
 #include "getPublicKey.h"
 #include "utils.h"
+#include "eos_utils.h"
 
 static int16_t RESPONSE_READY_MAGIC = 23456;
 
@@ -63,7 +64,7 @@ static void getPublicKey_ui_runStep()
 		ui_displayPathScreen("Export public key", &ctx->pathSpec, this_fn);
 	}
 	UI_STEP(GET_KEY_UI_STEP_DISPLAY_PUBKEY) {
-		ui_displayHexBufferScreen("Public key", ctx->pubKey.W, SIZEOF(ctx->pubKey.W), this_fn);
+		ui_displayPubkeyScreen("Public key", &ctx->pubKey, this_fn);
 	}
 	UI_STEP(GET_KEY_UI_STEP_CONFIRM) {
 		ui_displayPrompt(
@@ -76,7 +77,12 @@ static void getPublicKey_ui_runStep()
 	UI_STEP(GET_KEY_UI_STEP_RESPOND) {
 		ASSERT(ctx->responseReadyMagic == RESPONSE_READY_MAGIC);
 
-		io_send_buf(SUCCESS, ctx->pubKey.W, SIZEOF(ctx->pubKey.W));
+		memmove(G_io_apdu_buffer, ctx->pubKey.W, SIZEOF(ctx->pubKey.W));
+		uint32_t wifkeylen = public_key_to_wif(ctx->pubKey.W, SIZEOF(ctx->pubKey.W), 
+				(char *)G_io_apdu_buffer + SIZEOF(ctx->pubKey.W), MAX_WIF_PUBKEY_LENGTH);
+		//we do not copy trailing 0
+		io_send_buf(SUCCESS, G_io_apdu_buffer, SIZEOF(ctx->pubKey.W) + wifkeylen - 1);
+
 		ctx->responseReadyMagic = 0; // just for safety
 		ui_displayBusy(); // needs to happen after I/O
 

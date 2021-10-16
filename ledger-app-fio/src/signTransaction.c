@@ -522,16 +522,16 @@ void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wir
 		struct {
 			uint8_t dataLength[1];
 			uint8_t pubkeyLength[1];
-			uint8_t pubkey[MAX_PUB_KEY_LENGTH]; // null terminated
+			uint8_t pubkey[MAX_WIF_PUBKEY_LENGTH]; // null terminated, for convenience, we will use displayPaginatedText
 		}* wireData1 = (void*) wireDataBuffer;
-		const uint8_t expectedWireData1Length = SIZEOF(*wireData1) - MAX_PUB_KEY_LENGTH + wireData1->pubkeyLength[0] + 1;
+		const uint8_t expectedWireData1Length = SIZEOF(*wireData1) - MAX_WIF_PUBKEY_LENGTH + wireData1->pubkeyLength[0] + 1;
 
 		struct {
 			uint8_t amount[8];
 			uint8_t maxFee[8];
 			uint8_t actor[NAME_VAR_LENGTH];
 			uint8_t tpidLength[1];
-			uint8_t tpid[MAX_TPID_LENGTH]; // null terminated
+			uint8_t tpid[MAX_TPID_LENGTH]; // null terminated, for convenience, we will use displayPaginatedText
 		}* wireData2 = ((void*) wireDataBuffer) + expectedWireData1Length; 
 		const uint8_t expectedWireData2Length = SIZEOF(*wireData2) - MAX_TPID_LENGTH + wireData2->tpidLength[0] + 1;
 
@@ -539,7 +539,7 @@ void signTx_handleActionDataAPDU(uint8_t p2, uint8_t* wireDataBuffer, size_t wir
 		VALIDATE(wireData1->dataLength[0] == wireDataSize - 3, ERR_INVALID_DATA); //-1 for data length, -2 fo trailing 0's
 		VALIDATE(wireData1->dataLength[0] <= MAX_SINGLE_BYTE_LENGTH, ERR_INVALID_DATA);
 		VALIDATE(wireData1->pubkeyLength[0] < MAX_SINGLE_BYTE_LENGTH, ERR_INVALID_DATA); // < for terminating 0
-		VALIDATE(wireData1->pubkeyLength[0] < MAX_PUB_KEY_LENGTH, ERR_INVALID_DATA); // < for terminating 0
+		VALIDATE(wireData1->pubkeyLength[0] < MAX_WIF_PUBKEY_LENGTH, ERR_INVALID_DATA); // < for terminating 0
 		str_validateNullTerminatedTextBuffer(wireData1->pubkey, wireData1->pubkeyLength[0]);
 
 		VALIDATE(wireData2->tpidLength[0] < MAX_SINGLE_BYTE_LENGTH, ERR_INVALID_DATA); // < for terminating 0
@@ -599,12 +599,7 @@ static void signTx_handleWitness_ui_runStep()
 	UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
 	UI_STEP(HANDLE_WITNESS_STEP_DISPLAY_DETAILS) {
-		ui_displayHexBufferScreen(
-			"Sign with:",
-			ctx->wittnessPathPubkey.W,
-			SIZEOF(ctx->wittnessPathPubkey.W),
-			this_fn
-		);
+		ui_displayPubkeyScreen("Sign with", &ctx->wittnessPathPubkey, this_fn);
 	}
 
 	UI_STEP(HANDLE_WITNESS_STEP_CONFIRM) {

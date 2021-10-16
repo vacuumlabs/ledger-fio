@@ -32,9 +32,10 @@ Ledger will will process only certain paths, other paths will be rejected by app
 
 **Response**
 
-| Field      | Length |
-| ---------- | ------ |
-| pub_key    | 65     |
+| Field       | Length |
+| ----------- | ------ |
+| pub_key     | 65     |
+| pub_key_WIF | 53     |
 
 **Errors (SW codes)**
 

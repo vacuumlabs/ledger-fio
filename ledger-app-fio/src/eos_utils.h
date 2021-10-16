@@ -31,4 +31,6 @@ void rng_rfc6979(unsigned char *rnd,
                  const unsigned char *q, unsigned int q_len,
                  unsigned char *V, unsigned char *K);
 
+uint32_t public_key_to_wif(const uint8_t *publicKey, uint32_t keyLength, char *out, uint32_t outLength);
+
 #endif
