@@ -370,7 +370,7 @@ static void signTx_handleActionAuthorization_ui_runStep()
 
 	UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
-	UI_STEP(HANDLE_ACTION_AUTHORIZATION_STEP_SHOW_ACTOR) {
+/*	UI_STEP(HANDLE_ACTION_AUTHORIZATION_STEP_SHOW_ACTOR) {
 		ui_displayPaginatedText(
 		        "Actor",
 		        ctx->actionValidationActor,
@@ -384,7 +384,7 @@ static void signTx_handleActionAuthorization_ui_runStep()
 		        ctx->actionValidationPermission,
 		        this_fn
 		);
-	}
+	}*/
 
 	UI_STEP(HANDLE_ACTION_AUTHORIZATION_STEP_RESPOND) {
 		respondSuccessEmptyMsg();
@@ -434,7 +434,7 @@ void signTx_handleActionAuthorizationAPDU(uint8_t p2, uint8_t* wireDataBuffer, s
 		// select UI steps
 		switch (policy) {
 #	define  CASE(POLICY, UI_STEP) case POLICY: {ctx->ui_step=UI_STEP; break;}
-			CASE(POLICY_SHOW_BEFORE_RESPONSE, HANDLE_ACTION_AUTHORIZATION_STEP_SHOW_ACTOR);
+			CASE(POLICY_SHOW_BEFORE_RESPONSE, HANDLE_ACTION_AUTHORIZATION_STEP_RESPOND);
 #	undef   CASE
 		default:
 			THROW(ERR_NOT_IMPLEMENTED);
@@ -487,13 +487,13 @@ static void signTx_handleActionData_ui_runStep()
 		);
 	}
 
-	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_TPID) {
+/*	UI_STEP(HANDLE_ACTION_DATA_STEP_SHOW_TPID) {
 		ui_displayPaginatedText(
 		        "Tpid",
 		        ctx->tpid,
 		        this_fn
 		);
-	}
+	}*/
 
 	UI_STEP(HANDLE_ACTION_DATA_STEP_RESPOND) {
 		respondSuccessEmptyMsg();
