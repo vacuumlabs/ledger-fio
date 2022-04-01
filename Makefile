@@ -187,4 +187,4 @@ listvariants:
 
 # better to run this manually to avoid irrelevant dependencies processing
 format:
-	astyle --options=.astylerc src/*.h src/*.c
+	clang-format -i src/*
