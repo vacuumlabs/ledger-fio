@@ -6,10 +6,7 @@
 #include <os_io_seproxyhal.h>
 #include <ux.h>
 
-enum  {
-	P1_UNUSED = 0,
-	P2_UNUSED = 0
-};
+enum { P1_UNUSED = 0, P2_UNUSED = 0 };
 
 // helper function for sending response APDUs.
 void io_send_buf(uint16_t code, uint8_t* buffer, size_t bufferSize);
@@ -20,19 +17,19 @@ void CHECK_RESPONSE_SIZE(unsigned int tx);
 // This was added for sanity checking -- our program should always be awaiting on something
 // and it should be exactly the expected handler
 typedef enum {
-	// We are doing IO, display handlers should not fire
-	IO_EXPECT_IO = 42, // Note: random constants
-	// We are displaying things, IO handlers should not fire
-	IO_EXPECT_UI = 47,
-	// We should not be handling events
-	IO_EXPECT_NONE = 49,
+    // We are doing IO, display handlers should not fire
+    IO_EXPECT_IO = 42,  // Note: random constants
+    // We are displaying things, IO handlers should not fire
+    IO_EXPECT_UI = 47,
+    // We should not be handling events
+    IO_EXPECT_NONE = 49,
 } io_state_t;
 
 extern io_state_t io_state;
 
 // Everything below this point is Ledger magic
 
-void io_seproxyhal_display(const bagl_element_t *element);
+void io_seproxyhal_display(const bagl_element_t* element);
 unsigned char io_event(unsigned char channel);
 
 bool device_is_unlocked();
@@ -48,4 +45,4 @@ void nanos_clear_timer();
 // does not actually work anymore in Nano X
 #endif
 
-#endif // H_FIO_APP_IO
+#endif  // H_FIO_APP_IO

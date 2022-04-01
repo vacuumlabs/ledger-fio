@@ -12,6 +12,6 @@ void str_validateNullTerminatedTextBuffer(const uint8_t* text, size_t textSize);
 
 #ifdef DEVEL
 void run_textUtils_test();
-#endif // DEVEL
+#endif  // DEVEL
 
-#endif // H_CARDANO_FIO_TEXT_UTILS
+#endif  // H_CARDANO_FIO_TEXT_UTILS
