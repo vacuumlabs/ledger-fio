@@ -29,16 +29,16 @@ PIN = 5555
 APPNAME      = "FIO"
 APPVERSION_M = 0
 APPVERSION_N = 0
-APPVERSION_P = 1
+APPVERSION_P = 2
 APPVERSION   = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
 APP_LOAD_PARAMS =--appFlags 0x240 --curve secp256k1 --path "44'/235'"
 APP_LOAD_PARAMS += $(COMMON_LOAD_PARAMS)
 
-ifeq ($(TARGET_NAME),TARGET_NANOX)
-	ICONNAME=icon_fio_nanox.gif
-else
+ifeq ($(TARGET_NAME),TARGET_NANOS)
 	ICONNAME=icon_fio_nanos.gif
+else
+	ICONNAME=icon_fio_nanox.gif
 endif
 
 ################
@@ -54,11 +54,15 @@ DEFINES += HAVE_BAGL HAVE_SPRINTF HAVE_SNPRINTF_FORMAT_U
 DEFINES += APPVERSION=\"$(APPVERSION)\"
 DEFINES += MAJOR_VERSION=$(APPVERSION_M) MINOR_VERSION=$(APPVERSION_N) PATCH_VERSION=$(APPVERSION_P)
 
+# Ledger: add the "Pending security review" disclaimer
+APP_LOAD_PARAMS += --tlvraw 9F:01
+DEFINES += HAVE_PENDING_REVIEW_SCREEN
+
 ## USB HID?
 DEFINES += HAVE_IO_USB HAVE_L4_USBLIB IO_USB_MAX_ENDPOINTS=4 IO_HID_EP_LENGTH=64 HAVE_USB_APDU
 
 ## USB U2F
-DEFINES += HAVE_U2F HAVE_IO_U2F U2F_PROXY_MAGIC=\"FIO\" USB_SEGMENT_SIZE=64 
+DEFINES += HAVE_U2F HAVE_IO_U2F U2F_PROXY_MAGIC=\"FIO\" USB_SEGMENT_SIZE=64
 
 ## WEBUSB
 #WEBUSB_URL = https://www.ledger.com/pages/supported-crypto-assets
@@ -73,7 +77,10 @@ endif
 ## Protect stack overflows
 DEFINES += HAVE_BOLOS_APP_STACK_CANARY
 
-ifeq ($(TARGET_NAME),TARGET_NANOX)
+ifeq ($(TARGET_NAME),TARGET_NANOS)
+DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=128
+DEFINES += HAVE_UX_LEGACY COMPLIANCE_UX_160
+else
 DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=300
 DEFINES += HAVE_GLO096
 DEFINES += HAVE_BAGL BAGL_WIDTH=128 BAGL_HEIGHT=64
@@ -82,24 +89,21 @@ DEFINES += HAVE_BAGL_FONT_OPEN_SANS_REGULAR_11PX
 DEFINES += HAVE_BAGL_FONT_OPEN_SANS_EXTRABOLD_11PX
 DEFINES += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
 DEFINES += HAVE_UX_FLOW
-else
-DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=128
-DEFINES += HAVE_BOLOS_UX HAVE_UX_LEGACY COMPLIANCE_UX_160
 endif
 
-#DEFINES += RESET_ON_CRASH
+DEFINES += RESET_ON_CRASH
 
 ## Use developer build
-DEVEL = 1
-DEFINES += HEADLESS
+# DEVEL = 1
+# DEFINES += HEADLESS
 
 # Enabling debug PRINTF
 ifeq ($(DEVEL), 1)
 	DEFINES += DEVEL HAVE_PRINTF
-	ifeq ($(TARGET_NAME),TARGET_NANOX)
-		DEFINES += PRINTF=mcu_usb_printf
-	else
+	ifeq ($(TARGET_NAME),TARGET_NANOS)
 		DEFINES += PRINTF=screen_printf
+	else
+		DEFINES += PRINTF=mcu_usb_printf
 	endif
 else
 	DEFINES += PRINTF\(...\)=
@@ -122,10 +126,10 @@ ifeq ($(GCCPATH),)
 $(info GCCPATH is not set: arm-none-eabi-* will be used from PATH)
 endif
 
-ifeq ($(TARGET_NAME),TARGET_NANOX)
-WERROR   := -Werror=return-type
-else
+ifeq ($(TARGET_NAME),TARGET_NANOS)
 WERROR   := -Werror=incompatible-pointer-types -Werror=return-type
+else
+WERROR   := -Werror=return-type
 endif
 
 CC       := $(CLANGPATH)clang
@@ -150,9 +154,9 @@ include $(BOLOS_SDK)/Makefile.glyphs
 ### computed variables
 APP_SOURCE_PATH  += src
 SDK_SOURCE_PATH  += lib_stusb lib_stusb_impl lib_u2f
+SDK_SOURCE_PATH  += lib_ux
 ifeq ($(TARGET_NAME),TARGET_NANOX)
 	SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
-	SDK_SOURCE_PATH  += lib_ux
 endif
 
 ##############
