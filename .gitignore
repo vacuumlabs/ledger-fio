@@ -11,3 +11,5 @@ src/u2f_crypto_data.h
 src/glyphs.h
 src/glyphs.c
 .vscode
+output-scan-build
+pkg

@@ -1,9 +1,40 @@
 # FIO Ledger App
 
-FIO Ledger App for Ledger Nano S
+FIO Ledger App for Ledger Nano S and Ledger Nano X.
 
 
 ## Building
+
+There are two ways how to build: local build and containerize build. Enviromental variable `BOLOS_SDK` determines the approach. If using local build it should contain directory containing SDK. If using containerize approach is should be empty.
+
+Containerized approach is preferred. For containerized approach you need docker. For local build you need to setup the enviroment. Environment setup and developer documentation is sufficiently provided in Ledger’s [Read the Docs](https://developers.ledger.com/docs/nano-app/quickstart/).
+
+Make sure you have:
+- SDK >= 2.0.0 (for local build)
+- MCU >= 1.11 (if you want to lead the app on the device)
+
+
+### Building and app development
+
+Use the following commands:
+
+`make` or `make build`
+Builds the app, including Loading Tool.
+
+`make all`
+Builds the app, including app.hex and app.sha.256 file, excluding Loading Tool. Reqiuires ledgerblue python package.
+
+`make clean`
+
+`make format`
+
+`make scan-build`
+
+`make shell`
+Starts the container and runs shell (only for container build)
+
+`make size`
+Determines the size of the app. 
 
 ### Loading the app
 
