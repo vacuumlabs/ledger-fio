@@ -13,3 +13,4 @@ src/glyphs.c
 .vscode
 output-scan-build
 pkg
+*.log

@@ -15,22 +15,16 @@
 #  limitations under the License.
 #*******************************************************************************
 
-# We use BOLOS_SDK to determine the development environment that is being used
-# BOLOS_SDK IS  DEFINED	 	We use the plain Makefile for Ledger
-# BOLOS_SDK NOT DEFINED		We use a containerized build approach
-# containerize build is recommended
+.PHONY: load
+load: pkg/loadingtool.sh
+	${CURDIR}/pkg/loadingtool.sh load
 
-NANOS_ID = 1
-WORDS = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
-PIN = 5555
+.PHONY: delete
+delete: pkg/loadingtool.sh
+	${CURDIR}/pkg/loadingtool.sh delete
 
-ifeq ($(BOLOS_SDK),)
-include $(CURDIR)/MakefileContainer.mk
-else
-include $(CURDIR)/MakefileLocal.mk
-endif
+.PHONY: seed
+seed: 
+	python -m ledgerblue.hostOnboard --id $(NANOS_ID) --words $(WORDS) --pin $(PIN)
 
-include $(CURDIR)/MakefilePhysicalDevice.mk
-
-include $(CURDIR)/MakefileSpeculos.mk
 

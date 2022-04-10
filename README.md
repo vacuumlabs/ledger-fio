@@ -36,11 +36,30 @@ Starts the container and runs shell (only for container build)
 `make size`
 Determines the size of the app. 
 
+
 ### Loading the app
 
 `make load`
-
 Builds and loads the application into connected device. Just make sure to close the Ledger app on the device before running the command.
+
+`make delete`
+Deletes the application from connected device
+
+`make seed`
+Resets mnemonics and pin as desired to ones desired by test.
+
+
+### Starting and stopping Speculos
+Requires Docker.
+
+`make speculos_port_5001_start`
+Starts the container. You can interact with it on ports:
+- 5001: API port
+    You can use this api to press buttons, take snapshots; besides this you can interact at http://localhost:5001/
+- 40001: APDU port
+    You may use SpeculosTransport class to communicate with the device via this port. Note that this transport can be injected into main js class.
+
+`make speculos_port_5001_stop`
 
 
 ### Debug version

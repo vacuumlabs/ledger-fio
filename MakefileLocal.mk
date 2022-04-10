@@ -139,7 +139,8 @@ LDFLAGS  += -O3 -Os -Wall
 LDLIBS   += -lm -lgcc -lc
 
 ##Enable to strip debug info from app
-LDFLAGS  += -Wl,-s
+##This needs to be commented out for Speculos to work
+#LDFLAGS  += -Wl,-s
 
 
 ##################
@@ -198,22 +199,4 @@ format:
 
 size: bin/app.elf
 	$(GCCPATH)arm-none-eabi-size --format=GNU bin/app.elf
-
-	
-#############
-#  Ledger  #
-#############
-
-.PHONY: load
-load: pkg/loadingtool.sh
-	${CURDIR}/pkg/loadingtool.sh load
-
-.PHONY: delete
-delete: pkg/loadingtool.sh
-	${CURDIR}/pkg/loadingtool.sh delete
-
-.PHONY: seed
-seed: 
-	python -m ledgerblue.hostOnboard --id $(NANOS_ID) --words $(WORDS) --pin $(PIN)
-
 

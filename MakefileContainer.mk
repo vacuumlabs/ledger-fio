@@ -19,21 +19,18 @@ ifneq ($(BOLOS_SDK),)
 $(error Containerized build, BOLOS_SDK should be empty)
 endif
 
+APP_BUILDER_IMAGE = ledger-app-builder:sha-bd9dbbc
+
 default_target: build
 
-SPECULOS_SDK=2.0
-SPECULOS_MODEL_SWITCH=nanos
 NANO_ICON_GIF=nanos_icon.gif
 BOLOS_SDK_DIRECTORY=/opt/nanos-secure-sdk
 TARGET_NAME=TARGET_NANOS
-TEST_DEVICE=nanos
 ifeq ($(TARGET_DEVICE), NANO_X)
     $(info Targeting NanoX)
-    SPECULOS_MODEL_SWITCH=nanox
     NANO_ICON_GIF=nanox_icon.gif
     BOLOS_SDK_DIRECTORY=/opt/nanox-secure-sdk
     TARGET_NAME=TARGET_NANOX
-    TEST_DEVICE=nanox
 endif
 
 ifdef INTERACTIVE
@@ -46,6 +43,8 @@ endif
 
 #We build the container from source to avoid this issue https://github.community/t/docker-pull-from-public-github-package-registry-fail-with-no-basic-auth-credentials-error/16358
 define run_docker	
+	docker pull ghcr.io/ledgerhq/ledger-app-builder/$(APP_BUILDER_IMAGE)
+	docker image tag ghcr.io/ledgerhq/ledger-app-builder/$(APP_BUILDER_IMAGE) ledger-app-builder
 	@echo "docker host: id -u: `id -u`"
 	@echo "docker host: whoami: `whoami`"
 	docker version
@@ -60,7 +59,7 @@ define run_docker
 	-u $(USERID):$(USERID) \
 	-v $(shell pwd):/app \
 	$(1) \
-	ledger-app-builder:latest \
+	ledger-app-builder \
 	$(2)
 endef
 
@@ -106,20 +105,4 @@ format:
 scan-build:
 	$(call run_docker, , make scan-build)
 
-
-##############
-#    Load    #
-##############
-
-.PHONY: load
-load: build
-	${CURDIR}/pkg/loadingtool.sh load
-
-.PHONY: delete
-delete: build
-	${CURDIR}/pkg/loadingtool.sh delete
-
-.PHONY: seed
-seed: 
-	python -m ledgerblue.hostOnboard --id $(NANOS_ID) --words $(WORDS) --pin $(PIN)
 
