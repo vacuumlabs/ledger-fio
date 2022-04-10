@@ -15,24 +15,39 @@
 #  limitations under the License.
 #*******************************************************************************
 
-# We use BOLOS_SDK to determine the development environment that is being used
-# BOLOS_SDK IS  DEFINED	 	We use the plain Makefile for Ledger
-# BOLOS_SDK NOT DEFINED		We use a containerized build approach
-# containerize build is recommended
+.PHONY: js-prepack
+js-prepack:
+	cd ledgerjs-fio && yarn prepack && cd ..
+	
+.PHONY: js-lint
+js-lint:
+	cd ledgerjs-fio && yarn lint && cd ..
 
-NANOS_ID = 1
-WORDS = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
-PIN = 5555
+.PHONY: js-clean
+js-clean:
+	cd ledgerjs-fio && yarn clean && cd ..
 
-ifeq ($(BOLOS_SDK),)
-include $(CURDIR)/MakefileContainer.mk
-else
-include $(CURDIR)/MakefileLocal.mk
-endif
+.PHONY: js-build
+js-build:
+	cd ledgerjs-fio && yarn build && cd ..
 
-include $(CURDIR)/MakefilePhysicalDevice.mk
+.PHONY: js-build-flowtypes
+js-build-flowtypes:
+	cd ledgerjs-fio && yarn build:flowtypes && cd ..
 
-include $(CURDIR)/MakefileSpeculos.mk
+.PHONY: js-flow
+js-flow:
+	cd ledgerjs-fio && yarn flow && cd ..
 
-include $(CURDIR)/MakefileJS.mk
+.PHONY: js-gen-docs
+js-gen-docs:
+	cd ledgerjs-fio && yarn gen-docs && cd ..
+
+.PHONY: js-prepublish
+js-prepublish:
+	cd ledgerjs-fio && yarn prepublish && cd ..
+
+.PHONY: js-run-example
+js-run-example:
+	cd ledgerjs-fio && yarn run-example && cd ..
 

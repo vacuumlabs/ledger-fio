@@ -62,6 +62,33 @@ Starts the container. You can interact with it on ports:
 `make speculos_port_5001_stop`
 
 
+### Running tests
+
+If you update JavaScript, you need to ...
+
+
+### JavaScript
+
+`make js-prepack`
+
+`make js-lint`
+
+`make js-clean`
+
+`make js-build`
+
+`make js-build-flowtypes`
+
+`make js-flow`
+
+`make js-gen-docs`
+
+`make js-prepublish`
+
+`make js-run-example`
+Runs an example app. Requires ledger to be connected and loaded with FIO app.
+
+
 ### Debug version
 
 In `Makefile`, uncomment
@@ -108,7 +135,7 @@ The build process is managed with [Make](https://www.gnu.org/software/make/).
 
 See `Makefile` for list of included functions.
 
-## How to get a transaction body computed by Ledger
+## How to get a transaction body computed by Ledger (for development purposes)
 
 Ordinarily, Ledger computes a rolling hash of the serialized transaction body, but the body itself is not available. It is possible to acquire it from the development build by going through the following steps:
 
