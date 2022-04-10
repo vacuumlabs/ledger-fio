@@ -1,14 +1,6 @@
 name: Compilation & tests
 
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
-      - develop
+on: [workflow_dispatch, push]
 
 jobs:
   job_nanoS_build_debug:
