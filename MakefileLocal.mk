@@ -87,12 +87,6 @@ DEFINES += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
 DEFINES += HAVE_UX_FLOW
 endif
 
-DEFINES += RESET_ON_CRASH
-
-## Use developer build
-# DEVEL = 1
-# DEFINES += HEADLESS
-
 # Enabling debug PRINTF
 ifeq ($(DEVEL), 1)
 	DEFINES += DEVEL HAVE_PRINTF
@@ -102,6 +96,7 @@ ifeq ($(DEVEL), 1)
 		DEFINES += PRINTF=mcu_usb_printf
 	endif
 else
+	DEFINES += RESET_ON_CRASH
 	DEFINES += PRINTF\(...\)=
 endif
 

@@ -19,19 +19,9 @@ ifneq ($(BOLOS_SDK),)
 $(error Containerized build, BOLOS_SDK should be empty)
 endif
 
-APP_BUILDER_IMAGE = ledger-app-builder:sha-bd9dbbc
+APP_BUILDER_IMAGE = ledger-app-builder:sha-229b03c
 
 default_target: build
-
-NANO_ICON_GIF=nanos_icon.gif
-BOLOS_SDK_DIRECTORY=/opt/nanos-secure-sdk
-TARGET_NAME=TARGET_NANOS
-ifeq ($(TARGET_DEVICE), NANO_X)
-    $(info Targeting NanoX)
-    NANO_ICON_GIF=nanox_icon.gif
-    BOLOS_SDK_DIRECTORY=/opt/nanox-secure-sdk
-    TARGET_NAME=TARGET_NANOX
-endif
 
 ifdef INTERACTIVE
 INTERACTIVE_SETTING:="-i"
@@ -48,13 +38,13 @@ define run_docker
 	@echo "docker host: id -u: `id -u`"
 	@echo "docker host: whoami: `whoami`"
 	docker version
-	docker build -t ledger-app-builder:latest $(CURDIR)/submodules/ledger-app-builder
 	docker run $(TTY_SETTING) $(INTERACTIVE_SETTING) $(MAKE_LINUX_DOCKER_OPTIONS) --rm \
 	-e SCP_PRIVKEY=$(SCP_PRIVKEY) \
 	-e BOLOS_ENV_IGNORE=/opt/bolos \
 	-e COIN=$(COIN) \
 	-e APP_TESTING=$(APP_TESTING) \
 	-e BOLOS_SDK=$(BOLOS_SDK_DIRECTORY) \
+	-e DEVEL=$(DEVEL) \
 	-e TARGET_NAME=$(TARGET_NAME) \
 	-u $(USERID):$(USERID) \
 	-v $(shell pwd):/app \

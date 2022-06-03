@@ -15,12 +15,6 @@
 #  limitations under the License.
 #*******************************************************************************
 
-SPECULOS_SDK=2.0
-SPECULOS_MODEL_SWITCH=nanos
-ifeq ($(TARGET_DEVICE), NANO_X)
-    SPECULOS_MODEL_SWITCH=nanox
-endif
-
 SPECULOS_IMAGE = speculos:sha-5a8e49b
 	
 define run_announce
@@ -30,7 +24,7 @@ endef
 define start_speculos_container
 	docker pull ghcr.io/ledgerhq/$(SPECULOS_IMAGE)
 	docker image tag ghcr.io/ledgerhq/$(SPECULOS_IMAGE) speculos
-	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)$(4):/speculos/app/bin --publish $(1):$(1) --publish $(2):$(2) speculos --model $(SPECULOS_MODEL_SWITCH) --sdk $(SPECULOS_SDK) --seed $(WORDS) --display headless --apdu-port $(2) --api-port $(1) ./app/bin/app.elf ; rm -f $(CURDIR)/speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a $(CURDIR)/speculos-port-$(1).log > /dev/null 2>&1 &
+	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)$(3):/speculos/app/bin --publish $(1):$(1) --publish $(2):$(2) speculos --model $(SPECULOS_MODEL_SWITCH) --sdk $(SPECULOS_SDK) --seed $(WORDS) --display headless --apdu-port $(2) --api-port $(1) /speculos/app/bin/app.elf ; rm -f $(CURDIR)/speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a $(CURDIR)/speculos-port-$(1).log > /dev/null 2>&1 &
 	@perl -e 'use Time::HiRes; $$t1=Time::HiRes::time(); while(1){ $$o=`cat $(CURDIR)/speculos-port-$(1).log`; if($$o =~ m~Running on .*\:$(1)~s){ printf qq[# detected -- via log -- speculos listening after %f seconds; spy on emulated device via http://localhost:$(1)/\n], Time::HiRes::time() - $$t1; exit; } Time::HiRes::sleep(0.01); };'
 endef
 	

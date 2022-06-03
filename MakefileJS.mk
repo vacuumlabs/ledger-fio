@@ -15,6 +15,10 @@
 #  limitations under the License.
 #*******************************************************************************
 
+.PHONY: js-yarn
+js-yarn:
+	cd ledgerjs-fio && yarn && cd ..
+
 .PHONY: js-prepack
 js-prepack:
 	cd ledgerjs-fio && yarn prepack && cd ..

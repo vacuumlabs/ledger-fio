@@ -1,6 +1,6 @@
 # FIO Ledger App
 
-FIO Ledger App for Ledger Nano S and Ledger Nano X.
+FIO Ledger App for Ledger Nano S, Ledger Nano X, and Ledger Nano SPlus.
 
 
 ## Building
@@ -14,7 +14,10 @@ Make sure you have:
 - MCU >= 1.11 (if you want to lead the app on the device)
 
 
-### Building and app development
+### Building commands
+
+To select device for which to build use enviromental variable `TARGET_DEVICE=NANO_S` (default), `TARGET_DEVICE=NANO_X`, or`TARGET_DEVICE=NANO_SP`.
+To induce debug build set enviromental variable `DEVEL=1`. Thus, you can use: `TARGET_DEVICE=NANO_SP DEVEL=1 make`. 
 
 Use the following commands:
 
@@ -37,37 +40,9 @@ Starts the container and runs shell (only for container build)
 Determines the size of the app. 
 
 
-### Loading the app
+## Javascript layer
 
-`make load`
-Builds and loads the application into connected device. Just make sure to close the Ledger app on the device before running the command.
-
-`make delete`
-Deletes the application from connected device
-
-`make seed`
-Resets mnemonics and pin as desired to ones desired by test.
-
-
-### Starting and stopping Speculos
-Requires Docker.
-
-`make speculos_port_5001_start`
-Starts the container. You can interact with it on ports:
-- 5001: API port
-    You can use this api to press buttons, take snapshots; besides this you can interact at http://localhost:5001/
-- 40001: APDU port
-    You may use SpeculosTransport class to communicate with the device via this port. Note that this transport can be injected into main js class.
-
-`make speculos_port_5001_stop`
-
-
-### Running tests
-
-If you update JavaScript, you need to ...
-
-
-### JavaScript
+`make js-yarn`
 
 `make js-prepack`
 
@@ -89,18 +64,36 @@ If you update JavaScript, you need to ...
 Runs an example app. Requires ledger to be connected and loaded with FIO app.
 
 
-### Debug version
+## Speculos emulator and emulator tests
 
-In `Makefile`, uncomment
+Requires Docker. You need to set `TARGET_DEVICE` enviromental variable (if you do not want to emulate Nano S) is a similar way as when you build the app.
 
-    #DEVEL = 1
-    #DEFINES += HEADLESS
+`make speculos_port_5001_start`
+Starts the container. You can interact with it on ports:
+- 5001: API port
+    You can use this api to press buttons, take snapshots; besides this you can interact at http://localhost:5001/
+- 40001: APDU port
+    You may use SpeculosTransport class to communicate with the device via this port. Note that this transport can be injected into main js class.
 
-also comment out
+`make speculos_port_5001_stop`
+Stops the container
 
-    DEFINES += RESET_ON_CRASH
 
-and then run `make clean load`.
+### Running tests on Speculos
+
+If you update JavaScript, you need to `make js-build` to compile it and then `make test-yarn` to update the dependency in tests.
+
+`make test-yarn`
+Prepares dependencies for speculos tests
+
+`make speculos_port_5001_test`
+Runs integration tests on Speculos.
+
+`make speculos_port_5001_unit_test`
+Runs unit tests on Speculos. Requires DEVEL build.
+
+
+## Testing on physical device
 
 ### Setup
 
@@ -112,40 +105,45 @@ Environment setup and developer documentation is sufficiently provided in Ledger
 
 You want a debug version of the MCU firmware (but it blocks SDK firmware updates, so for the purpose of upgrading SDK, replace it temporarily with a non-debug one). Instructions for swapping MCU versions: https://github.com/LedgerHQ/ledger-dev-doc/blob/master/source/userspace/debugging.rst
 
+
 ### Troubleshooting connection problems
 
 The quickstart guide's script sets up your udev rules, but there still might be problems.
 - https://support.ledger.com/hc/en-us/articles/115005165269-Fix-connection-issues
 
-## Development
 
-To learn more about development process and individual commands, [check the desing doc](doc/design_doc.md).
+### Loading the app
 
-## Deploying
+`make load`
+Builds and loads the application into connected device. Just make sure to close the Ledger app on the device before running the command.
 
-The build process is managed with [Make](https://www.gnu.org/software/make/).
+`make delete`
+Deletes the application from connected device
 
-### Make Commands
+`make seed`
+Resets mnemonics and pin as desired to ones desired by test.
+Many of our integration tests expect the device to be configured with a known test mnemonic.
+- Plug your device while pressing the right button
+- Your device will show "Recovery" in the screen
+- Double click
 
-* `load`: Load signed app onto the Ledger device
-* `clean`: Clean the build and output directories
-* `delete`: Remove the application from the device
-* `build`: Build obj and bin api artefacts without loading
-* `format`: Format source code.
 
-See `Makefile` for list of included functions.
+### Running tests on real device
+
+If you update JavaScript, you need to `make js-build` to compile it and then `make test-yarn` to update the dependency in tests.
+
+If you do not want to click through all the screens you may, if you use DEVEL build set `HEADLESS`, e.g. `HEADLESS= make` 
+At this moment we experience issues with PRINTF macro on ledger device thus you should only run `make ledger_test` on non-development build.
+
+`make ledger_test`
+
+`make ledger_unit_test`
+This requires `DEVEL=1` app version.
+
 
 ## How to get a transaction body computed by Ledger (for development purposes)
 
-Ordinarily, Ledger computes a rolling hash of the serialized transaction body, but the body itself is not available. It is possible to acquire it from the development build by going through the following steps:
+If you use Speculos with `DEVEL=1` build, then you can find logs from `sha_256_append` function. Concatenating what went into hash computation gives the transaction body as signed by ledger.
 
-1. [Install debug MCU](https://ledger.readthedocs.io/en/latest/userspace/debugging.html#application-debug) on your Ledger Nano S device.
 
-2. Install the debug version of FIO app (see above).
-
-3. Install `usbtool` and turn on [console printing](https://ledger.readthedocs.io/en/latest/userspace/debugging.html#console-printing).
-
-4. Send a single `signTx` call to Ledger (e.g. by running `yarn test-integration --grep "<some-signTx-test>"`).
-
-5. After the call is processed, the terminal running console printing now contains all log messages resulting from that `signTx` call. (See the `TRACE*` macros.). You can build the transactions using data between logged within sha_256_append function.
 
