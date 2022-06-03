@@ -87,7 +87,9 @@ If you update JavaScript, you need to `make js-build` to compile it and then `ma
 Prepares dependencies for speculos tests
 
 `make speculos_port_5001_test`
-Runs integration tests on Speculos.
+Runs integration tests on Speculos. If screenshot change, then you need to set variable `TEST_PNG_RE_GEN_FOR`.
+E.g. `TEST_PNG_RE_GEN_FOR=snapshots/getPublicKey.js make speculos_port_5001_test` runs tests and re-genetates screenshots 
+for `getPublicKey.js` integration tests. `TEST_PNG_RE_GEN_FOR=snapshots make speculos_port_5001_test` regenerates all snapshots.
 
 `make speculos_port_5001_unit_test`
 Runs unit tests on Speculos. Requires DEVEL build.

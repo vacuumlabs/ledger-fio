@@ -14,3 +14,5 @@ src/glyphs.c
 output-scan-build
 pkg
 *.log
+*.new.png
+yarn.lock
