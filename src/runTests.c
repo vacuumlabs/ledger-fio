@@ -10,6 +10,7 @@
 #include "textUtils.h"
 #include "uiHelpers.h"
 #include "uiScreens.h"
+#include "diffieHellman.h"
 
 void handleRunTests(uint8_t p1 MARK_UNUSED,
                     uint8_t p2 MARK_UNUSED,
@@ -25,6 +26,7 @@ void handleRunTests(uint8_t p1 MARK_UNUSED,
         run_textUtils_test();
         run_bip44_test();
         run_key_derivation_test();
+        run_diffieHellman_test();
         PRINTF("All tests done\n");
     }
     END_ASSERT_NOEXCEPT;
