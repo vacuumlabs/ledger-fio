@@ -31,9 +31,15 @@ INTERACTIVE_SETTING:=
 TTY_SETTING:=
 endif
 
+ifdef NO_PULL
+DOCKER_PULL_COMMAND =
+else
+DOCKER_PULL_COMMAND = docker pull ghcr.io/ledgerhq/ledger-app-builder/$(APP_BUILDER_IMAGE)
+endif
+
 #We build the container from source to avoid this issue https://github.community/t/docker-pull-from-public-github-package-registry-fail-with-no-basic-auth-credentials-error/16358
 define run_docker	
-	docker pull ghcr.io/ledgerhq/ledger-app-builder/$(APP_BUILDER_IMAGE)
+	$(DOCKER_PULL_COMMAND)
 	docker image tag ghcr.io/ledgerhq/ledger-app-builder/$(APP_BUILDER_IMAGE) ledger-app-builder
 	@echo "docker host: id -u: `id -u`"
 	@echo "docker host: whoami: `whoami`"
