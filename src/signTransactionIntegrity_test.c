@@ -10,62 +10,66 @@ static const char* allowedHashesHex[] = {
 static uint8_t allowedHashes[ARRAY_LEN(allowedHashesHex)][SHA_256_SIZE];
 
 static void run1() {
-    integrityCheckInit();
+    tx_integrity_t integrity;
+    integrityCheckInit(&integrity);
     const uint8_t data1[] = {3, 4};
-    integrityCheckProcessInstruction(1, 2, data1, SIZEOF(data1));
+    integrityCheckProcessInstruction(&integrity, 1, 2, data1, SIZEOF(data1));
     const uint8_t data2[] = {};
-    integrityCheckProcessInstruction(5, 6, data2, SIZEOF(data2));
-    _integrityCheckFinalize(allowedHashes, ARRAY_LEN(allowedHashes));
+    integrityCheckProcessInstruction(&integrity, 5, 6, data2, SIZEOF(data2));
+    _integrityCheckFinalize(&integrity, allowedHashes, ARRAY_LEN(allowedHashes));
 }
 
 // modified p1
 static void run2() {
-    integrityCheckInit();
+    tx_integrity_t integrity;
+    integrityCheckInit(&integrity);
     const uint8_t data1[] = {3, 4};
-    integrityCheckProcessInstruction(2, 2, data1, SIZEOF(data1));
+    integrityCheckProcessInstruction(&integrity, 2, 2, data1, SIZEOF(data1));
     const uint8_t data2[] = {};
-    integrityCheckProcessInstruction(5, 6, data2, SIZEOF(data2));
-    ASSERT(!_integrityCheckFinalize(allowedHashes, ARRAY_LEN(allowedHashes)));
+    integrityCheckProcessInstruction(&integrity, 5, 6, data2, SIZEOF(data2));
+    ASSERT(!_integrityCheckFinalize(&integrity, allowedHashes, ARRAY_LEN(allowedHashes)));
 }
 
 // modified p2
 static void run3() {
-    integrityCheckInit();
+    tx_integrity_t integrity;
+    integrityCheckInit(&integrity);
     const uint8_t data1[] = {3, 4};
-    integrityCheckProcessInstruction(1, 3, data1, SIZEOF(data1));
+    integrityCheckProcessInstruction(&integrity, 1, 3, data1, SIZEOF(data1));
     const uint8_t data2[] = {};
-    integrityCheckProcessInstruction(5, 6, data2, SIZEOF(data2));
-    ASSERT(!_integrityCheckFinalize(allowedHashes, ARRAY_LEN(allowedHashes)));
+    integrityCheckProcessInstruction(&integrity, 5, 6, data2, SIZEOF(data2));
+    ASSERT(!_integrityCheckFinalize(&integrity, allowedHashes, ARRAY_LEN(allowedHashes)));
 }
 
 // modified data
 static void run4() {
-    integrityCheckInit();
-    const uint8_t data1[] = {
-        3,
-    };
-    integrityCheckProcessInstruction(1, 2, data1, SIZEOF(data1));
+    tx_integrity_t integrity;
+    integrityCheckInit(&integrity);
+    const uint8_t data1[] = {3};
+    integrityCheckProcessInstruction(&integrity, 1, 2, data1, SIZEOF(data1));
     const uint8_t data2[] = {};
-    integrityCheckProcessInstruction(5, 6, data2, SIZEOF(data2));
-    ASSERT(!_integrityCheckFinalize(allowedHashes, ARRAY_LEN(allowedHashes)));
+    integrityCheckProcessInstruction(&integrity, 5, 6, data2, SIZEOF(data2));
+    ASSERT(!_integrityCheckFinalize(&integrity, allowedHashes, ARRAY_LEN(allowedHashes)));
 }
 
 // swapped instructions
 static void run5() {
-    integrityCheckInit();
+    tx_integrity_t integrity;
+    integrityCheckInit(&integrity);
     const uint8_t data1[] = {3, 4};
     const uint8_t data2[] = {};
-    integrityCheckProcessInstruction(5, 6, data2, SIZEOF(data2));
-    integrityCheckProcessInstruction(1, 2, data1, SIZEOF(data1));
-    ASSERT(!_integrityCheckFinalize(allowedHashes, ARRAY_LEN(allowedHashes)));
+    integrityCheckProcessInstruction(&integrity, 5, 6, data2, SIZEOF(data2));
+    integrityCheckProcessInstruction(&integrity, 1, 2, data1, SIZEOF(data1));
+    ASSERT(!_integrityCheckFinalize(&integrity, allowedHashes, ARRAY_LEN(allowedHashes)));
 }
 
 // Less instruction and second, correc use
 static void run6() {
-    integrityCheckInit();
+    tx_integrity_t integrity;
+    integrityCheckInit(&integrity);
     const uint8_t data1[] = {3, 4};
-    integrityCheckProcessInstruction(1, 2, data1, SIZEOF(data1));
-    ASSERT(!_integrityCheckFinalize(allowedHashes, ARRAY_LEN(allowedHashes)));
+    integrityCheckProcessInstruction(&integrity, 1, 2, data1, SIZEOF(data1));
+    ASSERT(!_integrityCheckFinalize(&integrity, allowedHashes, ARRAY_LEN(allowedHashes)));
     run1();
 }
 
