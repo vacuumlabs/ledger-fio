@@ -5,9 +5,9 @@
 
 // Does not compile if x is pointer of some kind
 // See http://zubplot.blogspot.com/2015/01/gcc-is-wonderful-better-arraysize-macro.html
-#define ARRAY_NOT_A_PTR(x)                                                                 \
-    (sizeof(__typeof__(                                                                    \
-         int[1 - 2 * !!__builtin_types_compatible_p(__typeof__(x), __typeof__(&x[0]))])) * \
+#define ARRAY_NOT_A_PTR(x)                                                                \
+    (sizeof(__typeof__(int[1 - 2 * !!__builtin_types_compatible_p(__typeof__(x),          \
+                                                                  __typeof__(&x[0]))])) * \
      0)
 
 // Safe array length, does not compile if you accidentally supply a pointer

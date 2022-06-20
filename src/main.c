@@ -91,7 +91,7 @@ static void fio_main(void) {
                 rx = tx;
                 tx = 0;  // ensure no race in CATCH_OTHER if io_exchange throws an error
                 ASSERT((unsigned int) rx < sizeof(G_io_apdu_buffer));
-                rx = (unsigned int) io_exchange((uint8_t)(CHANNEL_APDU | flags), (uint16_t) rx);
+                rx = (unsigned int) io_exchange((uint8_t) (CHANNEL_APDU | flags), (uint16_t) rx);
                 flags = 0;
 
                 // We should be awaiting APDU
