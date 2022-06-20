@@ -11,6 +11,7 @@
 #include "uiHelpers.h"
 #include "uiScreens.h"
 #include "diffieHellman.h"
+#include "signTransactionIntegrity.h"
 
 void handleRunTests(uint8_t p1 MARK_UNUSED,
                     uint8_t p2 MARK_UNUSED,
@@ -21,12 +22,13 @@ void handleRunTests(uint8_t p1 MARK_UNUSED,
     // as it interferes with tests verifying assertions
     BEGIN_ASSERT_NOEXCEPT {
         PRINTF("Running tests\n");
-        run_hex_test();
+/*        run_hex_test();
         run_endian_test();
         run_textUtils_test();
         run_bip44_test();
         run_key_derivation_test();
-        run_diffieHellman_test();
+        run_diffieHellman_test();*/
+        run_integrityCheck_test();
         PRINTF("All tests done\n");
     }
     END_ASSERT_NOEXCEPT;
