@@ -41,6 +41,8 @@ speculos_port_5001_test_internal:
 speculos_port_5001_unit_test_internal:
 	$(call run_announce,$@)
 	$(call run_nodejs_test,5001,40001,runUnitTests.js)
+	$(call run_nodejs_test,5001,40001,signTransactionCommandsBasic.js)
+	$(call run_nodejs_test,5001,40001,signTransactionCommandsShowData.js)
 	@echo "# ALL TESTS COMPLETED!" | tee -a speculos-port-5001.log
 
 .PHONY: speculos_port_5001_unit_test

@@ -155,4 +155,13 @@ function getSpeculosDefaultConf() {
 	};
 }
 
-export {testStart, testCombo, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, compareGetVersionAPDUs, humanTime, sleep, getScriptName, syncBackTicks, getSpeculosDefaultConf};
+function getAPDUDataBuffer(constHex, varHex) {
+    const constBuffer = Buffer.from(constHex, "hex")
+    const varBuffer = Buffer.from(varHex, "hex")
+	const buf = Buffer.allocUnsafe(2);	
+	buf.writeUInt8(constBuffer.length, 0);
+	buf.writeUInt8(varBuffer.length, 1);
+	return Buffer.concat([buf, constBuffer, varBuffer])
+}
+
+export {testStart, testCombo, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, compareGetVersionAPDUs, humanTime, sleep, getScriptName, syncBackTicks, getSpeculosDefaultConf, getAPDUDataBuffer};

@@ -5,40 +5,22 @@
 #include "hash.h"
 #include "fio.h"
 #include "keyDerivation.h"
+#include "signTransactionIntegrity.h"
 
 handler_fn_t signTransaction_handleAPDU;
 
+#define MAX_DISPLAY_KEY_LENGTH   20
+#define MAX_DISPLAY_VALUE_LENGTH 200
+
+#define MAX_APPEND_CONST_DATA_LEN 200
+
 typedef struct {
     sha_256_context_t hashContext;
+    tx_integrity_t integrity;
     int ui_step;
-    int stage;
 
-    network_type_t network;
-    char actionValidationActor[NAME_STRING_MAX_LENGTH];
-
-    // The following data is not needed at once.
-    // to be used in HEADER step
-    uint32_t expiration;
-    uint16_t refBlockNum;
-    uint32_t refBlockPrefix;
-
-    // only used in ACTION HEADER step
-    action_type_t action_type;
-
-    // only used in ACTION_AUTHORIZATION step
-    char actionValidationPermission[NAME_STRING_MAX_LENGTH];
-
-    // only used in ACTION_DATA step
-    char *pubkey;
-    uint64_t amount;
-    uint64_t maxFee;
-    char actionDataActor[NAME_STRING_MAX_LENGTH];
-    char *tpid;
-
-    // only used in WITNESS step
-    bip44_path_t wittnessPath;
-    public_key_t wittnessPathPubkey;
-
+    char key[MAX_DISPLAY_KEY_LENGTH];
+    char value[MAX_DISPLAY_VALUE_LENGTH];
 } ins_sign_transaction_context_t;
 
 #endif  // H_FIO_APP_SIGN_TRANSACTION

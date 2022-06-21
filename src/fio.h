@@ -27,7 +27,7 @@ action_type_t getActionTypeByContractAccountName(network_type_t network,
 typedef uint64_t name_t;
 #define NAME_STRING_MAX_LENGTH 14
 void name_to_string(name_t value, char *out, size_t size);
-void uint8array_name_to_string(uint8_t *value, size_t valueSize, char *out, size_t outSize);
+void uint8array_name_to_string(const uint8_t *value, size_t valueSize, char *out, size_t outSize);
 
 #define MAX_WIF_PUBKEY_LENGTH 55
 #define MAX_TPID_LENGTH       21
