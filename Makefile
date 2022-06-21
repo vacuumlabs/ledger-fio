@@ -76,7 +76,6 @@ DEFINES += HAVE_BOLOS_APP_STACK_CANARY
 
 ifeq ($(TARGET_NAME),TARGET_NANOS)
 DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=128
-DEFINES += HAVE_UX_LEGACY COMPLIANCE_UX_160
 else
 DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=300
 DEFINES += HAVE_GLO096
@@ -130,7 +129,7 @@ WERROR   := -Werror=return-type
 endif
 
 CC       := $(CLANGPATH)clang
-CFLAGS   += -std=gnu11 -O3 -Os -Wall -Wextra -Wuninitialized $(WERROR)
+CFLAGS   += -O3 -Os -Wall -Wextra -Wuninitialized $(WERROR)
 
 AS       := $(GCCPATH)arm-none-eabi-gcc
 LD       := $(GCCPATH)arm-none-eabi-gcc
@@ -185,4 +184,4 @@ listvariants:
 
 # better to run this manually to avoid irrelevant dependencies processing
 format:
-	astyle --options=.astylerc src/*.h src/*.c
+	clang-format -i src/*

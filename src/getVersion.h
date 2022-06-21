@@ -11,4 +11,4 @@
 
 handler_fn_t getVersion_handleAPDU;
 
-#endif // H_FIO_APP_GET_VERSION
+#endif  // H_FIO_APP_GET_VERSION
