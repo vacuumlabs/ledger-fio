@@ -16,7 +16,7 @@ static void run1() {
     integrityCheckProcessInstruction(&integrity, 1, 2, data1, SIZEOF(data1));
     const uint8_t data2[] = {};
     integrityCheckProcessInstruction(&integrity, 5, 6, data2, SIZEOF(data2));
-    _integrityCheckFinalize(&integrity, allowedHashes, ARRAY_LEN(allowedHashes));
+    ASSERT(_integrityCheckFinalize(&integrity, allowedHashes, ARRAY_LEN(allowedHashes)));
 }
 
 // modified p1

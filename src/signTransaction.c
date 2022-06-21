@@ -57,7 +57,7 @@ static void signTx_ui_runStep_simple() {
 // ============================== INIT ==============================
 
 __noinline_due_to_stack__ void signTx_handleInitAPDU(uint8_t p2,
-                                                     uint8_t* constDataBuffer,
+                                                     MARK_UNUSED_NO_DEVEL uint8_t* constDataBuffer,
                                                      size_t constSize,
                                                      uint8_t* varDataBuffer,
                                                      size_t varSize) {
@@ -110,7 +110,7 @@ __noinline_due_to_stack__ void signTx_handleInitAPDU(uint8_t p2,
 __noinline_due_to_stack__ void signTx_handleAppendConstDataAPDU(uint8_t p2,
                                                                 uint8_t* constDataBuffer,
                                                                 size_t constSize,
-                                                                uint8_t* varDataBuffer,
+                                                                MARK_UNUSED_NO_DEVEL uint8_t* varDataBuffer,
                                                                 size_t varSize) {
     // Sanity checks
     TRACE_STACK_USAGE();
@@ -140,7 +140,7 @@ __noinline_due_to_stack__ void signTx_handleAppendConstDataAPDU(uint8_t p2,
 __noinline_due_to_stack__ void signTx_handleShowMessageAPDU(uint8_t p2,
                                                             uint8_t* constDataBuffer,
                                                             size_t constSize,
-                                                            uint8_t* varDataBuffer,
+                                                            MARK_UNUSED_NO_DEVEL uint8_t* varDataBuffer,
                                                             size_t varSize) {
     // Sanity checks
     TRACE_STACK_USAGE();
@@ -284,7 +284,7 @@ static void signTx_handleWitness_ui_runStep() {
 }
 
 __noinline_due_to_stack__ void signTx_handleWitnessAPDU(uint8_t p2,
-                                                        uint8_t* constDataBuffer,
+                                                        MARK_UNUSED_NO_DEVEL uint8_t* constDataBuffer,
                                                         size_t constSize,
                                                         uint8_t* varDataBuffer,
                                                         size_t varSize) {
