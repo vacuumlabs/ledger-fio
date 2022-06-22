@@ -28,7 +28,7 @@ ValueFormat: NAME, STRING, UINT64 (1b)
 ValueValidation: NONE, LENGTH, EQUALS_STORED (1b)
 ValueValidationArg 1 (8b)
 ValueValidationArg 2 (8b)
-Policy (1b)
+Policy + storage (1b) higher 4 bits storage, lower 4 bits policy
 Key Len: 
 Key
 ----------
@@ -48,9 +48,8 @@ END_COUNTED_SECTION
 ----------
 ====================
 STORE_VALUE
+P2: Register to store 1/2/3 1 and 2 have 8b, 3 has 64b
 ----------
-STORED_1/STORED_2/STORED_3
-ValueValidation: NONE, LENGTH(min, max)
 ----------
 Value
 ====================

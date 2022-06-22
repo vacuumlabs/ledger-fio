@@ -130,16 +130,16 @@ void run_dh_encode_init_append_finalize_tests() {
         const char* inBufferHex =
             "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef00112233445566778899aa"
             "bbccddeeff";
-        uint8_t inBuffer[200];
+        uint8_t inBuffer[100];
         size_t inBufferLength = decode_hex(inBufferHex, inBuffer, SIZEOF(inBuffer));
         const char* expectedHex =
             "6464646464646464646464646464646440a725eec9623619fd422c0ce7bf965506c15165fa5277429c66e6"
             "ed1f2c6f64c6e10668dd7c5e704c12eea22579a11118da4211e13782ff8193ecf400fd04dbcf317a5df47f"
             "449d1dbb75e9f48428d0a840a0e90139759ad39d28990cb37f62";
-        uint8_t expected[300];
+        uint8_t expected[150];
         decode_hex(expectedHex, expected, SIZEOF(expected));
 
-        uint8_t outBuffer[200];
+        uint8_t outBuffer[150];
         size_t outBufferLength = 0;
 
         outBufferLength = dh_encode(&pathSpec,

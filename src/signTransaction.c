@@ -16,6 +16,17 @@
 
 static ins_sign_transaction_context_t* ctx = &(instructionState.signTransactionContext);
 
+typedef enum {
+    VALUE_STORAGE_CHECK_NO = 0x00,
+    VALUE_STORAGE_CHECK_R1 = 0x10,
+    VALUE_STORAGE_CHECK_R2 = 0x20,
+    VALUE_STORAGE_CHECK_R3 = 0x30,
+} tx_storage_check_t;
+
+enum {
+    TX_STORAGE_INITIALIZED_MAGIC = 12345,
+};
+
 // ============================== MISC ==============================
 
 static void respondSuccessEmptyMsg() {
@@ -212,7 +223,7 @@ __noinline_due_to_stack__ void signTx_handleShowDataAPDU(uint8_t p2,
         uint8_t valueValidation;
         uint8_t valueValidationArg1[8];
         uint8_t valueValidationArg2[8];
-        uint8_t valuePolicy;
+        uint8_t valuePolicyAndStorage;
         uint8_t keyLen;
         uint8_t key[MAX_DISPLAY_KEY_LENGTH];
     }* constData = (void*) constDataBuffer;
@@ -243,9 +254,39 @@ __noinline_due_to_stack__ void signTx_handleShowDataAPDU(uint8_t p2,
         sha_256_append(&ctx->hashContext, varDataBuffer, varSize);
     }
 
-    // Policy -
+    // Stograge
     {
-        switch (constData->valuePolicy) {
+        tx_storage_check_t storage = constData->valuePolicyAndStorage & 0xF0;
+        TRACE("Storage request :%d, Stored length %d,%d,%d",
+              (int) storage,
+              (int) ctx->storage.storedValueLen1,
+              (int) ctx->storage.storedValueLen2,
+              (int) ctx->storage.storedValueLen3);
+        TRACE("Initialized: %d", ctx->storage.initialized_magic);
+        switch (storage) {
+#define CASE_STORAGE_EQUALS(n)                                                                    \
+    case VALUE_STORAGE_CHECK_R##n: {                                                              \
+        ASSERT(ctx->storage.initialized_magic == TX_STORAGE_INITIALIZED_MAGIC);                   \
+        ASSERT(ctx->storage.storedValueLen##n <= SIZEOF(ctx->storage.storedValue##n));            \
+        VALIDATE(ctx->storage.storedValueLen##n == varSize, ERR_INVALID_DATA);                    \
+        VALIDATE(!memcmp(ctx->storage.storedValue##n, varDataBuffer, varSize), ERR_INVALID_DATA); \
+        break;                                                                                    \
+    }
+            CASE_STORAGE_EQUALS(1);
+            CASE_STORAGE_EQUALS(2);
+            CASE_STORAGE_EQUALS(3);
+            case VALUE_STORAGE_CHECK_NO:
+                break;
+            default:
+                THROW(ERR_INVALID_DATA);
+#undef CASE_STORAGE_EQUALS
+        }
+    }
+
+    // Policy
+    {
+        security_policy_t policy = constData->valuePolicyAndStorage & 0x0F;
+        switch (policy) {
 #define CASE(POLICY, UI_STEP)   \
     case POLICY: {              \
         ctx->ui_step = UI_STEP; \
@@ -335,6 +376,50 @@ __noinline_due_to_stack__ void signTx_handleEndCountedSectionAPDU(
 
     // Apend data to hash (no data)
     { VALIDATE(countedSectionEnd(&ctx->countedSections), ERR_INVALID_DATA); }
+
+    // Run ui step
+    ctx->ui_step = HANDLE_SIMPLE_STEP_RESPOND;
+    signTx_ui_runStep_simple();
+}
+
+// ======================= STORE_VALUE ===========================
+
+__noinline_due_to_stack__ void signTx_handleStoreValueAPDU(uint8_t p2,
+                                                           uint8_t* constDataBuffer,
+                                                           size_t constSize,
+                                                           uint8_t* varDataBuffer,
+                                                           size_t varSize) {
+    // Sanity checks
+    TRACE_STACK_USAGE();
+    {
+        VALIDATE(p2 >= 1 && p2 <= 3, ERR_INVALID_REQUEST_PARAMETERS);
+    }  // as of now we have three slots
+
+    TRACE("Storing to %d", (int) p2);
+    TRACE_BUFFER(varDataBuffer, varSize);
+
+    // Validate const data
+    TRACE_BUFFER(constDataBuffer, constSize);
+    TRACE_BUFFER(varDataBuffer, varSize);
+    {
+        VALIDATE(constSize == 0, ERR_INVALID_DATA);
+        switch (p2) {
+#define CASE(n)                                                                     \
+    case n: {                                                                       \
+        ASSERT(ctx->storage.initialized_magic == TX_STORAGE_INITIALIZED_MAGIC);     \
+        VALIDATE(varSize <= SIZEOF(ctx->storage.storedValue##n), ERR_INVALID_DATA); \
+        ctx->storage.storedValueLen##n = varSize;                                   \
+        memcpy(ctx->storage.storedValue##n, varDataBuffer, varSize);                \
+        break;                                                                      \
+    }
+            CASE(1);
+            CASE(2);
+            CASE(3);
+            default:
+                THROW(ERR_NOT_IMPLEMENTED);
+#undef CASE
+        }
+    }
 
     // Run ui step
     ctx->ui_step = HANDLE_SIMPLE_STEP_RESPOND;
@@ -556,7 +641,7 @@ static subhandler_fn_t* lookup_subhandler(uint8_t p1) {
         CASE(0x04, signTx_handleShowDataAPDU);
         CASE(0x05, signTx_handleStartCountedSectionAPDU);
         CASE(0x06, signTx_handleEndCountedSectionAPDU);
-        /*                CASE(0x07, signTx_handleStoreValueAPDU);*/
+        CASE(0x07, signTx_handleStoreValueAPDU);
         CASE(0x10, signTx_handleWitnessAPDU);
         DEFAULT(NULL)
 #undef CASE
@@ -579,6 +664,9 @@ void signTransaction_handleAPDU(uint8_t p1,
         integrityCheckInit(&ctx->integrity);
         TRACE("Counted sections init");
         countedSectionInit(&ctx->countedSections);
+        TRACE("Storage init");
+        explicit_bzero(&ctx->storage, SIZEOF(ctx->storage));
+        ctx->storage.initialized_magic = TX_STORAGE_INITIALIZED_MAGIC;
     }
 
     // Parse APDU into const and non-const part

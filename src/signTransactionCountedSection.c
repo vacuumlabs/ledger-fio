@@ -32,7 +32,7 @@ bool countedSectionProcess(tx_counted_section_t *cs, uint32_t expectedLength) {
     ASSERT(cs->currentLevel <= MAX_NESTED_COUNTED_SECTIONS);
 
     for (size_t i = 0; i < cs->currentLevel; i++) {
-        TRACE("countedSectionProcess %d/%d: We have %d, use %d.",
+        TRACE("%d/%d: We have %d, use %d.",
               (int) (i + 1),
               (int) cs->currentLevel,
               (int) cs->count[i],
