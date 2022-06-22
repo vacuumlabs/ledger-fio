@@ -7,6 +7,6 @@
 
 handler_fn_t handleRunTests;
 
-#endif // H_CARDANO_APP_RUN_TESTS
+#endif  // H_CARDANO_APP_RUN_TESTS
 
-#endif // DEVEL
+#endif  // DEVEL
