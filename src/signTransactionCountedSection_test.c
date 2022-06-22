@@ -84,7 +84,6 @@ static void correct_test() {
     ASSERT(countedSectionEnd(&cs));
 }
 
-
 void run_countedSection_test() {
     tooMuchNesting_test();
     finalizeOnNonZeroLevel_test();

@@ -7,6 +7,7 @@
 #include "endian.h"
 #include "eos_utils.h"
 #include "securityPolicy.h"
+#include "signTransactionCountedSection.h"
 #include "signTransactionIntegrity.h"
 #include "signTransactionParse.h"
 #include "uiHelpers.h"
@@ -98,7 +99,11 @@ __noinline_due_to_stack__ void signTx_handleInitAPDU(uint8_t p2,
     }
 
     // Apend data to hash
-    { sha_256_append(&ctx->hashContext, varData->chainId, SIZEOF(varData->chainId)); }
+    {
+        VALIDATE(countedSectionProcess(&ctx->countedSections, SIZEOF(varData->chainId)),
+                 ERR_INVALID_DATA);
+        sha_256_append(&ctx->hashContext, varData->chainId, SIZEOF(varData->chainId));
+    }
 
     // Run ui step
     ctx->ui_step = HANDLE_SIMPLE_STEP_DISPLAY_DETAILS;
@@ -107,11 +112,12 @@ __noinline_due_to_stack__ void signTx_handleInitAPDU(uint8_t p2,
 
 // ======================= APPEND CONST DATA ===========================
 
-__noinline_due_to_stack__ void signTx_handleAppendConstDataAPDU(uint8_t p2,
-                                                                uint8_t* constDataBuffer,
-                                                                size_t constSize,
-                                                                MARK_UNUSED_NO_DEVEL uint8_t* varDataBuffer,
-                                                                size_t varSize) {
+__noinline_due_to_stack__ void signTx_handleAppendConstDataAPDU(
+    uint8_t p2,
+    uint8_t* constDataBuffer,
+    size_t constSize,
+    MARK_UNUSED_NO_DEVEL uint8_t* varDataBuffer,
+    size_t varSize) {
     // Sanity checks
     TRACE_STACK_USAGE();
     { VALIDATE(p2 == P2_UNUSED, ERR_INVALID_REQUEST_PARAMETERS); }
@@ -128,7 +134,10 @@ __noinline_due_to_stack__ void signTx_handleAppendConstDataAPDU(uint8_t p2,
     }
 
     // Apend data to hash
-    { sha_256_append(&ctx->hashContext, constData->data, constSize); }
+    {
+        VALIDATE(countedSectionProcess(&ctx->countedSections, constSize), ERR_INVALID_DATA);
+        sha_256_append(&ctx->hashContext, constData->data, constSize);
+    }
 
     // Run ui step
     ctx->ui_step = HANDLE_SIMPLE_STEP_RESPOND;
@@ -137,11 +146,12 @@ __noinline_due_to_stack__ void signTx_handleAppendConstDataAPDU(uint8_t p2,
 
 // ======================= SHOW MESSAGE ===========================
 
-__noinline_due_to_stack__ void signTx_handleShowMessageAPDU(uint8_t p2,
-                                                            uint8_t* constDataBuffer,
-                                                            size_t constSize,
-                                                            MARK_UNUSED_NO_DEVEL uint8_t* varDataBuffer,
-                                                            size_t varSize) {
+__noinline_due_to_stack__ void signTx_handleShowMessageAPDU(
+    uint8_t p2,
+    uint8_t* constDataBuffer,
+    size_t constSize,
+    MARK_UNUSED_NO_DEVEL uint8_t* varDataBuffer,
+    size_t varSize) {
     // Sanity checks
     TRACE_STACK_USAGE();
     { VALIDATE(p2 == P2_UNUSED, ERR_INVALID_REQUEST_PARAMETERS); }
@@ -200,16 +210,16 @@ __noinline_due_to_stack__ void signTx_handleShowDataAPDU(uint8_t p2,
     struct {
         uint8_t valueFormat;
         uint8_t valueValidation;
-        uint8_t valueValidationArg1;
-        uint8_t valueValidationArg2;
+        uint8_t valueValidationArg1[8];
+        uint8_t valueValidationArg2[8];
         uint8_t valuePolicy;
         uint8_t keyLen;
         uint8_t key[MAX_DISPLAY_KEY_LENGTH];
     }* constData = (void*) constDataBuffer;
     {
-        VALIDATE(constSize >= 6, ERR_INVALID_DATA);
+        VALIDATE(constSize >= 20, ERR_INVALID_DATA);
         VALIDATE(constData->keyLen <= MAX_DISPLAY_KEY_LENGTH - 1, ERR_INVALID_DATA);
-        VALIDATE(constSize == 6 + constData->keyLen, ERR_INVALID_DATA);
+        VALIDATE(constSize == 20 + constData->keyLen, ERR_INVALID_DATA);
         str_validateTextBuffer(constData->key, constData->keyLen);
     }
 
@@ -218,17 +228,20 @@ __noinline_due_to_stack__ void signTx_handleShowDataAPDU(uint8_t p2,
         memcpy(ctx->key, constData->key, constData->keyLen);
         ctx->key[constData->keyLen] = 0;
 
-        parseValue(constData->valueFormat,
-                   constData->valueValidation,
-                   constData->valueValidationArg1,
-                   constData->valueValidationArg2,
-                   varDataBuffer,
-                   varSize,
-                   ctx->value);
+        parseValueToDisplay(constData->valueFormat,
+                            constData->valueValidation,
+                            constData->valueValidationArg1,
+                            constData->valueValidationArg2,
+                            varDataBuffer,
+                            varSize,
+                            ctx->value);
     }
 
     // Apend data to hash
-    { sha_256_append(&ctx->hashContext, varDataBuffer, varSize); }
+    {
+        VALIDATE(countedSectionProcess(&ctx->countedSections, varSize), ERR_INVALID_DATA);
+        sha_256_append(&ctx->hashContext, varDataBuffer, varSize);
+    }
 
     // Policy -
     {
@@ -247,6 +260,84 @@ __noinline_due_to_stack__ void signTx_handleShowDataAPDU(uint8_t p2,
     }
 
     // Run ui step
+    signTx_ui_runStep_simple();
+}
+
+// ======================= START COUNTED SECTION ===========================
+
+__noinline_due_to_stack__ void signTx_handleStartCountedSectionAPDU(uint8_t p2,
+                                                                    uint8_t* constDataBuffer,
+                                                                    size_t constSize,
+                                                                    uint8_t* varDataBuffer,
+                                                                    size_t varSize) {
+    // Sanity checks
+    TRACE_STACK_USAGE();
+    { VALIDATE(p2 == P2_UNUSED, ERR_INVALID_REQUEST_PARAMETERS); }
+
+    // Validate const data
+    TRACE_BUFFER(constDataBuffer, constSize);
+    TRACE_BUFFER(varDataBuffer, varSize);
+    struct {
+        uint8_t valueFormat;
+        uint8_t valueValidation;
+        uint8_t valueValidationArg1[8];
+        uint8_t valueValidationArg2[8];
+    }* constData = (void*) constDataBuffer;
+    { VALIDATE(constSize == SIZEOF(*constData), ERR_INVALID_DATA); }
+
+    // Parse data - prepare to display
+    uint32_t numberOfExpectedBytes = 0;
+    {
+        uint64_t value = 0;
+        parseValueToUInt64(constData->valueFormat,
+                           constData->valueValidation,
+                           constData->valueValidationArg1,
+                           constData->valueValidationArg2,
+                           varDataBuffer,
+                           varSize,
+                           &value);
+        VALIDATE(value <= UINT32_MAX, ERR_INVALID_DATA);
+        numberOfExpectedBytes = value;
+    }
+
+    // Apend data to hash
+    {
+        VALIDATE(countedSectionProcess(&ctx->countedSections, varSize), ERR_INVALID_DATA);
+        VALIDATE(countedSectionBegin(&ctx->countedSections, numberOfExpectedBytes),
+                 ERR_INVALID_DATA);
+        sha_256_append(&ctx->hashContext, varDataBuffer, varSize);
+    }
+
+    // Run ui step
+    ctx->ui_step = HANDLE_SIMPLE_STEP_RESPOND;
+    signTx_ui_runStep_simple();
+}
+
+// ======================= END COUNTED SECTION ===========================
+
+__noinline_due_to_stack__ void signTx_handleEndCountedSectionAPDU(
+    uint8_t p2,
+    MARK_UNUSED_NO_DEVEL uint8_t* constDataBuffer,
+    size_t constSize,
+    MARK_UNUSED_NO_DEVEL uint8_t* varDataBuffer,
+    size_t varSize) {
+    // Sanity checks
+    TRACE_STACK_USAGE();
+    { VALIDATE(p2 == P2_UNUSED, ERR_INVALID_REQUEST_PARAMETERS); }
+
+    // Validate const data
+    TRACE_BUFFER(constDataBuffer, constSize);
+    TRACE_BUFFER(varDataBuffer, varSize);
+    {
+        VALIDATE(constSize == 0, ERR_INVALID_DATA);
+        VALIDATE(varSize == 0, ERR_INVALID_DATA);
+    }
+
+    // Apend data to hash (no data)
+    { VALIDATE(countedSectionEnd(&ctx->countedSections), ERR_INVALID_DATA); }
+
+    // Run ui step
+    ctx->ui_step = HANDLE_SIMPLE_STEP_RESPOND;
     signTx_ui_runStep_simple();
 }
 
@@ -283,11 +374,12 @@ static void signTx_handleWitness_ui_runStep() {
     UI_STEP_END(HANDLE_WITNESS_STEP_INVALID);
 }
 
-__noinline_due_to_stack__ void signTx_handleWitnessAPDU(uint8_t p2,
-                                                        MARK_UNUSED_NO_DEVEL uint8_t* constDataBuffer,
-                                                        size_t constSize,
-                                                        uint8_t* varDataBuffer,
-                                                        size_t varSize) {
+__noinline_due_to_stack__ void signTx_handleWitnessAPDU(
+    uint8_t p2,
+    MARK_UNUSED_NO_DEVEL uint8_t* constDataBuffer,
+    size_t constSize,
+    uint8_t* varDataBuffer,
+    size_t varSize) {
     // sanity checks
     TRACE_STACK_USAGE();
     { VALIDATE(p2 == P2_UNUSED, ERR_INVALID_REQUEST_PARAMETERS); }
@@ -328,10 +420,11 @@ __noinline_due_to_stack__ void signTx_handleWitnessAPDU(uint8_t p2,
         ctx->value[outlen] = 0;
     }
 
-    // Hash - this is the last call, we finalize it
+    // Hash - this is the last call, we finalize it + counted sections
     uint8_t hashBuf[32];
     explicit_bzero(hashBuf, SIZEOF(hashBuf));
     {
+        VALIDATE(countedSectionFinalize(&ctx->countedSections), ERR_INVALID_DATA);
         sha_256_finalize(&ctx->hashContext, hashBuf, SIZEOF(hashBuf));
         TRACE("SHA_256_finalize, resulting hash:");
         TRACE_BUFFER(hashBuf, 32);
@@ -461,9 +554,9 @@ static subhandler_fn_t* lookup_subhandler(uint8_t p1) {
         CASE(0x02, signTx_handleAppendConstDataAPDU);
         CASE(0x03, signTx_handleShowMessageAPDU);
         CASE(0x04, signTx_handleShowDataAPDU);
-        /*                CASE(0x05, signTx_handleStartCountedSectionAPDU);
-                        CASE(0x06, signTx_handleEndCountedSectionAPDU);
-                        CASE(0x07, signTx_handleStoreValueAPDU);*/
+        CASE(0x05, signTx_handleStartCountedSectionAPDU);
+        CASE(0x06, signTx_handleEndCountedSectionAPDU);
+        /*                CASE(0x07, signTx_handleStoreValueAPDU);*/
         CASE(0x10, signTx_handleWitnessAPDU);
         DEFAULT(NULL)
 #undef CASE
@@ -484,6 +577,8 @@ void signTransaction_handleAPDU(uint8_t p1,
         sha_256_init(&ctx->hashContext);
         TRACE("Integrity check init");
         integrityCheckInit(&ctx->integrity);
+        TRACE("Counted sections init");
+        countedSectionInit(&ctx->countedSections);
     }
 
     // Parse APDU into const and non-const part

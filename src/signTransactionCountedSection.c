@@ -10,26 +10,33 @@ void countedSectionInit(tx_counted_section_t *cs) {
     cs->initialized_magic = TX_COUNTED_SECTION_INITIALIZED_MAGIC;
 }
 
-bool countedSectionBegin(tx_counted_section_t *cs, uint16_t expectedLength) {
-    STATIC_ASSERT(ARRAY_LEN(cs->count) == MAX_NESTED_COUNTED_SECTIONS, "Incorrect tx_counted_section_t count length");
+bool countedSectionBegin(tx_counted_section_t *cs, uint32_t expectedLength) {
+    STATIC_ASSERT(ARRAY_LEN(cs->count) == MAX_NESTED_COUNTED_SECTIONS,
+                  "Incorrect tx_counted_section_t count length");
     ASSERT(cs->initialized_magic == TX_COUNTED_SECTION_INITIALIZED_MAGIC);
 
-    //too deep nesting
-    if(cs->currentLevel >= MAX_NESTED_COUNTED_SECTIONS) {
-        return false;    
+    // too deep nesting
+    if (cs->currentLevel >= MAX_NESTED_COUNTED_SECTIONS) {
+        return false;
     }
 
-    cs->currentLevel++; 
-    cs->count[cs->currentLevel-1] = expectedLength;
+    cs->currentLevel++;
+    cs->count[cs->currentLevel - 1] = expectedLength;
     return true;
 }
 
-bool countedSectionProcess(tx_counted_section_t *cs, uint16_t expectedLength) {
-    STATIC_ASSERT(ARRAY_LEN(cs->count) == MAX_NESTED_COUNTED_SECTIONS, "Incorrect tx_counted_section_t count length");
+bool countedSectionProcess(tx_counted_section_t *cs, uint32_t expectedLength) {
+    STATIC_ASSERT(ARRAY_LEN(cs->count) == MAX_NESTED_COUNTED_SECTIONS,
+                  "Incorrect tx_counted_section_t count length");
     ASSERT(cs->initialized_magic == TX_COUNTED_SECTION_INITIALIZED_MAGIC);
     ASSERT(cs->currentLevel <= MAX_NESTED_COUNTED_SECTIONS);
 
-    for(size_t i=0; i<cs->currentLevel; i++) {
+    for (size_t i = 0; i < cs->currentLevel; i++) {
+        TRACE("countedSectionProcess %d/%d: We have %d, use %d.",
+              (int) (i + 1),
+              (int) cs->currentLevel,
+              (int) cs->count[i],
+              (int) expectedLength);
         if (cs->count[i] < expectedLength) {
             return false;
         }
@@ -39,7 +46,8 @@ bool countedSectionProcess(tx_counted_section_t *cs, uint16_t expectedLength) {
 }
 
 bool countedSectionEnd(tx_counted_section_t *cs) {
-    STATIC_ASSERT(ARRAY_LEN(cs->count) == MAX_NESTED_COUNTED_SECTIONS, "Incorrect tx_counted_section_t count length");
+    STATIC_ASSERT(ARRAY_LEN(cs->count) == MAX_NESTED_COUNTED_SECTIONS,
+                  "Incorrect tx_counted_section_t count length");
     ASSERT(cs->initialized_magic == TX_COUNTED_SECTION_INITIALIZED_MAGIC);
     ASSERT(cs->currentLevel <= MAX_NESTED_COUNTED_SECTIONS);
 
@@ -49,7 +57,7 @@ bool countedSectionEnd(tx_counted_section_t *cs) {
     }
 
     // Counted section mismatch
-    if (cs->count[cs->currentLevel-1] != 0) {
+    if (cs->count[cs->currentLevel - 1] != 0) {
         return false;
     }
 
@@ -58,7 +66,8 @@ bool countedSectionEnd(tx_counted_section_t *cs) {
 }
 
 bool countedSectionFinalize(tx_counted_section_t *cs) {
-    STATIC_ASSERT(ARRAY_LEN(cs->count) == MAX_NESTED_COUNTED_SECTIONS, "Incorrect tx_counted_section_t count length");
+    STATIC_ASSERT(ARRAY_LEN(cs->count) == MAX_NESTED_COUNTED_SECTIONS,
+                  "Incorrect tx_counted_section_t count length");
     ASSERT(cs->initialized_magic == TX_COUNTED_SECTION_INITIALIZED_MAGIC);
 
     return (cs->currentLevel == 0);

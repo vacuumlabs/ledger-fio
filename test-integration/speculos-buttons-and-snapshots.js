@@ -8,6 +8,8 @@ const fioWarningDevelSHANanoX = "sha256:2bb665c41bcb7e7abda8fc30255f28b35144d269
 
 const fioThreeDotsNanoS = "sha256:77d4d2651ac7327eee85219c9d25da7b40cf476fad1a67e7eeacb74b37221efe";
 const fioThreeDotsNanoX = "sha256:c650a1475392bdc2ff484341c43bb3aa532ea5262ddb9331f219a24314bc014f";
+const fioEmptyScreenNanoS ="sha256:6dde663afd5a4b7cf8f4955a8a4b035d358affcb661f18bda910ec837a70ee77";
+const fioEmptyScreenNanoX ="sha256:6dde663afd5a4b7cf8f4955a8a4b035d358affcb661f18bda910ec837a70ee77";
 
 class ButtonsAndSnapshots {
     scriptName;
@@ -26,7 +28,7 @@ class ButtonsAndSnapshots {
 		this.snapshotName = conf.snapshotName
 		this.fioWaitingSHA = this.deviceType == "nanos" ? fioWaitingForCommandsSHANanoS : fioWaitingForCommandsSHANanoX;
 		this.fioWarningSHA = this.deviceType == "nanos" ? fioWarningDevelSHANanoS : fioWarningDevelSHANanoX;
-		this.fioThreeDots = this.deviceType == "nanos" ? fioThreeDotsNanoS : fioThreeDotsNanoX;
+		this.fioThreeDots = this.deviceType == "nanos" ? [fioThreeDotsNanoS, fioEmptyScreenNanoS] : [fioThreeDotsNanoX, fioEmptyScreenNanoX];
     }
 
 	curlButton(which, hint) { // e.g. which: 'left', 'right', or 'both'
@@ -90,7 +92,7 @@ class ButtonsAndSnapshots {
 				}
 			}
 
-			if (sha256Array[0] /* newly generated PNG */ == this.fioThreeDots) {
+			if (sha256Array[0] /* newly generated PNG */ == this.fioThreeDots[0] || sha256Array == this.fioThreeDots[1]) {
 				await sleep(90+10*loops)
 				continue;
 			}

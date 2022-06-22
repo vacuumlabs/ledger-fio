@@ -51,11 +51,10 @@
 // start using such variable. deprecated deals with that.
 #define MARK_UNUSED __attribute__((unused, deprecated))
 #ifdef DEVEL
-#define MARK_UNUSED_NO_DEVEL 
+#define MARK_UNUSED_NO_DEVEL
 #else
 #define MARK_UNUSED_NO_DEVEL __attribute__((unused, deprecated))
 #endif
-
 
 // Note: inlining can increase stack memory usage
 // where we really do not want it

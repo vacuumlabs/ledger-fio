@@ -6,6 +6,7 @@
 #include "fio.h"
 #include "keyDerivation.h"
 #include "signTransactionIntegrity.h"
+#include "signTransactionCountedSection.h"
 
 handler_fn_t signTransaction_handleAPDU;
 
@@ -17,6 +18,7 @@ handler_fn_t signTransaction_handleAPDU;
 typedef struct {
     sha_256_context_t hashContext;
     tx_integrity_t integrity;
+    tx_counted_section_t countedSections;
     int ui_step;
 
     char key[MAX_DISPLAY_KEY_LENGTH];

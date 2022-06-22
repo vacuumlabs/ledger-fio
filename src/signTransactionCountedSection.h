@@ -6,18 +6,18 @@
 
 #define MAX_NESTED_COUNTED_SECTIONS 5
 
-//currencLevel=1 strores value on count[0], etc...
+// currencLevel=1 strores value on count[0], etc...
 typedef struct {
-    uint16_t initialized_magic;
-    uint16_t count[MAX_NESTED_COUNTED_SECTIONS];
+    uint32_t initialized_magic;
+    uint32_t count[MAX_NESTED_COUNTED_SECTIONS];
     uint8_t currentLevel;
 } tx_counted_section_t;
 
 void countedSectionInit(tx_counted_section_t *cs);
 
-bool countedSectionBegin(tx_counted_section_t *cs, uint16_t expectedLength);
+bool countedSectionBegin(tx_counted_section_t *cs, uint32_t expectedLength);
 
-bool countedSectionProcess(tx_counted_section_t *cs, uint16_t expectedLength);
+bool countedSectionProcess(tx_counted_section_t *cs, uint32_t expectedLength);
 
 bool countedSectionEnd(tx_counted_section_t *cs);
 

@@ -26,8 +26,8 @@ SHOW_DATA
 ----------
 ValueFormat: NAME, STRING, UINT64 (1b)					
 ValueValidation: NONE, LENGTH, EQUALS_STORED (1b)
-ValueValidationArg 1 (1b)
-ValueValidationArg 2 (1b)
+ValueValidationArg 1 (8b)
+ValueValidationArg 2 (8b)
 Policy (1b)
 Key Len: 
 Key
@@ -36,8 +36,10 @@ Value
 ===================
 START_COUNTED_SECTION 
 ----------
-ValueValidation: NONE, LENGTH(min, max)
-format: UINT8, VARUINT32
+ValueFormat: must be number format (1b)					
+ValueValidation: NONE, LENGTH, EQUALS_STORED (1b)
+ValueValidationArg 1 (8b)
+ValueValidationArg 2 (8b)
 ----------
 expected length
 ====================

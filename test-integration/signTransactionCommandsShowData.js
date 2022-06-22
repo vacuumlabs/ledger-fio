@@ -35,7 +35,7 @@ console.log("This test requires app in DEVEL mode.")
 //!!!!!! - indicates places where test may reasonably break as Speculos sometimes does not react to every buttonpress.
 
 //-------------------------------------------------------------------------------------
-testStep(" - - -", "Sign minimal fake devel transaction containing INIT, APPEND_CONST_DATA, SHOW_MESSAGE, FINISH instructions - testnet");
+testStep(" - - -", "Sign minimal fake devel transaction containing SHOW_DATA instructions - testnet");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
     const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
@@ -45,40 +45,40 @@ testStep(" - - -", "Sign minimal fake devel transaction containing INIT, APPEND_
     const response11 = await promise11;
     assert.equal(response11.toString("hex"), "9000");
 
-    //SHOW DATA 01-hexstring, 02-validate length, 00-min, 08-max, 05-policy, Key = "HexString" (09486578537472696e67)
-    const buffer12 = getAPDUDataBuffer("010200080509486578537472696e67", "0011223344556677");
+    //SHOW DATA 01-hexstring, 02-validate length, 0000000000000000-min, 0800000000000000-max, 05-policy, Key = "HexString" (09486578537472696e67)
+    const buffer12 = getAPDUDataBuffer("0102000000000000000008000000000000000509486578537472696e67", "0011223344556677");
     const promise12 = transport.send(215, 0x20, 0x04, 0, buffer12);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm message"); //!!!!!!
     const response12 = await promise12;
     assert.equal(response12.toString("hex"), "9000");
 
-    //SHOW DATA 02-string, 01-no validation, 00-min, 00-max, 05-policy, Key = "String" (06537472696e67)
-    const buffer13 = getAPDUDataBuffer("020100000506537472696e67", "4e69636520616e64206c6f6e67206c6f6e67206c6f6e67206c6f6e6720737472696e67");
+    //SHOW DATA 02-string, 01-no validation, 0000000000000000-min, 0000000000000000-max, 05-policy, Key = "String" (06537472696e67)
+    const buffer13 = getAPDUDataBuffer("0201000000000000000000000000000000000506537472696e67", "4e69636520616e64206c6f6e67206c6f6e67206c6f6e67206c6f6e6720737472696e67");
     const promise13 = transport.send(215, 0x20, 0x04, 0, buffer13);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm message"); //!!!!!!
     const response13 = await promise13;
     assert.equal(response13.toString("hex"), "9000");
 
-    //SHOW DATA 03-name, 01-no validation, 00-min, 00-max, 05-policy, Key = "NameString" (0a4e616d65537472696e67) Shows: "fio.token"
-    const buffer14 = getAPDUDataBuffer("03010000050a4e616d65537472696e67", "0000980ad20ca85b");
+    //SHOW DATA 03-name, 01-no validation, 0000000000000000-min, 0000000000000000-max, 05-policy, Key = "NameString" (0a4e616d65537472696e67) Shows: "fio.token"
+    const buffer14 = getAPDUDataBuffer("030100000000000000000000000000000000050a4e616d65537472696e67", "0000980ad20ca85b");
     const promise14 = transport.send(215, 0x20, 0x04, 0, buffer14);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm message"); //!!!!!!
     const response14 = await promise14;
     assert.equal(response14.toString("hex"), "9000");
 
-    //SHOW DATA 10-amount, 01-no validation, 00-min, 00-max, 05-policy, Key = "Amount" (06416d6f756e74)
-    const buffer15 = getAPDUDataBuffer("100100000506416d6f756e74", "0100000000000000");
+    //SHOW DATA 10-amount, 01-no validation, 0000000000000000-min, 0000000000000000-max, 05-policy, Key = "Amount" (06416d6f756e74)
+    const buffer15 = getAPDUDataBuffer("1001000000000000000000000000000000000506416d6f756e74", "0100000000000000");
     const promise15 = transport.send(215, 0x20, 0x04, 0, buffer15);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm message"); //!!!!!!
     const response15 = await promise15;
     assert.equal(response15.toString("hex"), "9000");
 
-    //SHOW DATA 14-uint64, 01-no validation, 00-min, 00-max, 05-policy, Key = "Number" (064e756d626572)
-    const buffer16 = getAPDUDataBuffer("1401000005064e756d626572", "0200000000000000");
+    //SHOW DATA 14-uint64, 01-no validation, 0000000000000000-min, 0000000000000000-max, 05-policy, Key = "Number" (064e756d626572)
+    const buffer16 = getAPDUDataBuffer("14010000000000000000000000000000000005064e756d626572", "0200000000000000");
     const promise16 = transport.send(215, 0x20, 0x04, 0, buffer16);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm message"); //!!!!!!
@@ -86,8 +86,8 @@ testStep(" - - -", "Sign minimal fake devel transaction containing INIT, APPEND_
     assert.equal(response16.toString("hex"), "9000");
 
     //This is to test do not show policy
-    //SHOW DATA 14-uint64, 01-no validation, 00-min, 00-max, 02-policy, Key = "Number" (064e756d626572)
-    const buffer17 = getAPDUDataBuffer("1401000002064e756d626572", "0300000000000000");
+    //SHOW DATA 14-uint64, 01-no validation, 0000000000000000-min, 0000000000000000-max, 02-policy, Key = "Number" (064e756d626572)
+    const buffer17 = getAPDUDataBuffer("14010000000000000000000000000000000002064e756d626572", "0300000000000000");
     const promise17 = transport.send(215, 0x20, 0x04, 0, buffer17);
     const response17 = await promise17;
     assert.equal(response17.toString("hex"), "9000");
@@ -126,8 +126,8 @@ testStep(" - - -", "Unknown data type leads to failure");
     const response11 = await promise11;
     assert.equal(response11.toString("hex"), "9000");
 
-    //SHOW DATA 00-unknown, 02-validate length, 00-min, 08-max, 05-policy, Key = "HexString" (09486578537472696e67)
-    const buffer12 = getAPDUDataBuffer("000200080509486578537472696e67", "0011223344556677");
+    //SHOW DATA 00-unknown, 02-validate length, 0000000000000000-min, 0800000000000000-max, 05-policy, Key = "HexString" (09486578537472696e67)
+    const buffer12 = getAPDUDataBuffer("0002000000000000000008000000000000000509486578537472696e67", "0011223344556677");
     const promise12 = transport.send(215, 0x20, 0x04, 0, buffer12);
     await assert.rejects(promise12, err(0x6e07));
 
@@ -144,8 +144,8 @@ testStep(" - - -", "Buffer does not pass length validation");
     const response11 = await promise11;
     assert.equal(response11.toString("hex"), "9000");
 
-    //SHOW DATA 01-hexstring, 02-validate length, 00-min, 08-max, 05-policy, Key = "HexString" (09486578537472696e67)
-    const buffer12 = getAPDUDataBuffer("010200080509486578537472696e67", "001122334455667788");
+    //SHOW DATA 01-hexstring, 02-validate length, 0000000000000000-min, 0800000000000000-max, 05-policy, Key = "HexString" (09486578537472696e67)
+    const buffer12 = getAPDUDataBuffer("0102000000000000000008000000000000000509486578537472696e67", "001122334455667788");
     const promise12 = transport.send(215, 0x20, 0x04, 0, buffer12);
     await assert.rejects(promise12, err(0x6e07));
 
@@ -162,8 +162,8 @@ testStep(" - - -", "Key length does not match");
     const response11 = await promise11;
     assert.equal(response11.toString("hex"), "9000");
 
-    //SHOW DATA 01-hexstring, 02-validate length, 00-min, 08-max, 05-policy, Key = "HexString" 08(09)486578537472696e67
-    const buffer12 = getAPDUDataBuffer("010200080508486578537472696e67", "0011223344556677");
+    //SHOW DATA 01-hexstring, 02-validate length, 0000000000000000-min, 0800000000000000-max, 05-policy, Key = "HexString" 08(09)486578537472696e67
+    const buffer12 = getAPDUDataBuffer("0102000000000000000008000000000000000508486578537472696e67", "0011223344556677");
     const promise12 = transport.send(215, 0x20, 0x04, 0, buffer12);
     await assert.rejects(promise12, err(0x6e07));
 
@@ -180,8 +180,8 @@ testStep(" - - -", "Key contains invalid symbols");
     const response11 = await promise11;
     assert.equal(response11.toString("hex"), "9000");
 
-    //SHOW DATA 01-hexstring, 02-validate length, 00-min, 08-max, 05-policy, Key = "?exString" 0900(48)6578537472696e67
-    const buffer12 = getAPDUDataBuffer("010200080509ff6578537472696e67", "0011223344556677");
+    //SHOW DATA 01-hexstring, 02-validate length, 0000000000000000-min, 0800000000000000-max, 05-policy, Key = "?exString" 0900(48)6578537472696e67
+    const buffer12 = getAPDUDataBuffer("0102000000000000000008000000000000000509ff6578537472696e67", "0011223344556677");
     const promise12 = transport.send(215, 0x20, 0x04, 0, buffer12);
     await assert.rejects(promise12, err(0x6e07));
 
@@ -198,8 +198,8 @@ testStep(" - - -", "Key too long");
     const response11 = await promise11;
     assert.equal(response11.toString("hex"), "9000");
 
-    //SHOW DATA 01-hexstring, 02-validate length, 00-min, 08-max, 05-policy, Key = "01234567890123456789"
-    const buffer12 = getAPDUDataBuffer("0102000805143031323334353637383930313233343536373839", "0011223344556677");
+    //SHOW DATA 01-hexstring, 02-validate length, 0000000000000000-min, 0800000000000000-max, 05-policy, Key = "01234567890123456789"
+    const buffer12 = getAPDUDataBuffer("01020000000000000000080000000000000005143031323334353637383930313233343536373839", "0011223344556677");
     const promise12 = transport.send(215, 0x20, 0x04, 0, buffer12);
     await assert.rejects(promise12, err(0x6e07));
 
@@ -216,8 +216,8 @@ testStep(" - - -", "String value contains non readable characters");
     const response11 = await promise11;
     assert.equal(response11.toString("hex"), "9000");
 
-    //SHOW DATA 02-string, 01-no validation, 00-min, 00-max, 05-policy, Key = "String" (06537472696e67)
-    const buffer13 = getAPDUDataBuffer("020100000506537472696e67", "4eff636520616e64206c6f6e67206c6f6e67206c6f6e67206c6f6e6720737472696e67");
+    //SHOW DATA 02-string, 01-no validation, 0000000000000000-min, 0000000000000000-max, 05-policy, Key = "String" (06537472696e67)
+    const buffer13 = getAPDUDataBuffer("0201000000000000000000000000000000000506537472696e67", "4eff636520616e64206c6f6e67206c6f6e67206c6f6e67206c6f6e6720737472696e67");
     const promise13 = transport.send(215, 0x20, 0x04, 0, buffer13);
     await assert.rejects(promise13, err(0x6e07));
 
@@ -234,8 +234,8 @@ testStep(" - - -", "Name string has incorrect length");
     const response11 = await promise11;
     assert.equal(response11.toString("hex"), "9000");
 
-    //SHOW DATA 03-name, 01-no validation, 00-min, 00-max, 05-policy, Key = "NameString" (0a4e616d65537472696e67) Shows: "fio.token"
-    const buffer14 = getAPDUDataBuffer("03010000050a4e616d65537472696e67", "00980ad20ca85b");
+    //SHOW DATA 03-name, 01-no validation, 0000000000000000-min, 0000000000000000-max, 05-policy, Key = "NameString" (0a4e616d65537472696e67) Shows: "fio.token"
+    const buffer14 = getAPDUDataBuffer("030100000000000000000000000000000000050a4e616d65537472696e67", "00980ad20ca85b");
     const promise14 = transport.send(215, 0x20, 0x04, 0, buffer14);
     await assert.rejects(promise14, err(0x6e07));
 
@@ -252,8 +252,8 @@ testStep(" - - -", "Amount incorrect length");
     const response11 = await promise11;
     assert.equal(response11.toString("hex"), "9000");
 
-    //SHOW DATA 10-amount, 01-no validation, 00-min, 00-max, 05-policy, Key = "Amount" (06416d6f756e74)
-    const buffer15 = getAPDUDataBuffer("100100000506416d6f756e74", "010000000000000000");
+    //SHOW DATA 10-amount, 01-no validation, 0000000000000000-min, 0000000000000000-max, 05-policy, Key = "Amount" (06416d6f756e74)
+    const buffer15 = getAPDUDataBuffer("1001000000000000000000000000000000000506416d6f756e74", "010000000000000000");
     const promise15 = transport.send(215, 0x20, 0x04, 0, buffer15);
     await assert.rejects(promise15, err(0x6e07));
 
@@ -270,8 +270,8 @@ testStep(" - - -", "UInt64 incorrect length");
     const response11 = await promise11;
     assert.equal(response11.toString("hex"), "9000");
 
-    //SHOW DATA 14-uint64, 01-no validation, 00-min, 00-max, 05-policy, Key = "Number" (064e756d626572)
-    const buffer16 = getAPDUDataBuffer("1401000005064e756d626572", "02000000000000");
+    //SHOW DATA 14-uint64, 01-no validation, 0000000000000000-min, 0000000000000000-max, 05-policy, Key = "Number" (064e756d626572)
+    const buffer16 = getAPDUDataBuffer("14010000000000000000000000000000000005064e756d626572", "02000000000000");
     const promise16 = transport.send(215, 0x20, 0x04, 0, buffer16);
     await assert.rejects(promise16, err(0x6e07));
 
