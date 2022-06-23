@@ -204,13 +204,13 @@ __noinline_due_to_stack__ void signTx_handleShowMessageAPDU(
     signTx_ui_runStep_simple();
 }
 
-// ======================= SHOW DATA ===========================
+// ======================= APPEND DATA ===========================
 
-__noinline_due_to_stack__ void signTx_handleShowDataAPDU(uint8_t p2,
-                                                         uint8_t* constDataBuffer,
-                                                         size_t constSize,
-                                                         uint8_t* varDataBuffer,
-                                                         size_t varSize) {
+__noinline_due_to_stack__ void signTx_handleAppendDataAPDU(uint8_t p2,
+                                                           uint8_t* constDataBuffer,
+                                                           size_t constSize,
+                                                           uint8_t* varDataBuffer,
+                                                           size_t varSize) {
     // Sanity checks
     TRACE_STACK_USAGE();
     { VALIDATE(p2 == P2_UNUSED, ERR_INVALID_REQUEST_PARAMETERS); }
@@ -509,14 +509,17 @@ __noinline_due_to_stack__ void signTx_handleWitnessAPDU(
     uint8_t hashBuf[32];
     explicit_bzero(hashBuf, SIZEOF(hashBuf));
     {
-        VALIDATE(countedSectionFinalize(&ctx->countedSections), ERR_INVALID_DATA);
         sha_256_finalize(&ctx->hashContext, hashBuf, SIZEOF(hashBuf));
         TRACE("SHA_256_finalize, resulting hash:");
         TRACE_BUFFER(hashBuf, 32);
     }
 
-    // This is the last call - we need to check integrity of the command sequence
-    { VALIDATE(integrityCheckFinalize(&ctx->integrity), ERR_INVALID_STATE); }
+    // This is the last call - we need to check integrity of the command sequence + just for good
+    // measures we finalize counted section
+    {
+        VALIDATE(integrityCheckFinalize(&ctx->integrity), ERR_INVALID_STATE);
+        VALIDATE(countedSectionFinalize(&ctx->countedSections), ERR_INVALID_DATA);
+    }
 
     // Security policy
     security_policy_t policy = POLICY_DENY;
@@ -638,7 +641,7 @@ static subhandler_fn_t* lookup_subhandler(uint8_t p1) {
         CASE(0x01, signTx_handleInitAPDU);
         CASE(0x02, signTx_handleAppendConstDataAPDU);
         CASE(0x03, signTx_handleShowMessageAPDU);
-        CASE(0x04, signTx_handleShowDataAPDU);
+        CASE(0x04, signTx_handleAppendDataAPDU);
         CASE(0x05, signTx_handleStartCountedSectionAPDU);
         CASE(0x06, signTx_handleEndCountedSectionAPDU);
         CASE(0x07, signTx_handleStoreValueAPDU);

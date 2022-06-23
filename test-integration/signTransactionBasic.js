@@ -193,6 +193,8 @@ testStep(" - - -", "Sign testnet transaction");
 
     // Lets sign the transaction with fiojs
     const {serializedTx, fullMsg, hash, signature} = await buildTxAndSignatureFioJs(network, tx, publicKey)
+    console.log("Full message:")
+    console.log(fullMsg.toString("hex"));
 
     // Lets sign the transaction with ledger
     const chainId = networkInfo[network].chainId
@@ -252,6 +254,22 @@ testStep(" - - -", "Invalid transaction: actor dont match");
     await assertPromise;
 }
 
+testStep(" - - -", "Sign transaction reject");
+{
+    const network = "TESTNET"
+    const tx = basicTx
+
+    // Lets sign the transaction with fiojs
+    const {serializedTx, fullMsg, hash, signature} = await buildTxAndSignatureFioJs(network, tx, publicKey)
+    console.log("Full message:")
+    console.log(fullMsg.toString("hex"));
+
+    // Lets sign the transaction with ledger
+    const chainId = networkInfo[network].chainId
+    const ledgerPromise = app.signTransaction({path, chainId, tx})
+    await device.reviewReject([1, 1, 2, 1, 1, 2], "Review sign");
+    await assert.rejects(ledgerPromise, DeviceStatusError, "Action rejected by user");
+}
 
 await transport.close()
 testEnd(scriptName);

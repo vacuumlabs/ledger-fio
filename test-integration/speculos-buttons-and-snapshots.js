@@ -191,6 +191,19 @@ class ButtonsAndSnapshots {
         console.log(humanTime() + " back to main screen");
     }
 
+	async reviewReject(count, textWhat) {
+        await this.curlScreenShot();
+		await this._reviewInternal(count, textWhat);
+		if (this.deviceType == "nanos") {
+			await this.curlButtonAndScreenshot("left", "Reject: "+textWhat);
+		}
+		else {
+			await this.curlButtonAndScreenshot("right", "Move to reject"+textWhat);
+			await this.curlButtonAndScreenshot("both", "Reject: "+textWhat);
+		}
+        console.log(humanTime() + " back to main screen");
+    }
+
     async reviewPartial(count, textWhat) {
         await this.curlScreenShot();
 		await this._reviewInternal(count, textWhat);

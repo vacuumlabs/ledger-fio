@@ -22,7 +22,7 @@ Value Len
 Value
 ----------
 ===================
-SHOW_DATA
+APPEND_DATA
 ----------
 ValueFormat: NAME, STRING, UINT64 (1b)					
 ValueValidation: NONE, LENGTH, EQUALS_STORED (1b)
@@ -37,7 +37,7 @@ Value
 START_COUNTED_SECTION 
 ----------
 ValueFormat: must be number format (1b)					
-ValueValidation: NONE, LENGTH, EQUALS_STORED (1b)
+ValueValidation: NONE, LENGTH (1b)
 ValueValidationArg 1 (8b)
 ValueValidationArg 2 (8b)
 ----------
