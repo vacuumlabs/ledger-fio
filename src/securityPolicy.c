@@ -39,11 +39,15 @@ security_policy_t policyForGetPublicKey(const bip44_path_t* pathSpec, get_key_p1
     ALLOW();
 }
 
-security_policy_t policyForSignTxWitness(const bip44_path_t* pathSpec) {
+security_policy_t policyForSignTxInit(const bip44_path_t* pathSpec) {
     DENY_UNLESS(bip44_hasValidFIOPrefix(pathSpec));
     DENY_UNLESS(bip44_containsAddress(pathSpec));
     DENY_IF(bip44_containsMoreThanAddress(pathSpec));
 
+    SHOW();
+}
+
+security_policy_t policyForSignTxFinish() {
     PROMPT();
 }
 

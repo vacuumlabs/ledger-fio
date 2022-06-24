@@ -82,17 +82,29 @@ __noinline_due_to_stack__ void signTx_handleInitAPDU(uint8_t p2,
     TRACE_BUFFER(varDataBuffer, varSize);
     struct {
         uint8_t chainId[CHAIN_ID_LENGTH];
+        uint8_t derivationPath[1 + sizeof(uint32_t) *
+                                       BIP44_MAX_PATH_ELEMENTS];  // 1 stands for number of
+                                                                  // derivation math elements
     }* varData = (void*) varDataBuffer;
     {
         VALIDATE(constSize == 0, ERR_INVALID_DATA);
-        VALIDATE(varSize == SIZEOF(*varData), ERR_INVALID_DATA);
+        VALIDATE(varSize >= SIZEOF(varData->chainId), ERR_INVALID_DATA);
     }
 
     // Parse data - prepare to display
     {
-        network_type_t network = getNetworkByChainId(varData->chainId, SIZEOF(varData->chainId));
+        const network_type_t network =
+            getNetworkByChainId(varData->chainId, SIZEOF(varData->chainId));
         TRACE("Chain: %d", (int) network);
         VALIDATE(network == NETWORK_MAINNET || network == NETWORK_TESTNET, ERR_INVALID_DATA);
+
+        const size_t derivationPathLength = varSize - SIZEOF(varData->chainId);
+        const size_t parsedSize =
+            bip44_parseFromWire(&ctx->wittnessPath, varData->derivationPath, derivationPathLength);
+        VALIDATE(parsedSize == derivationPathLength, ERR_INVALID_DATA);
+        PRINTF("Derivation path:");
+        BIP44_PRINTF(&ctx->wittnessPath);
+        PRINTF("\n");
 
         snprintf(ctx->key, MAX_DISPLAY_KEY_LENGTH, "Chain");
         switch (network) {
@@ -116,8 +128,29 @@ __noinline_due_to_stack__ void signTx_handleInitAPDU(uint8_t p2,
         sha_256_append(&ctx->hashContext, varData->chainId, SIZEOF(varData->chainId));
     }
 
+    // Security policy
+    security_policy_t policy = POLICY_DENY;
+    {
+        policy = policyForSignTxInit(&ctx->wittnessPath);
+        TRACE("Policy: %d", (int) policy);
+        ENSURE_NOT_DENIED(policy);
+        {
+            // select UI steps
+            switch (policy) {
+#define CASE(POLICY, UI_STEP)   \
+    case POLICY: {              \
+        ctx->ui_step = UI_STEP; \
+        break;                  \
+    }
+                CASE(POLICY_SHOW_BEFORE_RESPONSE, HANDLE_SIMPLE_STEP_DISPLAY_DETAILS);
+                default:
+                    THROW(ERR_NOT_IMPLEMENTED);
+#undef CASE
+            }
+        }
+    }
+
     // Run ui step
-    ctx->ui_step = HANDLE_SIMPLE_STEP_DISPLAY_DETAILS;
     signTx_ui_runStep_simple();
 }
 
@@ -426,44 +459,44 @@ __noinline_due_to_stack__ void signTx_handleStoreValueAPDU(uint8_t p2,
     signTx_ui_runStep_simple();
 }
 
-// ============================== WITNESS ==============================
+// ============================== FINISH ==============================
 
 enum {
-    HANDLE_WITNESS_STEP_DISPLAY_DETAILS = 1000,
-    HANDLE_WITNESS_STEP_CONFIRM,
-    HANDLE_WITNESS_STEP_RESPOND,
-    HANDLE_WITNESS_STEP_INVALID,
+    HANDLE_FINISH_STEP_DISPLAY_DETAILS = 1000,
+    HANDLE_FINISH_STEP_CONFIRM,
+    HANDLE_FINISH_STEP_RESPOND,
+    HANDLE_FINISH_STEP_INVALID,
 };
 
-static void signTx_handleWitness_ui_runStep() {
+static void signTx_handleFinish_ui_runStep() {
     TRACE("UI step %d", ctx->ui_step);
     TRACE_STACK_USAGE();
-    ui_callback_fn_t* this_fn = signTx_handleWitness_ui_runStep;
+    ui_callback_fn_t* this_fn = signTx_handleFinish_ui_runStep;
 
     UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
-    UI_STEP(HANDLE_WITNESS_STEP_DISPLAY_DETAILS) {
+    UI_STEP(HANDLE_FINISH_STEP_DISPLAY_DETAILS) {
         ui_displayPaginatedText(ctx->key, ctx->value, this_fn);
     }
 
-    UI_STEP(HANDLE_WITNESS_STEP_CONFIRM) {
+    UI_STEP(HANDLE_FINISH_STEP_CONFIRM) {
         ui_displayPrompt("Sign", "transaction?", this_fn, respond_with_user_reject);
     }
 
-    UI_STEP(HANDLE_WITNESS_STEP_RESPOND) {
+    UI_STEP(HANDLE_FINISH_STEP_RESPOND) {
         io_send_buf(SUCCESS, G_io_apdu_buffer, 65 + 32);
         ui_displayBusy();  // needs to happen after I/O
         ui_idle();         // we are done with this tx
     }
 
-    UI_STEP_END(HANDLE_WITNESS_STEP_INVALID);
+    UI_STEP_END(HANDLE_FINISH_STEP_INVALID);
 }
 
-__noinline_due_to_stack__ void signTx_handleWitnessAPDU(
+__noinline_due_to_stack__ void signTx_handleFinishAPDU(
     uint8_t p2,
     MARK_UNUSED_NO_DEVEL uint8_t* constDataBuffer,
     size_t constSize,
-    uint8_t* varDataBuffer,
+    MARK_UNUSED_NO_DEVEL uint8_t* varDataBuffer,
     size_t varSize) {
     // sanity checks
     TRACE_STACK_USAGE();
@@ -472,28 +505,16 @@ __noinline_due_to_stack__ void signTx_handleWitnessAPDU(
     // Validate data
     TRACE_BUFFER(constDataBuffer, constSize);
     TRACE_BUFFER(varDataBuffer, varSize);
-    struct {
-        uint8_t pathLen;
-        uint8_t path[BIP44_MAX_PATH_ELEMENTS *
-                     sizeof(uint32_t)];  // SIZEOF does not work for 4-byte data
-    }* varData = (void*) varDataBuffer;
     {
         VALIDATE(constSize == 0, ERR_INVALID_DATA);
-        VALIDATE(varSize >= 1, ERR_INVALID_DATA);
-        VALIDATE(varData->pathLen <= BIP44_MAX_PATH_ELEMENTS, ERR_INVALID_DATA);
-        VALIDATE(varSize == (size_t) 1 + varData->pathLen * sizeof(uint32_t), ERR_INVALID_DATA);
+        VALIDATE(varSize == 0, ERR_INVALID_DATA);
     }
 
-    // Parse data and prepare to display them
-    bip44_path_t wittnessPath;
-    explicit_bzero(&wittnessPath, SIZEOF(wittnessPath));
+    // Prepare to display them
     {
-        size_t parsedSize = bip44_parseFromWire(&wittnessPath, varDataBuffer, varSize);
-        VALIDATE(parsedSize == varSize, ERR_INVALID_DATA);
-
         public_key_t wittnessPathPubkey;
         explicit_bzero(&wittnessPathPubkey, SIZEOF(wittnessPathPubkey));
-        derivePublicKey(&wittnessPath, &wittnessPathPubkey);
+        derivePublicKey(&ctx->wittnessPath, &wittnessPathPubkey);
         TRACE_BUFFER(wittnessPathPubkey.W, SIZEOF(wittnessPathPubkey.W));
 
         snprintf(ctx->key, MAX_DISPLAY_KEY_LENGTH, "Sign with");
@@ -524,7 +545,7 @@ __noinline_due_to_stack__ void signTx_handleWitnessAPDU(
     // Security policy
     security_policy_t policy = POLICY_DENY;
     {
-        policy = policyForSignTxWitness(&wittnessPath);
+        policy = policyForSignTxFinish();
         TRACE("Policy: %d", (int) policy);
         ENSURE_NOT_DENIED(policy);
         {
@@ -535,7 +556,7 @@ __noinline_due_to_stack__ void signTx_handleWitnessAPDU(
         ctx->ui_step = UI_STEP; \
         break;                  \
     }
-                CASE(POLICY_PROMPT_BEFORE_RESPONSE, HANDLE_WITNESS_STEP_DISPLAY_DETAILS);
+                CASE(POLICY_PROMPT_BEFORE_RESPONSE, HANDLE_FINISH_STEP_DISPLAY_DETAILS);
                 default:
                     THROW(ERR_NOT_IMPLEMENTED);
 #undef CASE
@@ -550,7 +571,7 @@ __noinline_due_to_stack__ void signTx_handleWitnessAPDU(
         TRY {
             // We derive the private key
             {
-                derivePrivateKey(&wittnessPath, &privateKey);
+                derivePrivateKey(&ctx->wittnessPath, &privateKey);
                 TRACE("privateKey.d:");
                 TRACE_BUFFER(privateKey.d, privateKey.d_len);
             }
@@ -619,7 +640,7 @@ __noinline_due_to_stack__ void signTx_handleWitnessAPDU(
     TRACE_BUFFER(G_io_apdu_buffer, 65);
     memcpy(G_io_apdu_buffer + 65, hashBuf, 32);
 
-    signTx_handleWitness_ui_runStep();
+    signTx_handleFinish_ui_runStep();
 }
 
 // ============================== MAIN HANDLER ==============================
@@ -645,7 +666,7 @@ static subhandler_fn_t* lookup_subhandler(uint8_t p1) {
         CASE(0x05, signTx_handleStartCountedSectionAPDU);
         CASE(0x06, signTx_handleEndCountedSectionAPDU);
         CASE(0x07, signTx_handleStoreValueAPDU);
-        CASE(0x10, signTx_handleWitnessAPDU);
+        CASE(0x10, signTx_handleFinishAPDU);
         DEFAULT(NULL)
 #undef CASE
 #undef DEFAULT

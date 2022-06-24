@@ -37,8 +37,8 @@ console.log("This test requires app in DEVEL mode.")
 //-------------------------------------------------------------------------------------
 testStep(" - - -", "Sign minimal fake devel transaction cotaining COUNTED_SECTION instructions");
 {
-    //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e path=44'/235'/0'/0/0
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -46,25 +46,25 @@ testStep(" - - -", "Sign minimal fake devel transaction cotaining COUNTED_SECTIO
     assert.equal(response11.toString("hex"), "9000");
 
     //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0800000000000000-max
-    const buffer12 = getAPDUDataBuffer("1701000000000000000000000000000000000", "8001"); // value - 128
+    const buffer12 = getAPDUDataBuffer("170100000000000000000000000000000000", "8001"); // value - 128
     const promise12 = transport.send(215, 0x20, 0x05, 0, buffer12);
     const response12 = await promise12;
     assert.equal(response12.toString("hex"), "9000");
 
     //Append to transaction (32 bytes)
-    const buffer13 = getAPDUDataBuffer("00000000000000000000000000000000000000000000000000000000000000000", "");
+    const buffer13 = getAPDUDataBuffer("0000000000000000000000000000000000000000000000000000000000000000", "");
     const promise13 = transport.send(215, 0x20, 0x02, 0, buffer13);
     const response13 = await promise13;
     assert.equal(response13.toString("hex"), "9000");
 
     //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0800000000000000-max
-    const buffer14 = getAPDUDataBuffer("1701000000000000000000000000000000000", "40"); // value - 64
+    const buffer14 = getAPDUDataBuffer("170100000000000000000000000000000000", "40"); // value - 64
     const promise14 = transport.send(215, 0x20, 0x05, 0, buffer14);
     const response14 = await promise14;
     assert.equal(response14.toString("hex"), "9000");
 
     //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0800000000000000-max
-    const buffer15 = getAPDUDataBuffer("1701000000000000000000000000000000000", "20"); // value - 32
+    const buffer15 = getAPDUDataBuffer("170100000000000000000000000000000000", "20"); // value - 32
     const promise15 = transport.send(215, 0x20, 0x05, 0, buffer15);
     const response15 = await promise15;
     assert.equal(response15.toString("hex"), "9000");
@@ -105,8 +105,8 @@ testStep(" - - -", "Sign minimal fake devel transaction cotaining COUNTED_SECTIO
     const response21 = await promise21;
     assert.equal(response21.toString("hex"), "9000");
 
-    //Finish path=44'/235'/0'/0/0
-    const buffer99 = getAPDUDataBuffer("", "058000002c800000eb800000000000000000000000");
+    //Finish 
+    const buffer99 = getAPDUDataBuffer("", "");
     const promise99 = transport.send(215, 0x20, 0x10, 0, buffer99);
     await device.curlScreenShot();
     await device.curlButtonAndScreenshot("both", "Confirm sign with");
@@ -133,7 +133,7 @@ testStep(" - - -", "Sign minimal fake devel transaction cotaining COUNTED_SECTIO
 testStep(" - - -", "Validation failure");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -141,7 +141,7 @@ testStep(" - - -", "Validation failure");
     assert.equal(response11.toString("hex"), "9000");
 
     //START_COUNTED_SECTION 17-varuint32, 03-number validation, 0000000000000000-min, 0800000000000000-max
-    const buffer12 = getAPDUDataBuffer("170300000000000000007f000000000000000", "8001"); // value - 128, 127 is max
+    const buffer12 = getAPDUDataBuffer("170300000000000000007f00000000000000", "8001"); // value - 128, 127 is max
     const promise12 = transport.send(215, 0x20, 0x05, 0, buffer12);
     await assert.rejects(promise12, err(0x6e07));
 
@@ -151,7 +151,7 @@ testStep(" - - -", "Validation failure");
 testStep(" - - -", "VarInt32 incorrect format");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -159,7 +159,7 @@ testStep(" - - -", "VarInt32 incorrect format");
     assert.equal(response11.toString("hex"), "9000");
 
     //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0000000000000000-max
-    const buffer12 = getAPDUDataBuffer("1701000000000000000000000000000000000", "8080"); 
+    const buffer12 = getAPDUDataBuffer("170100000000000000000000000000000000", "8080"); 
     const promise12 = transport.send(215, 0x20, 0x05, 0, buffer12);
     await assert.rejects(promise12, err(0x6e07));
 
@@ -169,7 +169,7 @@ testStep(" - - -", "VarInt32 incorrect format");
 testStep(" - - -", "VarInt32 too many bytes");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -177,7 +177,7 @@ testStep(" - - -", "VarInt32 too many bytes");
     assert.equal(response11.toString("hex"), "9000");
 
     //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0000000000000000-max
-    const buffer12 = getAPDUDataBuffer("1701000000000000000000000000000000000", "8080808080808080801"); //more than 9 bytes
+    const buffer12 = getAPDUDataBuffer("170100000000000000000000000000000000", "808080808080808001"); //more than 9 bytes
     const promise12 = transport.send(215, 0x20, 0x05, 0, buffer12);
     await assert.rejects(promise12, err(0x6e07));
 
@@ -187,7 +187,7 @@ testStep(" - - -", "VarInt32 too many bytes");
 testStep(" - - -", "Too big for UInt32");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -195,7 +195,7 @@ testStep(" - - -", "Too big for UInt32");
     assert.equal(response11.toString("hex"), "9000");
 
     //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0000000000000000-max
-    const buffer12 = getAPDUDataBuffer("1701000000000000000000000000000000000", "8080808080808001"); //more than 9 bytes
+    const buffer12 = getAPDUDataBuffer("170100000000000000000000000000000000", "8080808080808001");
     const promise12 = transport.send(215, 0x20, 0x05, 0, buffer12);
     await assert.rejects(promise12, err(0x6e07));
 
@@ -205,7 +205,7 @@ testStep(" - - -", "Too big for UInt32");
 testStep(" - - -", "too much nesting");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -214,7 +214,7 @@ testStep(" - - -", "too much nesting");
 
     {
         //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0800000000000000-max
-        const buffer12 = getAPDUDataBuffer("1701000000000000000000000000000000000", "8001"); // value - 128
+        const buffer12 = getAPDUDataBuffer("170100000000000000000000000000000000", "8001"); // value - 128
         const promise12 = transport.send(215, 0x20, 0x05, 0, buffer12);
         const response12 = await promise12;
         assert.equal(response12.toString("hex"), "9000");
@@ -222,7 +222,7 @@ testStep(" - - -", "too much nesting");
 
     {
         //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0800000000000000-max
-        const buffer12 = getAPDUDataBuffer("1701000000000000000000000000000000000", "8001"); // value - 128
+        const buffer12 = getAPDUDataBuffer("170100000000000000000000000000000000", "8001"); // value - 128
         const promise12 = transport.send(215, 0x20, 0x05, 0, buffer12);
         const response12 = await promise12;
         assert.equal(response12.toString("hex"), "9000");
@@ -230,7 +230,7 @@ testStep(" - - -", "too much nesting");
 
     {
         //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0800000000000000-max
-        const buffer12 = getAPDUDataBuffer("1701000000000000000000000000000000000", "8001"); // value - 128
+        const buffer12 = getAPDUDataBuffer("170100000000000000000000000000000000", "8001"); // value - 128
         const promise12 = transport.send(215, 0x20, 0x05, 0, buffer12);
         const response12 = await promise12;
         assert.equal(response12.toString("hex"), "9000");
@@ -238,7 +238,7 @@ testStep(" - - -", "too much nesting");
 
     {
         //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0800000000000000-max
-        const buffer12 = getAPDUDataBuffer("1701000000000000000000000000000000000", "8001"); // value - 128
+        const buffer12 = getAPDUDataBuffer("170100000000000000000000000000000000", "8001"); // value - 128
         const promise12 = transport.send(215, 0x20, 0x05, 0, buffer12);
         const response12 = await promise12;
         assert.equal(response12.toString("hex"), "9000");
@@ -246,7 +246,7 @@ testStep(" - - -", "too much nesting");
 
     {
         //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0800000000000000-max
-        const buffer12 = getAPDUDataBuffer("1701000000000000000000000000000000000", "8001"); // value - 128
+        const buffer12 = getAPDUDataBuffer("170100000000000000000000000000000000", "8001"); // value - 128
         const promise12 = transport.send(215, 0x20, 0x05, 0, buffer12);
         const response12 = await promise12;
         assert.equal(response12.toString("hex"), "9000");
@@ -254,7 +254,7 @@ testStep(" - - -", "too much nesting");
 
     {
         //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0800000000000000-max
-        const buffer12 = getAPDUDataBuffer("1701000000000000000000000000000000000", "8001"); // value - 128
+        const buffer12 = getAPDUDataBuffer("170100000000000000000000000000000000", "8001"); // value - 128
         const promise12 = transport.send(215, 0x20, 0x05, 0, buffer12);
         await assert.rejects(promise12, err(0x6e07));
         await device.makeStartingScreenshot();
@@ -264,7 +264,7 @@ testStep(" - - -", "too much nesting");
 testStep(" - - -", "Unexpected end counted section");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -283,25 +283,23 @@ testStep(" - - -", "Unexpected end counted section");
 testStep(" - - -", "Length mismatch");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
     const response11 = await promise11;
     assert.equal(response11.toString("hex"), "9000");
 
-    {
-        //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0800000000000000-max
-        const buffer12 = getAPDUDataBuffer("1701000000000000000000000000000000000", "8001"); // value - 128
-        const promise12 = transport.send(215, 0x20, 0x05, 0, buffer12);
-        const response12 = await promise12;
-        assert.equal(response12.toString("hex"), "9000");
-    }
+    //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0800000000000000-max
+    const buffer12 = getAPDUDataBuffer("170100000000000000000000000000000000", "8001"); // value - 128
+    const promise12 = transport.send(215, 0x20, 0x05, 0, buffer12);
+    const response12 = await promise12;
+    assert.equal(response12.toString("hex"), "9000");
 
     //END_COUNTED_SECTION
-    const buffer12 = getAPDUDataBuffer("", ""); 
-    const promise12 = transport.send(215, 0x20, 0x06, 0, buffer12);
-    await assert.rejects(promise12, err(0x6e07));
+    const buffer13 = getAPDUDataBuffer("", ""); 
+    const promise13 = transport.send(215, 0x20, 0x06, 0, buffer13);
+    await assert.rejects(promise13, err(0x6e07));
 
     await device.makeStartingScreenshot();
 }

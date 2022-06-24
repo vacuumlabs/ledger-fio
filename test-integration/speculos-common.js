@@ -1,4 +1,5 @@
 import { execSync  } from 'child_process';
+import assert from 'assert/strict';
 import { basename } from 'path';
 
 // see https://stackoverflow.com/questions/9763441/milliseconds-to-time-in-javascript
@@ -156,6 +157,8 @@ function getSpeculosDefaultConf() {
 }
 
 function getAPDUDataBuffer(constHex, varHex) {
+	assert.equal(constHex.length % 2, 0);
+	assert.equal(varHex.length % 2, 0);
     const constBuffer = Buffer.from(constHex, "hex")
     const varBuffer = Buffer.from(varHex, "hex")
 	const buf = Buffer.allocUnsafe(2);	

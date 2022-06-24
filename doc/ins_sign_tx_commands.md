@@ -8,6 +8,7 @@ INIT
 ----------
 ----------
 chainId
+Derivation path
 ===================
 APPEND_CONST_DATA 
 ----------
@@ -53,9 +54,17 @@ P2: Register to store 1/2/3 1 and 2 have 8b, 3 has 64b
 ----------
 Value
 ====================
+Start DH encryprion
+----------
+----------
+Encryption pubkey
+====================
+End DH encryprion
+----------
+----------
+====================
 FINISH
 ----------
 ----------
-Derivation path
 ====================
 

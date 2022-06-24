@@ -241,7 +241,7 @@ testStep(" - - -", "Invalid transaction: actor dont match");
     await assert.rejects(promise);
 }
 
-testStep(" - - -", "Invalid transaction: actor dont match");
+testStep(" - - -", "Invalid derivation path");
 {
     const network = "MAINNET"
     const tx = basicTx
@@ -250,7 +250,6 @@ testStep(" - - -", "Invalid transaction: actor dont match");
     const chainId = networkInfo[network].chainId
     const promise = app.signTransaction({path: [44 + HARDENED, 235 + HARDENED, 0 + HARDENED, 1, 0], chainId, tx})
     const assertPromise = assert.rejects(promise, DeviceStatusError, "Action rejected by Ledger's security policy");
-    await device.reviewPartial([1, 1, 2, 1, 1], "Review sign");
     await assertPromise;
 }
 

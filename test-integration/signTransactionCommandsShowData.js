@@ -37,8 +37,8 @@ console.log("This test requires app in DEVEL mode.")
 //-------------------------------------------------------------------------------------
 testStep(" - - -", "Sign minimal fake devel transaction containing SHOW_DATA instructions - testnet");
 {
-    //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e path=44'/235'/0'/0/0
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -92,8 +92,8 @@ testStep(" - - -", "Sign minimal fake devel transaction containing SHOW_DATA ins
     const response17 = await promise17;
     assert.equal(response17.toString("hex"), "9000");
     
-    //Finish path=44'/235'/0'/0/0
-    const buffer19 = getAPDUDataBuffer("", "058000002c800000eb800000000000000000000000");
+    //Finish
+    const buffer19 = getAPDUDataBuffer("", "");
     const promise19 = transport.send(215, 0x20, 0x10, 0, buffer19);
     await device.curlScreenShot();
     await device.curlButtonAndScreenshot("both", "Confirm sign with");
@@ -119,7 +119,7 @@ testStep(" - - -", "Sign minimal fake devel transaction containing SHOW_DATA ins
 testStep(" - - -", "Unknown data type leads to failure");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -137,7 +137,7 @@ testStep(" - - -", "Unknown data type leads to failure");
 testStep(" - - -", "Buffer does not pass length validation");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -155,7 +155,7 @@ testStep(" - - -", "Buffer does not pass length validation");
 testStep(" - - -", "Key length does not match");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -173,7 +173,7 @@ testStep(" - - -", "Key length does not match");
 testStep(" - - -", "Key contains invalid symbols");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -191,7 +191,7 @@ testStep(" - - -", "Key contains invalid symbols");
 testStep(" - - -", "Key too long");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -209,7 +209,7 @@ testStep(" - - -", "Key too long");
 testStep(" - - -", "String value contains non readable characters");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -227,7 +227,7 @@ testStep(" - - -", "String value contains non readable characters");
 testStep(" - - -", "Name string has incorrect length");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -245,7 +245,7 @@ testStep(" - - -", "Name string has incorrect length");
 testStep(" - - -", "Amount incorrect length");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -263,7 +263,7 @@ testStep(" - - -", "Amount incorrect length");
 testStep(" - - -", "UInt64 incorrect length");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!

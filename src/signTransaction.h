@@ -30,6 +30,7 @@ typedef struct {
 } tx_value_storage_t;
 
 typedef struct {
+    bip44_path_t wittnessPath;
     sha_256_context_t hashContext;
     tx_integrity_t integrity;
     tx_counted_section_t countedSections;

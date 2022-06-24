@@ -37,8 +37,8 @@ console.log("This test requires app in DEVEL mode.")
 //-------------------------------------------------------------------------------------
 testStep(" - - -", "Sign minimal fake devel transaction containing INIT, APPEND_CONST_DATA, SHOW_MESSAGE, FINISH instructions - testnet");
 {
-    //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e path=44'/235'/0'/0/0
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     console.log(buffer11.toString("hex"))
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
@@ -60,8 +60,8 @@ testStep(" - - -", "Sign minimal fake devel transaction containing INIT, APPEND_
     const response13 = await promise13;
     assert.equal(response13.toString("hex"), "9000");
 
-    //Finish path=44'/235'/0'/0/0
-    const buffer14 = getAPDUDataBuffer("", "058000002c800000eb800000000000000000000000");
+    //Finish 
+    const buffer14 = getAPDUDataBuffer("", "");
     const promise14 = transport.send(215, 0x20, 0x10, 0, buffer14);
     await device.curlScreenShot();
     await device.curlButtonAndScreenshot("both", "Confirm sign with");
@@ -79,8 +79,8 @@ testStep(" - - -", "Sign minimal fake devel transaction containing INIT, APPEND_
 //-------------------------------------------------------------------------------------
 testStep(" - - -", "Sign minimal fake devel transaction containing INIT, APPEND_CONST_DATA, SHOW_MESSAGE, FINISH instructions - mainnet");
 {
-    //INIT chainId=21dcae42c0182200e93f954a074011f9048a7624c6fe81d3c9541a614a88bd1c
-    const buffer11 = getAPDUDataBuffer("", "21dcae42c0182200e93f954a074011f9048a7624c6fe81d3c9541a614a88bd1c");
+    //INIT chainId=21dcae42c0182200e93f954a074011f9048a7624c6fe81d3c9541a614a88bd1c 
+    const buffer11 = getAPDUDataBuffer("", "21dcae42c0182200e93f954a074011f9048a7624c6fe81d3c9541a614a88bd1c058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -101,8 +101,8 @@ testStep(" - - -", "Sign minimal fake devel transaction containing INIT, APPEND_
     const response13 = await promise13;
     assert.equal(response13.toString("hex"), "9000");
 
-    //Finish path=44'/235'/0'/0/0
-    const buffer14 = getAPDUDataBuffer("", "058000002c800000eb800000000000000000000000");
+    //Finish 
+    const buffer14 = getAPDUDataBuffer("", "");
     const promise14 = transport.send(215, 0x20, 0x10, 0, buffer14);
     await device.curlScreenShot();
     await device.curlButtonAndScreenshot("both", "Confirm sign with");
@@ -121,7 +121,7 @@ testStep(" - - -", "Sign minimal fake devel transaction containing INIT, APPEND_
 testStep(" - - -", "One byte constant data difference should cause integrity validation error (Test Value->Uest Value)");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -143,7 +143,7 @@ testStep(" - - -", "One byte constant data difference should cause integrity val
     assert.equal(response13.toString("hex"), "9000");
 
     //Finish path=44'/235'/0'/0/0
-    const buffer14 = getAPDUDataBuffer("", "058000002c800000eb800000000000000000000000");
+    const buffer14 = getAPDUDataBuffer("", "");
     const promise14 = transport.send(215, 0x20, 0x10, 0, buffer14);
     await assert.rejects(promise14, err(0x6e06));
 
@@ -153,7 +153,7 @@ testStep(" - - -", "One byte constant data difference should cause integrity val
 testStep(" - - -", "Incorrect chain should result in immediate failure");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7f incorrect chain - last bit
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7f");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7f058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await assert.rejects(promise11, err(0x6e07));
 }
@@ -161,7 +161,7 @@ testStep(" - - -", "Incorrect chain should result in immediate failure");
 testStep(" - - -", "Incorrect lengths should lead to failure");
 {
     //INIT chainId=21dcae42c0182200e93f954a074011f9048a7624c6fe81d3c9541a614a88bd1c
-    const buffer11 = getAPDUDataBuffer("", "21dcae42c0182200e93f954a074011f9048a7624c6fe81d3c9541a614a88bd1c");
+    const buffer11 = getAPDUDataBuffer("", "21dcae42c0182200e93f954a074011f9048a7624c6fe81d3c9541a614a88bd1c058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -179,7 +179,7 @@ testStep(" - - -", "Incorrect lengths should lead to failure");
 testStep(" - - -", "Non ASCII character in message");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
     device.curlButton("both", "Confirm chain"); //!!!!!!
@@ -197,33 +197,9 @@ testStep(" - - -", "Non ASCII character in message");
 testStep(" - - -", "incorrect path should result in failure");
 {
     //INIT chainId=21dcae42c0182200e93f954a074011f9048a7624c6fe81d3c9541a614a88bd1c
-    const buffer11 = getAPDUDataBuffer("", "21dcae42c0182200e93f954a074011f9048a7624c6fe81d3c9541a614a88bd1c");
+    const buffer11 = getAPDUDataBuffer("", "21dcae42c0182200e93f954a074011f9048a7624c6fe81d3c9541a614a88bd1c058000002c800000ec800000000000000000000000");
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
-    await device.curlScreenShot();
-    device.curlButton("both", "Confirm chain"); //!!!!!!
-    const response11 = await promise11;
-    assert.equal(response11.toString("hex"), "9000");
-
-    //Append "0102030405" to transaction
-    const buffer12 = getAPDUDataBuffer("0102030405", "");
-    const promise12 = transport.send(215, 0x20, 0x02, 0, buffer12);
-    const response12 = await promise12;
-    assert.equal(response12.toString("hex"), "9000");
-
-    //Show "Test Key" "Test Value" to transaction hex: 0854657374204b6579, 0a546573742056616c7565 (total length 0x14)
-    const buffer13 = getAPDUDataBuffer("0854657374204b65790a546573742056616c7565", "");
-    const promise13 = transport.send(215, 0x20, 0x03, 0, buffer13);
-    await device.curlScreenShot();
-    device.curlButton("both", "Confirm message"); //!!!!!!
-    const response13 = await promise13;
-    assert.equal(response13.toString("hex"), "9000");
-
-    //Finish path=44'/236'/0'/0/0
-    const buffer14 = getAPDUDataBuffer("", "058000002c800000ec800000000000000000000000");
-    const promise14 = transport.send(215, 0x20, 0x10, 0, buffer14);
-    await assert.rejects(promise14, err(0x6e10));
-
-    await device.makeStartingScreenshot();
+    await assert.rejects(promise11, err(0x6e10));
 }
 //-------------------------------------------------------------------------------------
 
