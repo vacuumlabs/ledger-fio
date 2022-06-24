@@ -10,23 +10,23 @@ typedef struct {
     uint8_t integrityHash[SHA_256_SIZE];
 } tx_integrity_t;
 
-void integrityCheckInit(tx_integrity_t *integrity);
+__noinline_due_to_stack__ void integrityCheckInit(tx_integrity_t *integrity);
 
-void integrityCheckProcessInstruction(tx_integrity_t *integrity,
-                                      uint8_t p1,
-                                      uint8_t p2,
-                                      const uint8_t *constData,
-                                      uint8_t constDataLength);
+__noinline_due_to_stack__ void integrityCheckProcessInstruction(tx_integrity_t *integrity,
+                                                                uint8_t p1,
+                                                                uint8_t p2,
+                                                                const uint8_t *constData,
+                                                                uint8_t constDataLength);
 
-bool integrityCheckFinalize(tx_integrity_t *integrity);
+__noinline_due_to_stack__ bool integrityCheckFinalize(tx_integrity_t *integrity);
 
 #ifdef DEVEL
 #include "hash.h"
-bool _integrityCheckFinalize(tx_integrity_t *integrity,
-                             const uint8_t (*allowedHashes)[SHA_256_SIZE],
-                             uint16_t allowedHashesLength);
+__noinline_due_to_stack__ bool _integrityCheckFinalize(tx_integrity_t *integrity,
+                                                       const uint8_t (*allowedHashes)[SHA_256_SIZE],
+                                                       uint16_t allowedHashesLength);
 
-void run_integrityCheck_test();
+__noinline_due_to_stack__ void run_integrityCheck_test();
 #endif  // DEVEL
 
 #endif  // H_FIO_APP_SIGN_TRANSACTION_INTEGRITY

@@ -49,37 +49,37 @@ __noinline_due_to_stack__ void dh_init_aes_key(dh_aes_key_t* dhKey,
                                                const bip44_path_t* pathSpec,
                                                const public_key_t* publicKey);
 
-size_t dh_encode_init(dh_context_t* ctx,
-                      const dh_aes_key_t* aes_key,
-                      const uint8_t* iv,
-                      size_t ivSize,
-                      uint8_t* outBuffer,
-                      size_t outSize);
+__noinline_due_to_stack__ size_t dh_encode_init(dh_context_t* ctx,
+                                                const dh_aes_key_t* aes_key,
+                                                const uint8_t* iv,
+                                                size_t ivSize,
+                                                uint8_t* outBuffer,
+                                                size_t outSize);
 
-size_t dh_encode_append(dh_context_t* ctx,
-                        const dh_aes_key_t* aes_key,
-                        const uint8_t* inBuffer,
-                        size_t inSize,
-                        uint8_t* outBuffer,
-                        size_t outSize);
+__noinline_due_to_stack__ size_t dh_encode_append(dh_context_t* ctx,
+                                                  const dh_aes_key_t* aes_key,
+                                                  const uint8_t* inBuffer,
+                                                  size_t inSize,
+                                                  uint8_t* outBuffer,
+                                                  size_t outSize);
 
-size_t dh_encode_finalize(dh_context_t* ctx,
-                          const dh_aes_key_t* aes_key,
-                          uint8_t* outBuffer,
-                          size_t outSize);
+__noinline_due_to_stack__ size_t dh_encode_finalize(dh_context_t* ctx,
+                                                    const dh_aes_key_t* aes_key,
+                                                    uint8_t* outBuffer,
+                                                    size_t outSize);
 
 /* Convenience function to make all in one step */
-size_t dh_encode(bip44_path_t* pathSpec,
-                 public_key_t* publicKey,
-                 const uint8_t* iv,
-                 size_t ivSize,
-                 const uint8_t* inBuffer,
-                 size_t inSize,
-                 uint8_t* outBuffer,
-                 size_t outSize);
+__noinline_due_to_stack__ size_t dh_encode(bip44_path_t* pathSpec,
+                                           public_key_t* publicKey,
+                                           const uint8_t* iv,
+                                           size_t ivSize,
+                                           const uint8_t* inBuffer,
+                                           size_t inSize,
+                                           uint8_t* outBuffer,
+                                           size_t outSize);
 
 #ifdef DEVEL
-void run_diffieHellman_test();
+__noinline_due_to_stack__ void run_diffieHellman_test();
 #endif  // DEVEL
 
 #endif

@@ -143,7 +143,7 @@ async function sleep(ms, what) {
 }
 
 function getScriptName(path) {
-    return "snapshots/"+basename(path);
+    return "snapshots/"+basename(path).replace(".js", "");
 }
 
 function getSpeculosDefaultConf() {

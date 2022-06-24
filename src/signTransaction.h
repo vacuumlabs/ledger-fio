@@ -1,6 +1,7 @@
 #ifndef H_FIO_APP_SIGN_TRANSACTION
 #define H_FIO_APP_SIGN_TRANSACTION
 
+#include "diffieHellman.h"
 #include "handlers.h"
 #include "hash.h"
 #include "fio.h"
@@ -12,9 +13,9 @@
 handler_fn_t signTransaction_handleAPDU;
 
 #define MAX_DISPLAY_KEY_LENGTH   20
-#define MAX_DISPLAY_VALUE_LENGTH 200
+#define MAX_DISPLAY_VALUE_LENGTH 2 * PUBKEY_LENGTH + 1
 
-#define MAX_APPEND_CONST_DATA_LEN 200
+#define MAX_TX_APPEND_IN_SINGLE_APDU PUBKEY_LENGTH
 
 typedef struct {
     uint32_t initialized_magic;
@@ -35,11 +36,23 @@ typedef struct {
     tx_integrity_t integrity;
     tx_counted_section_t countedSections;
     tx_value_storage_t storage;
-    int ui_step;
 
+    // This is data before posible DH encoding
+    uint8_t dataToAppendToTxLen;
+    uint8_t dataToAppendToTx[MAX_TX_APPEND_IN_SINGLE_APDU];
+
+    // DH encryption variables
+    uint8_t dhIsActive;
+    uint8_t dhCountedSectionEntryLevel;
+    public_key_t otherPubkey;
+    dh_context_t dhContext;
+
+    int ui_step;
+    uint8_t responseLength;  // Response is in G_io_apdu_buffer
+
+    // Null terminated strings to display
     char key[MAX_DISPLAY_KEY_LENGTH];
     char value[MAX_DISPLAY_VALUE_LENGTH];
-
 } ins_sign_transaction_context_t;
 
 #endif  // H_FIO_APP_SIGN_TRANSACTION

@@ -47,6 +47,10 @@ security_policy_t policyForSignTxInit(const bip44_path_t* pathSpec) {
     SHOW();
 }
 
+security_policy_t policyForSignTxDHEnd() {
+    PROMPT();
+}
+
 security_policy_t policyForSignTxFinish() {
     PROMPT();
 }

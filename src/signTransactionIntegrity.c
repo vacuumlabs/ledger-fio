@@ -20,6 +20,14 @@ static const uint8_t allowedHashes[][SHA_256_SIZE] = {
     {0x3c, 0xc2, 0xa2, 0x0d, 0xfb, 0x3b, 0xde, 0xf4, 0xdd, 0x17, 0xf9,
      0x97, 0x1c, 0xc8, 0x42, 0x1a, 0xc3, 0x9f, 0x6a, 0x63, 0x9d, 0x0d,
      0x5d, 0x9f, 0xb4, 0x24, 0xcf, 0x6b, 0xe5, 0x7c, 0x38, 0x29},
+    // Testing transaction template for signTransactionCommandsDH.js
+    {0xa3, 0x70, 0x53, 0x1e, 0xf3, 0x3e, 0xbe, 0x29, 0x3c, 0xb7, 0xcd,
+     0xd3, 0xe4, 0x2b, 0xe0, 0x19, 0xa0, 0xdf, 0xb1, 0x2c, 0x92, 0xa1,
+     0x08, 0x6c, 0xd8, 0x0b, 0xd4, 0xc5, 0x37, 0xce, 0xd2, 0xea},
+    // Testing transaction template for signTransactionCommandsDHCountedSections.js
+    {0x32, 0x94, 0xcb, 0xbb, 0x52, 0x16, 0xfb, 0xe3, 0xff, 0xba, 0x8a,
+     0x8f, 0xdd, 0x9d, 0xa6, 0x4b, 0x7d, 0x27, 0x8d, 0x88, 0x53, 0xd0,
+     0xfe, 0x52, 0x96, 0x02, 0xed, 0x5d, 0x96, 0x86, 0x20, 0xf0},
 #endif
     // trnsfiopubky
     {0xf7, 0x6d, 0x8f, 0xa6, 0xfe, 0xe7, 0xf1, 0x7d, 0xaf, 0x97, 0x0b,
@@ -31,18 +39,18 @@ enum {
     TX_INTEGRITY_HASH_INITIALIZED_MAGIC = 12345,
 };
 
-void integrityCheckInit(tx_integrity_t *integrity) {
+__noinline_due_to_stack__ void integrityCheckInit(tx_integrity_t *integrity) {
     explicit_bzero(integrity, SIZEOF(*integrity));
     integrity->initialized_magic = TX_INTEGRITY_HASH_INITIALIZED_MAGIC;
 
     TRACE_BUFFER(&integrity->integrityHash, SIZEOF(integrity->integrityHash));
 }
 
-void integrityCheckProcessInstruction(tx_integrity_t *integrity,
-                                      uint8_t p1,
-                                      uint8_t p2,
-                                      const uint8_t *constData,
-                                      uint8_t constDataLength) {
+__noinline_due_to_stack__ void integrityCheckProcessInstruction(tx_integrity_t *integrity,
+                                                                uint8_t p1,
+                                                                uint8_t p2,
+                                                                const uint8_t *constData,
+                                                                uint8_t constDataLength) {
     ASSERT(integrity->initialized_magic == TX_INTEGRITY_HASH_INITIALIZED_MAGIC);
     sha_256_context_t ctx;
     sha_256_init(&ctx);
@@ -56,9 +64,9 @@ void integrityCheckProcessInstruction(tx_integrity_t *integrity,
     TRACE_BUFFER(&integrity->integrityHash, SIZEOF(integrity->integrityHash));
 }
 
-bool _integrityCheckFinalize(tx_integrity_t *integrity,
-                             const uint8_t (*allowedHashes)[SHA_256_SIZE],
-                             uint16_t allowedHashesLength) {
+__noinline_due_to_stack__ bool _integrityCheckFinalize(tx_integrity_t *integrity,
+                                                       const uint8_t (*allowedHashes)[SHA_256_SIZE],
+                                                       uint16_t allowedHashesLength) {
     ASSERT(integrity->initialized_magic == TX_INTEGRITY_HASH_INITIALIZED_MAGIC);
     for (uint16_t i = 0; i < allowedHashesLength; i++) {
         STATIC_ASSERT(SIZEOF(allowedHashes[i]) == SIZEOF(integrity->integrityHash),
@@ -73,6 +81,6 @@ bool _integrityCheckFinalize(tx_integrity_t *integrity,
     return false;
 }
 
-bool integrityCheckFinalize(tx_integrity_t *integrity) {
+__noinline_due_to_stack__ bool integrityCheckFinalize(tx_integrity_t *integrity) {
     return _integrityCheckFinalize(integrity, allowedHashes, ARRAY_LEN(allowedHashes));
 }

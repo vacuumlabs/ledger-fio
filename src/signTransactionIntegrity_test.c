@@ -73,7 +73,7 @@ static void run6() {
     run1();
 }
 
-void run_integrityCheck_test() {
+__noinline_due_to_stack__ void run_integrityCheck_test() {
     // decode hex
     for (size_t i = 0; i < ARRAY_LEN(allowedHashes); i++) {
         decode_hex(allowedHashesHex[i], allowedHashes[i], SIZEOF(allowedHashes[i]));

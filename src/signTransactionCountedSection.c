@@ -5,12 +5,13 @@ enum {
     TX_COUNTED_SECTION_INITIALIZED_MAGIC = 12345,
 };
 
-void countedSectionInit(tx_counted_section_t *cs) {
+__noinline_due_to_stack__ void countedSectionInit(tx_counted_section_t *cs) {
     explicit_bzero(cs, SIZEOF(*cs));
     cs->initialized_magic = TX_COUNTED_SECTION_INITIALIZED_MAGIC;
 }
 
-bool countedSectionBegin(tx_counted_section_t *cs, uint32_t expectedLength) {
+__noinline_due_to_stack__ bool countedSectionBegin(tx_counted_section_t *cs,
+                                                   uint32_t expectedLength) {
     STATIC_ASSERT(ARRAY_LEN(cs->count) == MAX_NESTED_COUNTED_SECTIONS,
                   "Incorrect tx_counted_section_t count length");
     ASSERT(cs->initialized_magic == TX_COUNTED_SECTION_INITIALIZED_MAGIC);
@@ -25,7 +26,8 @@ bool countedSectionBegin(tx_counted_section_t *cs, uint32_t expectedLength) {
     return true;
 }
 
-bool countedSectionProcess(tx_counted_section_t *cs, uint32_t expectedLength) {
+__noinline_due_to_stack__ bool countedSectionProcess(tx_counted_section_t *cs,
+                                                     uint32_t expectedLength) {
     STATIC_ASSERT(ARRAY_LEN(cs->count) == MAX_NESTED_COUNTED_SECTIONS,
                   "Incorrect tx_counted_section_t count length");
     ASSERT(cs->initialized_magic == TX_COUNTED_SECTION_INITIALIZED_MAGIC);
@@ -45,7 +47,7 @@ bool countedSectionProcess(tx_counted_section_t *cs, uint32_t expectedLength) {
     return true;
 }
 
-bool countedSectionEnd(tx_counted_section_t *cs) {
+__noinline_due_to_stack__ bool countedSectionEnd(tx_counted_section_t *cs) {
     STATIC_ASSERT(ARRAY_LEN(cs->count) == MAX_NESTED_COUNTED_SECTIONS,
                   "Incorrect tx_counted_section_t count length");
     ASSERT(cs->initialized_magic == TX_COUNTED_SECTION_INITIALIZED_MAGIC);
@@ -65,7 +67,7 @@ bool countedSectionEnd(tx_counted_section_t *cs) {
     return true;
 }
 
-bool countedSectionFinalize(tx_counted_section_t *cs) {
+__noinline_due_to_stack__ bool countedSectionFinalize(tx_counted_section_t *cs) {
     STATIC_ASSERT(ARRAY_LEN(cs->count) == MAX_NESTED_COUNTED_SECTIONS,
                   "Incorrect tx_counted_section_t count length");
     ASSERT(cs->initialized_magic == TX_COUNTED_SECTION_INITIALIZED_MAGIC);

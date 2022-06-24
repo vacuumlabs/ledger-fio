@@ -13,6 +13,7 @@
 #include "diffieHellman.h"
 #include "signTransactionIntegrity.h"
 #include "signTransactionCountedSection.h"
+#include "utils.h"
 
 void handleRunTests(uint8_t p1 MARK_UNUSED,
                     uint8_t p2 MARK_UNUSED,
@@ -22,15 +23,23 @@ void handleRunTests(uint8_t p1 MARK_UNUSED,
     // Note: Make sure to have RESET_ON_CRASH flag disabled
     // as it interferes with tests verifying assertions
     BEGIN_ASSERT_NOEXCEPT {
+        TRACE_STACK_USAGE();
         PRINTF("Running tests\n");
-        run_hex_test();
-        run_endian_test();
-        run_textUtils_test();
-        run_bip44_test();
-        run_key_derivation_test();
-        run_diffieHellman_test();
-        run_integrityCheck_test();
-        run_countedSection_test();
+        {
+            run_hex_test();
+            run_endian_test();
+            run_textUtils_test();
+            run_bip44_test();
+            run_key_derivation_test();
+        }
+        {
+            TRACE_STACK_USAGE();
+            run_diffieHellman_test();
+        }
+        {
+            run_integrityCheck_test();
+            run_countedSection_test();
+        }
         PRINTF("All tests done\n");
     }
     END_ASSERT_NOEXCEPT;

@@ -19,6 +19,7 @@ security_policy_t policyForSignTxInit(const bip44_path_t* pathSpec);
 
 security_policy_t policyDerivePrivateKey(const bip44_path_t* pathSpec);
 
+security_policy_t policyForSignTxDHEnd();
 security_policy_t policyForSignTxFinish();
 
 static inline void ENSURE_NOT_DENIED(security_policy_t policy) {

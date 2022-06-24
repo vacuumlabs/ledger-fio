@@ -40,7 +40,7 @@ __noinline_due_to_stack__ void ui_displayHexBufferScreen(const char* screenHeade
     ASSERT(strlen(screenHeader) > 0);
     ASSERT(strlen(screenHeader) < BUFFER_SIZE_PARANOIA);
     ASSERT(bufferSize > 0);
-    ASSERT(bufferSize <= 65);  // this is used for hashes, and pubkeys, they are all smaller
+    ASSERT(bufferSize <= PUBKEY_LENGTH);  // This is the longest thing we plan to display
 
     char bufferHex[2 * 65 + 1];
     explicit_bzero(bufferHex, SIZEOF(bufferHex));

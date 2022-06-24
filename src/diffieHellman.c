@@ -4,6 +4,7 @@
 __noinline_due_to_stack__ void dh_init_aes_key(dh_aes_key_t* dhKey,
                                                const bip44_path_t* pathSpec,
                                                const public_key_t* publicKey) {
+    TRACE_STACK_USAGE();
     private_key_t privateKey;
     unsigned char basicSecret[32];
     unsigned char secret[SHA_512_SIZE];
@@ -12,6 +13,7 @@ __noinline_due_to_stack__ void dh_init_aes_key(dh_aes_key_t* dhKey,
     TRACE("dh_init_aesKey");
     BEGIN_TRY {
         TRY {
+            TRACE_STACK_USAGE();
             derivePrivateKey(pathSpec, &privateKey);
 
             // this is how it is done...
@@ -43,12 +45,13 @@ __noinline_due_to_stack__ void dh_init_aes_key(dh_aes_key_t* dhKey,
     END_TRY;
 }
 
-size_t dh_encode_init(dh_context_t* ctx,
-                      const dh_aes_key_t* aes_key,
-                      const uint8_t* iv,
-                      size_t ivSize,
-                      uint8_t* outBuffer,
-                      size_t outSize) {
+__noinline_due_to_stack__ size_t dh_encode_init(dh_context_t* ctx,
+                                                const dh_aes_key_t* aes_key,
+                                                const uint8_t* iv,
+                                                size_t ivSize,
+                                                uint8_t* outBuffer,
+                                                size_t outSize) {
+    TRACE_STACK_USAGE();
     TRACE("dh_encode_init");
 
     ASSERT(ivSize == SIZEOF(ctx->IV));
@@ -72,13 +75,14 @@ size_t dh_encode_init(dh_context_t* ctx,
     return SIZEOF(ctx->IV);
 }
 
-size_t dh_encode_append(dh_context_t* ctx,
-                        const dh_aes_key_t* aes_key,
-                        const uint8_t* inBuffer,
-                        size_t inSize,
-                        uint8_t* outBuffer,
-                        size_t outSize) {
+__noinline_due_to_stack__ size_t dh_encode_append(dh_context_t* ctx,
+                                                  const dh_aes_key_t* aes_key,
+                                                  const uint8_t* inBuffer,
+                                                  size_t inSize,
+                                                  uint8_t* outBuffer,
+                                                  size_t outSize) {
     TRACE("dh_encode_append");
+    TRACE_STACK_USAGE();
 
     ASSERT(inSize < BUFFER_SIZE_PARANOIA);
     ASSERT(ctx->initialized_magic == HASH_CONTEXT_INITIALIZED_MAGIC);
@@ -91,13 +95,17 @@ size_t dh_encode_append(dh_context_t* ctx,
     while (processedInput < outSize) {
         // fill ctx->buffer
         size_t to_read = MIN(CX_AES_BLOCK_SIZE - ctx->cacheLength, inSize - processedInput);
+        TRACE("To read %d, processed %d:", (int) to_read, processedInput);
+        TRACE("Cache %d:", (int) ctx->cacheLength);
         memcpy(ctx->cache + ctx->cacheLength, inBuffer + processedInput, to_read);
         ctx->cacheLength += to_read;
         processedInput += to_read;
+        TRACE("Cache %d, processed %d:", (int) ctx->cacheLength, processedInput);
 
         // if block is only partially filled, we finish encoding, the data was read to cache
         // this means that there was not enough input to fill the block
         if (ctx->cacheLength < CX_AES_BLOCK_SIZE) {
+            TRACE("Block not full");
             break;
         }
         // cache is full now
@@ -105,6 +113,7 @@ size_t dh_encode_append(dh_context_t* ctx,
         STATIC_ASSERT(SIZEOF(ctx->IV) >= CX_AES_BLOCK_SIZE, "dh_context_t->IV too small");
         STATIC_ASSERT(SIZEOF(ctx->cache) >= CX_AES_BLOCK_SIZE, "dh_context_t->cache too small");
         ASSERT(outSize - written >= CX_AES_BLOCK_SIZE);
+        TRACE_BUFFER(ctx->cache, CX_AES_BLOCK_SIZE);
 
         // We work in CBC mode
         // 1. IV xor plaintext
@@ -124,18 +133,21 @@ size_t dh_encode_append(dh_context_t* ctx,
         explicit_bzero(ctx->cache, SIZEOF(ctx->cache));
     }
 
+    TRACE("Leaving dh_encode_append, written: %d", (int) written);
     return written;
 }
 
-size_t dh_encode_finalize(dh_context_t* ctx,
-                          const dh_aes_key_t* aes_key,
-                          uint8_t* outBuffer,
-                          size_t outSize) {
+__noinline_due_to_stack__ size_t dh_encode_finalize(dh_context_t* ctx,
+                                                    const dh_aes_key_t* aes_key,
+                                                    uint8_t* outBuffer,
+                                                    size_t outSize) {
     TRACE("dh_encode_finalize");
 
     ASSERT(ctx->initialized_magic == HASH_CONTEXT_INITIALIZED_MAGIC);
     ASSERT(aes_key->initialized_magic == DH_AES_KEY_INITIALIZED_MAGIC);
     ASSERT(ctx->cacheLength < CX_AES_BLOCK_SIZE);
+    TRACE("Cache length %d", (int) ctx->cacheLength);
+    TRACE_BUFFER(ctx->cache, ctx->cacheLength);
 
     // fill the last cache block with integers equal to number of elements missing
     // if the next block is empty we create a block full of 0x10 (CX_AES_BLOCK_SIZE)
@@ -171,14 +183,14 @@ size_t dh_encode_finalize(dh_context_t* ctx,
     return CX_AES_BLOCK_SIZE + DH_HMAC_SIZE;
 }
 
-size_t dh_encode(bip44_path_t* pathSpec,
-                 public_key_t* publicKey,
-                 const uint8_t* iv,
-                 size_t ivSize,
-                 const uint8_t* inBuffer,
-                 size_t inSize,
-                 uint8_t* outBuffer,
-                 size_t outSize) {
+__noinline_due_to_stack__ size_t dh_encode(bip44_path_t* pathSpec,
+                                           public_key_t* publicKey,
+                                           const uint8_t* iv,
+                                           size_t ivSize,
+                                           const uint8_t* inBuffer,
+                                           size_t inSize,
+                                           uint8_t* outBuffer,
+                                           size_t outSize) {
     dh_aes_key_t key;
     TRACE("dh_encode");
 
@@ -188,6 +200,7 @@ size_t dh_encode(bip44_path_t* pathSpec,
 
     BEGIN_TRY {
         TRY {
+            TRACE_STACK_USAGE();
             dh_init_aes_key(&key, pathSpec, publicKey);
 
             dh_context_t ctx;

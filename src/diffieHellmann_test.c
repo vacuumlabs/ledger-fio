@@ -5,6 +5,7 @@
 #include "testUtils.h"
 #include "utils.h"
 #include "bip44.h"
+#include "state.h"
 
 #define HD HARDENED_BIP32
 
@@ -16,13 +17,16 @@
 // It was not very convenient to use higher level funtions for this purpose as they depend on fio
 // serialization
 
-static void pathSpec_init(bip44_path_t* pathSpec, const uint32_t* pathArray, uint32_t pathLength) {
+__noinline_due_to_stack__ static void pathSpec_init(bip44_path_t* pathSpec,
+                                                    const uint32_t* pathArray,
+                                                    uint32_t pathLength) {
     pathSpec->length = pathLength;
     memmove(pathSpec->path, pathArray, pathLength * 4);
 }
 
-static void run_dh_encode_tests() {
+__noinline_due_to_stack__ static void run_dh_encode_tests() {
     BEGIN_ASSERT_NOEXCEPT {
+        TRACE_STACK_USAGE();
         // initializing derivation paths
         uint32_t path[] = {HD + 44, HD + 235, HD + 0, 0, 0};
         bip44_path_t pathSpec;
@@ -47,9 +51,9 @@ static void run_dh_encode_tests() {
 #define TESTCASE(msgHex_, expectedEncryptedMsgHex_)                             \
     {                                                                           \
         const char* msgHex = msgHex_;                                           \
-        uint8_t msg[200];                                                       \
+        uint8_t msg[100];                                                       \
         size_t msgLen = decode_hex(msgHex, msg, SIZEOF(msg));                   \
-        uint8_t encMsg[300];                                                    \
+        uint8_t encMsg[200];                                                    \
         size_t encMsgLength = dh_encode(&pathSpec,                              \
                                         &publicKey,                             \
                                         IV,                                     \
@@ -59,7 +63,7 @@ static void run_dh_encode_tests() {
                                         encMsg,                                 \
                                         SIZEOF(encMsg));                        \
         const char* expectedEncMsgHex = expectedEncryptedMsgHex_;               \
-        uint8_t expectedEncMsg[300];                                            \
+        uint8_t expectedEncMsg[200];                                            \
         decode_hex(expectedEncMsgHex, expectedEncMsg, SIZEOF(expectedEncMsg));  \
         ASSERT(encMsgLength == strlen(expectedEncMsgHex) / 2);                  \
         EXPECT_EQ_BYTES(expectedEncMsg, encMsg, strlen(expectedEncMsgHex) / 2); \
@@ -99,8 +103,10 @@ static void run_dh_encode_tests() {
     END_ASSERT_NOEXCEPT;
 }
 
-void run_dh_encode_init_append_finalize_tests() {
+__noinline_due_to_stack__ static void run_dh_encode_init_append_finalize_tests() {
     BEGIN_ASSERT_NOEXCEPT {
+        TRACE_STACK_USAGE();
+
         // initializing derivation paths
         uint32_t path[] = {HD + 44, HD + 235, HD + 0, 0, 2000};
         bip44_path_t pathSpec;
@@ -109,39 +115,41 @@ void run_dh_encode_init_append_finalize_tests() {
         PRINTF("\n");
 
         public_key_t publicKey;
-        const char* publicKeyHex =
-            "0484e52dfea57b8f1787488a356374cd8e8515b8ad8db3dd4f9088d8e42ed2fb6d571e8894cccbdbf15e1b"
-            "d84f8b4362f52d1b5b712b9775c0a51cdd5ee9a9e8ca";
-        uint8_t publicKeyBuffer[65];
-        size_t publicKeyLen = decode_hex(publicKeyHex, publicKeyBuffer, SIZEOF(publicKeyBuffer));
-        ASSERT(publicKeyLen == 65);
-        cx_ecfp_init_public_key_no_throw(CX_CURVE_SECP256K1,
-                                         publicKeyBuffer,
-                                         publicKeyLen,
-                                         &publicKey);
+        {
+            const char* publicKeyHex =
+                "0484e52dfea57b8f1787488a356374cd8e8515b8ad8db3dd4f9088d8e42ed2fb6d571e8894cccbdbf1"
+                "5e1b"
+                "d84f8b4362f52d1b5b712b9775c0a51cdd5ee9a9e8ca";
+            uint8_t publicKeyBuffer[65];
+            size_t publicKeyLen =
+                decode_hex(publicKeyHex, publicKeyBuffer, SIZEOF(publicKeyBuffer));
+            ASSERT(publicKeyLen == 65);
+            cx_ecfp_init_public_key_no_throw(CX_CURVE_SECP256K1,
+                                             publicKeyBuffer,
+                                             publicKeyLen,
+                                             &publicKey);
+        }
 
         const uint8_t IV[DH_AES_IV_SIZE] =
             {100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
 
         dh_aes_key_t key;
         dh_init_aes_key(&key, &pathSpec, &publicKey);
-        dh_context_t ctx;
 
+        uint8_t inBuffer[60];
+        uint8_t outBuffer[120];
+        uint8_t expected[120];
         const char* inBufferHex =
             "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef00112233445566778899aa"
             "bbccddeeff";
-        uint8_t inBuffer[100];
         size_t inBufferLength = decode_hex(inBufferHex, inBuffer, SIZEOF(inBuffer));
         const char* expectedHex =
             "6464646464646464646464646464646440a725eec9623619fd422c0ce7bf965506c15165fa5277429c66e6"
             "ed1f2c6f64c6e10668dd7c5e704c12eea22579a11118da4211e13782ff8193ecf400fd04dbcf317a5df47f"
             "449d1dbb75e9f48428d0a840a0e90139759ad39d28990cb37f62";
-        uint8_t expected[150];
         decode_hex(expectedHex, expected, SIZEOF(expected));
 
-        uint8_t outBuffer[150];
         size_t outBufferLength = 0;
-
         outBufferLength = dh_encode(&pathSpec,
                                     &publicKey,
                                     IV,
@@ -156,53 +164,62 @@ void run_dh_encode_init_append_finalize_tests() {
 
         size_t read = 0;
         size_t written = 0;
+        {
+            TRACE_STACK_USAGE();
+            // due to memory limitations we reuse static tx data
+            dh_context_t* ctx = &instructionState.signTransactionContext.dhContext;
+            outBufferLength =
+                dh_encode_init(ctx, &key, IV, SIZEOF(IV), outBuffer, SIZEOF(outBuffer));
+            ASSERT(outBufferLength == 16);
+            EXPECT_EQ_BYTES(expected + written, outBuffer, 16);
+            written += 16;
 
-        outBufferLength = dh_encode_init(&ctx, &key, IV, SIZEOF(IV), outBuffer, SIZEOF(outBuffer));
-        ASSERT(outBufferLength == 16);
-        EXPECT_EQ_BYTES(expected + written, outBuffer, 16);
-        written += 16;
+            {
+                outBufferLength =
+                    dh_encode_append(ctx, &key, inBuffer + read, 1, outBuffer, SIZEOF(outBuffer));
+                ASSERT(outBufferLength == 0);
+                read += 1;
+            }
+            {
+                outBufferLength =
+                    dh_encode_append(ctx, &key, inBuffer + read, 14, outBuffer, SIZEOF(outBuffer));
+                ASSERT(outBufferLength == 0);
+                read += 14;
+            }
 
-        outBufferLength =
-            dh_encode_append(&ctx, &key, inBuffer + read, 1, outBuffer, SIZEOF(outBuffer));
-        ASSERT(outBufferLength == 0);
-        read += 1;
+            outBufferLength =
+                dh_encode_append(ctx, &key, inBuffer + read, 18, outBuffer, SIZEOF(outBuffer));
+            ASSERT(outBufferLength == 32);
+            EXPECT_EQ_BYTES(expected + written, outBuffer, 32);
+            read += 18, written += 32;
 
-        outBufferLength =
-            dh_encode_append(&ctx, &key, inBuffer + read, 14, outBuffer, SIZEOF(outBuffer));
-        ASSERT(outBufferLength == 0);
-        read += 14;
+            outBufferLength =
+                dh_encode_append(ctx, &key, inBuffer + read, 1, outBuffer, SIZEOF(outBuffer));
+            ASSERT(outBufferLength == 0);
+            read += 1;
 
-        outBufferLength =
-            dh_encode_append(&ctx, &key, inBuffer + read, 18, outBuffer, SIZEOF(outBuffer));
-        ASSERT(outBufferLength == 32);
-        EXPECT_EQ_BYTES(expected + written, outBuffer, 32);
-        read += 18, written += 32;
+            outBufferLength =
+                dh_encode_append(ctx, &key, inBuffer + read, 14, outBuffer, SIZEOF(outBuffer));
+            ASSERT(outBufferLength == 16);
+            EXPECT_EQ_BYTES(expected + written, outBuffer, 16);
+            read += 14, written += 16;
 
-        outBufferLength =
-            dh_encode_append(&ctx, &key, inBuffer + read, 1, outBuffer, SIZEOF(outBuffer));
-        ASSERT(outBufferLength == 0);
-        read += 1;
+            outBufferLength = dh_encode_finalize(ctx, &key, outBuffer, SIZEOF(outBuffer));
+            ASSERT(outBufferLength == 48);
+            EXPECT_EQ_BYTES(expected + written, outBuffer, 48);
+            written += 48;
 
-        outBufferLength =
-            dh_encode_append(&ctx, &key, inBuffer + read, 14, outBuffer, SIZEOF(outBuffer));
-        ASSERT(outBufferLength == 16);
-        EXPECT_EQ_BYTES(expected + written, outBuffer, 16);
-        read += 14, written += 16;
-
-        outBufferLength = dh_encode_finalize(&ctx, &key, outBuffer, SIZEOF(outBuffer));
-        ASSERT(outBufferLength == 48);
-        EXPECT_EQ_BYTES(expected + written, outBuffer, 48);
-        written += 48;
-
-        ASSERT(read == inBufferLength);
+            ASSERT(read == inBufferLength);
+        }
     }
     END_ASSERT_NOEXCEPT;
 }
 
-void run_diffieHellman_test() {
+__noinline_due_to_stack__ void run_diffieHellman_test() {
     PRINTF("Running DH tests\n");
     PRINTF("If they fail, make sure you seeded your device with\n");
     PRINTF("12-word mnemonic: 11*abandon about\n");
+    TRACE_STACK_USAGE();
     run_dh_encode_tests();
     run_dh_encode_init_append_finalize_tests();
 }

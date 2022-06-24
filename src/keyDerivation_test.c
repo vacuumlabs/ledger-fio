@@ -103,7 +103,7 @@ void testPublicKeyDerivation() {
 #undef TESTCASE
 }
 
-void run_key_derivation_test() {
+__noinline_due_to_stack__ void run_key_derivation_test() {
     PRINTF("Running key derivation tests\n");
     PRINTF("If they fail, make sure you seeded your device with\n");
     PRINTF("12-word mnemonic: 11*abandon about\n");
