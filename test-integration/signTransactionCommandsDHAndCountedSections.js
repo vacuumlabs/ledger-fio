@@ -50,7 +50,7 @@ testStep(" - - -", "Sign minimal devel DH tranaction");
 
    {
     //START_COUNTED_SECTION 17-varuint32, 01-no validation, 0000000000000000-min, 0800000000000000-max
-    const buffer12 = getAPDUDataBuffer("170100000000000000000000000000000000", "40"); // value - 64 (16b IV, 1DH block, 32b HMAC)
+    const buffer12 = getAPDUDataBuffer("170100000000000000000000000000000000", "58"); // value - 88 ...4 blocks (4*16)/3=21.3.. 22*4=44
     const promise12 = transport.send(215, 0x20, 0x05, 0, buffer12);
     const response12 = await promise12;
     assert.equal(response12.toString("hex"), "9000");
@@ -105,10 +105,10 @@ testStep(" - - -", "Sign minimal devel DH tranaction");
     // Validate DH encoded secret
     const privateKey = PrivateKey(Buffer.from("4d597899db76e87933e7c6841c2d661810f070bad20487ef20eb84e182695a3a", "hex"))
     const sharedSecret = privateKey.getSharedSecret(PublicKey(Buffer.from(otherPublicKey, "hex")));
-    const IV = Buffer.from(dhEncodedMsg, "hex").slice(0, 16);
+    const IV = Buffer.from(Buffer.from(dhEncodedMsg, "hex").toString(), "base64").slice(0, 16);
     const msg = Buffer.from("05"+"0102030405", "hex");
     const encrypt = checkEncrypt(sharedSecret, Buffer.from(msg, "hex"), IV);
-    assert.equal(encrypt.toString("hex"), dhEncodedMsg.toString("hex"));
+    assert.equal(encrypt.toString("base64"), Buffer.from(dhEncodedMsg, "hex").toString());
     
     {
         //END_COUNTED_SECTION
@@ -127,7 +127,7 @@ testStep(" - - -", "Sign minimal devel DH tranaction");
     const response16 = await promise16;
 
     //The signed message should contain chainId + "40"+dhEncodedMsg
-    const msg1 = Buffer.from("b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e"+"40"+dhEncodedMsg, "hex");
+    const msg1 = Buffer.from("b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e"+"58"+dhEncodedMsg, "hex");
     const hash1 = crypto.createHash('sha256').update(msg1).digest('hex')
     const ledgerSignature1 = Signature.fromHex(response16.slice(0, 65));
     assert.equal(response16.slice(65,65+32).toString("hex"), hash1);
@@ -171,7 +171,6 @@ testStep(" - - -", "You cannt just end counted section within DH encription with
 
     await device.makeStartingScreenshot();
 }
-//-------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------
 testStep(" - - -", "Counted section from within DH encoding mus be finished");
 {

@@ -22,6 +22,9 @@ enum {
 #define DH_AES_SECRET_SIZE 32
 #define DH_HMAC_SIZE       32
 
+#define BASE64_IN_BLOCK_SIZE  3
+#define BASE64_OUT_BLOCK_SIZE 4
+
 // Context does not contain secrets. hmacCtx contains half of SHA-512 hash, but this is of no use
 // without aesKey.
 typedef struct {
@@ -29,6 +32,8 @@ typedef struct {
     uint8_t IV[DH_AES_IV_SIZE];
     uint8_t cacheLength;
     uint8_t cache[CX_AES_BLOCK_SIZE];
+    uint8_t base64EncodingCacheLen;
+    uint8_t base64EncodingCache[BASE64_IN_BLOCK_SIZE + DH_HMAC_SIZE];
     cx_hmac_sha256_t hmacCtx;
 } dh_context_t;
 

@@ -48,55 +48,46 @@ __noinline_due_to_stack__ static void run_dh_encode_tests() {
 
         const uint8_t IV[DH_AES_IV_SIZE] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
-#define TESTCASE(msgHex_, expectedEncryptedMsgHex_)                             \
-    {                                                                           \
-        const char* msgHex = msgHex_;                                           \
-        uint8_t msg[100];                                                       \
-        size_t msgLen = decode_hex(msgHex, msg, SIZEOF(msg));                   \
-        uint8_t encMsg[200];                                                    \
-        size_t encMsgLength = dh_encode(&pathSpec,                              \
-                                        &publicKey,                             \
-                                        IV,                                     \
-                                        DH_AES_IV_SIZE,                         \
-                                        msg,                                    \
-                                        msgLen,                                 \
-                                        encMsg,                                 \
-                                        SIZEOF(encMsg));                        \
-        const char* expectedEncMsgHex = expectedEncryptedMsgHex_;               \
-        uint8_t expectedEncMsg[200];                                            \
-        decode_hex(expectedEncMsgHex, expectedEncMsg, SIZEOF(expectedEncMsg));  \
-        ASSERT(encMsgLength == strlen(expectedEncMsgHex) / 2);                  \
-        EXPECT_EQ_BYTES(expectedEncMsg, encMsg, strlen(expectedEncMsgHex) / 2); \
+#define TESTCASE(msgHex_, expectedEncMsg)                                \
+    {                                                                    \
+        const char* msgHex = msgHex_;                                    \
+        uint8_t msg[100];                                                \
+        size_t msgLen = decode_hex(msgHex, msg, SIZEOF(msg));            \
+        uint8_t encMsg[200];                                             \
+        size_t encMsgLength = dh_encode(&pathSpec,                       \
+                                        &publicKey,                      \
+                                        IV,                              \
+                                        DH_AES_IV_SIZE,                  \
+                                        msg,                             \
+                                        msgLen,                          \
+                                        encMsg,                          \
+                                        SIZEOF(encMsg));                 \
+        ASSERT(encMsgLength == strlen(expectedEncMsg));                  \
+        EXPECT_EQ_BYTES(encMsg, expectedEncMsg, strlen(expectedEncMsg)); \
     }
-
         TESTCASE("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-                 "000102030405060708090a0b0c0d0e0f9508b492f96f067cc72ef8c7c24ac2072310c4e1d36bd6737"
-                 "958f0a3a005576d60b64b8e8c732d893f6cd374cabc0b30882b6eebaba7af72826e54b11d48a87059"
-                 "74adf7d957aba1f428f58aca25ac5a")
+                 "AAECAwQFBgcICQoLDA0OD5UItJL5bwZ8xy74x8JKwgcjEMTh02vWc3lY8KOgBVdtYLZLjoxzLYk/"
+                 "bNN0yrwLMIgrbuurp69ygm5UsR1IqHBZdK332VerofQo9YrKJaxa");
 
         TESTCASE("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef00",
-                 "000102030405060708090a0b0c0d0e0f9508b492f96f067cc72ef8c7c24ac2072310c4e1d36bd6737"
-                 "958f0a3a005576df93b5a2ebef58532ec2d2dd21c11fdb590d05a598740af8fd9263343eb1d85a7e6"
-                 "943c21d254682d0bdc4c74619ea22c")
+                 "AAECAwQFBgcICQoLDA0OD5UItJL5bwZ8xy74x8JKwgcjEMTh02vWc3lY8KOgBVdt+"
+                 "TtaLr71hTLsLS3SHBH9tZDQWlmHQK+P2SYzQ+sdhafmlDwh0lRoLQvcTHRhnqIs");
 
         TESTCASE("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0011",
-                 "000102030405060708090a0b0c0d0e0f9508b492f96f067cc72ef8c7c24ac2072310c4e1d36bd6737"
-                 "958f0a3a005576d2b88c5f509bb7276a32f94595e196cf382b0625992dd194210a0e545410741a801"
-                 "3a122d2edd9233caa3fd4b75f9946c")
+                 "AAECAwQFBgcICQoLDA0OD5UItJL5bwZ8xy74x8JKwgcjEMTh02vWc3lY8KOgBVdtK4jF9Qm7cnajL5RZX"
+                 "hls84KwYlmS3RlCEKDlRUEHQagBOhItLt2SM8qj/Ut1+ZRs");
 
         TESTCASE(
             "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef00112233445566778899aa"
             "bbccddee",
-            "000102030405060708090a0b0c0d0e0f9508b492f96f067cc72ef8c7c24ac2072310c4e1d36bd6737958f0"
-            "a3a005576df99997fa2a742665b01c35c7d6caebc2fbd1bd4479cb819eb452123a0ec6356f40222f7fc8ce"
-            "bc3a5b81f644f2f75629")
+            "AAECAwQFBgcICQoLDA0OD5UItJL5bwZ8xy74x8JKwgcjEMTh02vWc3lY8KOgBVdt+ZmX+"
+            "ip0JmWwHDXH1srrwvvRvUR5y4GetFISOg7GNW9AIi9/yM68OluB9kTy91Yp");
 
         TESTCASE(
             "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef00112233445566778899aa"
             "bbccddeeff",
-            "000102030405060708090a0b0c0d0e0f9508b492f96f067cc72ef8c7c24ac2072310c4e1d36bd6737958f0"
-            "a3a005576d60a63b30e52db993fdb53f67ba03cd0abed894f54929ac6addfd7076970597a43a36c525ad1f"
-            "c4349c69be21718ab07bc639172663927cb075fa777797e0c1c4")
+            "AAECAwQFBgcICQoLDA0OD5UItJL5bwZ8xy74x8JKwgcjEMTh02vWc3lY8KOgBVdtYKY7MOUtuZP9tT9nugPNCr"
+            "7YlPVJKaxq3f1wdpcFl6Q6NsUlrR/ENJxpviFxirB7xjkXJmOSfLB1+nd3l+DBxA==");
 
 #undef TESTCASE
     }
@@ -136,18 +127,16 @@ __noinline_due_to_stack__ static void run_dh_encode_init_append_finalize_tests()
         dh_aes_key_t key;
         dh_init_aes_key(&key, &pathSpec, &publicKey);
 
-        uint8_t inBuffer[60];
-        uint8_t outBuffer[120];
-        uint8_t expected[120];
+        uint8_t inBuffer[50];
+        uint8_t outBuffer[160];
         const char* inBufferHex =
             "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef00112233445566778899aa"
             "bbccddeeff";
         size_t inBufferLength = decode_hex(inBufferHex, inBuffer, SIZEOF(inBuffer));
-        const char* expectedHex =
-            "6464646464646464646464646464646440a725eec9623619fd422c0ce7bf965506c15165fa5277429c66e6"
-            "ed1f2c6f64c6e10668dd7c5e704c12eea22579a11118da4211e13782ff8193ecf400fd04dbcf317a5df47f"
-            "449d1dbb75e9f48428d0a840a0e90139759ad39d28990cb37f62";
-        decode_hex(expectedHex, expected, SIZEOF(expected));
+        const char* expected =
+            "ZGRkZGRkZGRkZGRkZGRkZECnJe7JYjYZ/UIsDOe/"
+            "llUGwVFl+lJ3Qpxm5u0fLG9kxuEGaN18XnBMEu6iJXmhERjaQhHhN4L/"
+            "gZPs9AD9BNvPMXpd9H9EnR27den0hCjQqECg6QE5dZrTnSiZDLN/Yg==";
 
         size_t outBufferLength = 0;
         outBufferLength = dh_encode(&pathSpec,
@@ -159,7 +148,7 @@ __noinline_due_to_stack__ static void run_dh_encode_init_append_finalize_tests()
                                     outBuffer,
                                     SIZEOF(outBuffer));
         TRACE_BUFFER(outBuffer, outBufferLength);
-        ASSERT(outBufferLength == 7 * 16);
+        ASSERT(outBufferLength == strlen(expected));
         EXPECT_EQ_BYTES(expected, outBuffer, outBufferLength);
 
         size_t read = 0;
@@ -170,44 +159,44 @@ __noinline_due_to_stack__ static void run_dh_encode_init_append_finalize_tests()
             dh_context_t* ctx = &instructionState.signTransactionContext.dhContext;
             outBufferLength =
                 dh_encode_init(ctx, &key, IV, SIZEOF(IV), outBuffer, SIZEOF(outBuffer));
-            ASSERT(outBufferLength == 16);
-            EXPECT_EQ_BYTES(expected + written, outBuffer, 16);
-            written += 16;
+            ASSERT(outBufferLength == 20);
+            EXPECT_EQ_BYTES(expected + written, outBuffer, 20);
+            written += 20;  // Cache 0b, 1b
 
             {
                 outBufferLength =
                     dh_encode_append(ctx, &key, inBuffer + read, 1, outBuffer, SIZEOF(outBuffer));
                 ASSERT(outBufferLength == 0);
-                read += 1;
+                read += 1;  // Cache 1b, 1b
             }
             {
                 outBufferLength =
                     dh_encode_append(ctx, &key, inBuffer + read, 14, outBuffer, SIZEOF(outBuffer));
                 ASSERT(outBufferLength == 0);
-                read += 14;
+                read += 14;  // Cache 15b, 1b
             }
 
             outBufferLength =
                 dh_encode_append(ctx, &key, inBuffer + read, 18, outBuffer, SIZEOF(outBuffer));
-            ASSERT(outBufferLength == 32);
-            EXPECT_EQ_BYTES(expected + written, outBuffer, 32);
-            read += 18, written += 32;
+            ASSERT(outBufferLength == 44);
+            EXPECT_EQ_BYTES(expected + written, outBuffer, 44);
+            read += 18, written += 44;  // Cache 1b, 0b
 
             outBufferLength =
                 dh_encode_append(ctx, &key, inBuffer + read, 1, outBuffer, SIZEOF(outBuffer));
             ASSERT(outBufferLength == 0);
-            read += 1;
+            read += 1;  // Cache 2b, 0b
 
             outBufferLength =
                 dh_encode_append(ctx, &key, inBuffer + read, 14, outBuffer, SIZEOF(outBuffer));
-            ASSERT(outBufferLength == 16);
-            EXPECT_EQ_BYTES(expected + written, outBuffer, 16);
-            read += 14, written += 16;
+            ASSERT(outBufferLength == 20);
+            EXPECT_EQ_BYTES(expected + written, outBuffer, 20);
+            read += 14, written += 20;  // Cache 0b, 1b
 
             outBufferLength = dh_encode_finalize(ctx, &key, outBuffer, SIZEOF(outBuffer));
-            ASSERT(outBufferLength == 48);
-            EXPECT_EQ_BYTES(expected + written, outBuffer, 48);
-            written += 48;
+            ASSERT(outBufferLength == 68);
+            EXPECT_EQ_BYTES(expected + written, outBuffer, 68);
+            written += 68;
 
             ASSERT(read == inBufferLength);
         }

@@ -47,7 +47,7 @@ static void processShaAndPosibleDHAndPrepareResponse() {
                 // Compute AES key
                 dh_init_aes_key(&aesKey, &ctx->wittnessPath, &ctx->otherPubkey);
 
-                // Encode message chung
+                // Encode message chunk
                 ctx->responseLength = dh_encode_append(&ctx->dhContext,
                                                        &aesKey,
                                                        ctx->dataToAppendToTx,
@@ -55,6 +55,12 @@ static void processShaAndPosibleDHAndPrepareResponse() {
                                                        G_io_apdu_buffer,
                                                        SIZEOF(G_io_apdu_buffer));
                 sha_256_append(&ctx->hashContext, G_io_apdu_buffer, ctx->responseLength);
+                ctx->countedSectionDifference =
+                    ctx->countedSectionDifference + ctx->responseLength - ctx->dataToAppendToTxLen;
+                TRACE("CS diff %d from:%d, %d",
+                      (int) ctx->countedSectionDifference,
+                      (int) ctx->responseLength,
+                      (int) ctx->dataToAppendToTxLen);
             }
             FINALLY {
                 explicit_bzero(&aesKey, SIZEOF(aesKey));
@@ -483,7 +489,8 @@ __noinline_due_to_stack__ void signTx_handleStartCountedSectionAPDU(uint8_t p2,
     // Append data to hash (with possible DH encryption) and prepare response, begin counted section
     {
         // this data does not count towards new counted section but counts towards old ones
-        VALIDATE(countedSectionProcess(&ctx->countedSections, varSize), ERR_INVALID_DATA);
+        VALIDATE(countedSectionProcess(&ctx->countedSections, ctx->dataToAppendToTxLen),
+                 ERR_INVALID_DATA);
         VALIDATE(countedSectionBegin(&ctx->countedSections, numberOfExpectedBytes),
                  ERR_INVALID_DATA);
         processShaAndPosibleDHAndPrepareResponse();
@@ -698,7 +705,9 @@ __noinline_due_to_stack__ void signTx_handleStartDHEncodingAPDU(uint8_t p2,
                                                      SIZEOF(IV),
                                                      G_io_apdu_buffer,
                                                      SIZEOF(G_io_apdu_buffer));
-                ASSERT(ctx->responseLength == DH_AES_IV_SIZE);
+                ASSERT(ctx->responseLength == 20);  // first 5 blocks
+                ctx->countedSectionDifference = ctx->responseLength;
+                TRACE("CS diff %d", (int) ctx->responseLength);
             }
             FINALLY {
                 explicit_bzero(&aesKey, SIZEOF(aesKey));
@@ -707,8 +716,6 @@ __noinline_due_to_stack__ void signTx_handleStartDHEncodingAPDU(uint8_t p2,
         END_TRY;
 
         sha_256_append(&ctx->hashContext, G_io_apdu_buffer, ctx->responseLength);
-        VALIDATE(countedSectionProcess(&ctx->countedSections, ctx->responseLength),
-                 ERR_INVALID_DATA);
         ctx->dhIsActive = true;
     }
 
@@ -784,15 +791,6 @@ __noinline_due_to_stack__ void signTx_handleEndDHEncodingAPDU(
         VALIDATE(ctx->dhCountedSectionEntryLevel == ctx->countedSections.currentLevel,
                  ERR_INVALID_STATE);
 
-        // For purpose of counted sections, we were adding data before encoding (except for DH begin
-        // call). This was neccesary to handle counted sections within DH encoding. To correctly
-        // handle counted section outside DH encoding we must add the number of new bytes This is:
-        // bytes to finish last block: CX_AES_BLOCK_SIZE - ctx->dhContext.cacheLength and HMAC
-        VALIDATE(
-            countedSectionProcess(&ctx->countedSections,
-                                  CX_AES_BLOCK_SIZE - ctx->dhContext.cacheLength + SHA_256_SIZE),
-            ERR_INVALID_DATA);
-
         dh_aes_key_t aesKey;
         BEGIN_TRY {
             TRY {
@@ -803,15 +801,17 @@ __noinline_due_to_stack__ void signTx_handleEndDHEncodingAPDU(
                                                          &aesKey,
                                                          G_io_apdu_buffer,
                                                          SIZEOF(G_io_apdu_buffer));
-                ASSERT(ctx->responseLength ==
-                       CX_AES_BLOCK_SIZE +
-                           SHA_256_SIZE);  // padding always produces one block + HMAC
             }
             FINALLY {
                 explicit_bzero(&aesKey, SIZEOF(aesKey));
             }
         }
         END_TRY;
+
+        ctx->countedSectionDifference += ctx->responseLength;
+        TRACE("CS diff %d from:%d", (int) ctx->countedSectionDifference, (int) ctx->responseLength);
+        VALIDATE(countedSectionProcess(&ctx->countedSections, ctx->countedSectionDifference),
+                 ERR_INVALID_STATE);
 
         sha_256_append(&ctx->hashContext, G_io_apdu_buffer, ctx->responseLength);
         ctx->dhIsActive = false;

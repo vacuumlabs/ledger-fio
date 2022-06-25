@@ -1,6 +1,83 @@
 #include "diffieHellman.h"
 #include "os_math.h"
 
+//---------------------------- UTILS ---------------------------------------
+
+static const uint8_t BASE64[64] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+                                   'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+                                   'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+                                   'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+                                   '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
+
+static void base64EncBlock(uint8_t in[3], uint8_t out[4]) {
+    out[0] = BASE64[(in[0] / 0x04) & 0x3F];
+    out[1] = BASE64[(in[0] * 0x10 + in[1] / 0x10) & 0x3F];
+    out[2] = BASE64[(in[1] * 0x04 + in[2] / 0x40) & 0x3F];
+    out[3] = BASE64[in[2] & 0x3F];
+}
+
+// Returns number of bytes written
+// Move unencoded part of inBuffer to the beginning and sets inSize accordingly
+static size_t base64EncWholeBlocks(uint8_t* inBuffer,
+                                   uint8_t* inSize,
+                                   uint8_t* outBuffer,
+                                   size_t outSize) {
+    uint8_t processedBlocks = 0;
+    while (1) {
+        // We cannot process whole block
+        if (*inSize < BASE64_IN_BLOCK_SIZE * (processedBlocks + 1)) {
+            // move unread inBuffer data to beginning and set new inSize
+            *inSize -= BASE64_IN_BLOCK_SIZE * processedBlocks;
+            memmove(inBuffer, inBuffer + BASE64_IN_BLOCK_SIZE * processedBlocks, *inSize);
+            break;
+        }
+
+        // process one block, inBuffer + BASE64_IN_BLOCK_SIZE*processedBlocks and next two values
+        // exist
+        ASSERT(outSize >= BASE64_OUT_BLOCK_SIZE * (processedBlocks + 1));
+        base64EncBlock(inBuffer + BASE64_IN_BLOCK_SIZE * processedBlocks,
+                       outBuffer + BASE64_OUT_BLOCK_SIZE * processedBlocks);
+        processedBlocks++;
+    }
+    return BASE64_OUT_BLOCK_SIZE * processedBlocks;
+}
+
+static size_t processDHOneBlockFromCache(dh_context_t* ctx,
+                                         const dh_aes_key_t* aes_key,
+                                         uint8_t* outBuffer,
+                                         size_t outSize) {
+    ASSERT(ctx->cacheLength == CX_AES_BLOCK_SIZE);
+
+    // We work in CBC mode
+    // 1. IV xor plaintext
+    for (size_t i = 0; i < CX_AES_BLOCK_SIZE; i++) {
+        ctx->cache[i] ^= ctx->IV[i];
+    }
+
+    // 2. encrypt the result to obtain cyphertext 3. use cyphertext as new IV
+    cx_err_t err = cx_aes_enc_block(&aes_key->aesKey, ctx->cache, ctx->IV);
+    ASSERT(err == CX_OK);
+
+    // append cyphertext (not base64 encrypted) to hmac and clear cache
+    err = cx_hmac_update((cx_hmac_t*) &ctx->hmacCtx, ctx->IV, CX_AES_BLOCK_SIZE);
+    ASSERT(err == CX_OK);
+    explicit_bzero(ctx->cache, SIZEOF(ctx->cache));
+    ctx->cacheLength = 0;
+
+    // base64 encode
+    ASSERT(ctx->base64EncodingCacheLen < BASE64_IN_BLOCK_SIZE);
+    STATIC_ASSERT(SIZEOF(ctx->base64EncodingCache) >= BASE64_IN_BLOCK_SIZE + CX_AES_BLOCK_SIZE,
+                  "Cache too small");
+    memmove(ctx->base64EncodingCache + ctx->base64EncodingCacheLen, ctx->IV, CX_AES_BLOCK_SIZE);
+    ctx->base64EncodingCacheLen += CX_AES_BLOCK_SIZE;
+    return base64EncWholeBlocks(ctx->base64EncodingCache,
+                                &ctx->base64EncodingCacheLen,
+                                outBuffer,
+                                outSize);
+}
+
+//---------------------------- DH ENCODING ---------------------------------------
+
 __noinline_due_to_stack__ void dh_init_aes_key(dh_aes_key_t* dhKey,
                                                const bip44_path_t* pathSpec,
                                                const public_key_t* publicKey) {
@@ -59,6 +136,8 @@ __noinline_due_to_stack__ size_t dh_encode_init(dh_context_t* ctx,
 
     ctx->cacheLength = 0;
     explicit_bzero(ctx->cache, SIZEOF(ctx->cache));
+    ctx->base64EncodingCacheLen = 0;
+    explicit_bzero(ctx->base64EncodingCache, SIZEOF(ctx->base64EncodingCache));
     memcpy(ctx->IV, iv, SIZEOF(ctx->IV));
 
     explicit_bzero(&ctx->hmacCtx, SIZEOF(ctx->hmacCtx));
@@ -69,10 +148,14 @@ __noinline_due_to_stack__ size_t dh_encode_init(dh_context_t* ctx,
 
     ctx->initialized_magic = HASH_CONTEXT_INITIALIZED_MAGIC;
 
-    ASSERT(outSize >= SIZEOF(ctx->IV));
-    memcpy(outBuffer, ctx->IV, SIZEOF(ctx->IV));
-
-    return SIZEOF(ctx->IV);
+    // Base64 We encode IV
+    STATIC_ASSERT(SIZEOF(ctx->base64EncodingCache) >= SIZEOF(ctx->IV), "Cache too small");
+    memcpy(ctx->base64EncodingCache, ctx->IV, SIZEOF(ctx->IV));
+    ctx->base64EncodingCacheLen = SIZEOF(ctx->IV);
+    return base64EncWholeBlocks(ctx->base64EncodingCache,
+                                &ctx->base64EncodingCacheLen,
+                                outBuffer,
+                                outSize);
 }
 
 __noinline_due_to_stack__ size_t dh_encode_append(dh_context_t* ctx,
@@ -92,15 +175,12 @@ __noinline_due_to_stack__ size_t dh_encode_append(dh_context_t* ctx,
 
     size_t processedInput = 0;
     size_t written = 0;
-    while (processedInput < outSize) {
+    while (1) {
         // fill ctx->buffer
         size_t to_read = MIN(CX_AES_BLOCK_SIZE - ctx->cacheLength, inSize - processedInput);
-        TRACE("To read %d, processed %d:", (int) to_read, processedInput);
-        TRACE("Cache %d:", (int) ctx->cacheLength);
         memcpy(ctx->cache + ctx->cacheLength, inBuffer + processedInput, to_read);
         ctx->cacheLength += to_read;
         processedInput += to_read;
-        TRACE("Cache %d, processed %d:", (int) ctx->cacheLength, processedInput);
 
         // if block is only partially filled, we finish encoding, the data was read to cache
         // this means that there was not enough input to fill the block
@@ -108,29 +188,8 @@ __noinline_due_to_stack__ size_t dh_encode_append(dh_context_t* ctx,
             TRACE("Block not full");
             break;
         }
-        // cache is full now
-        // we can encrypt a block,
-        STATIC_ASSERT(SIZEOF(ctx->IV) >= CX_AES_BLOCK_SIZE, "dh_context_t->IV too small");
-        STATIC_ASSERT(SIZEOF(ctx->cache) >= CX_AES_BLOCK_SIZE, "dh_context_t->cache too small");
-        ASSERT(outSize - written >= CX_AES_BLOCK_SIZE);
-        TRACE_BUFFER(ctx->cache, CX_AES_BLOCK_SIZE);
 
-        // We work in CBC mode
-        // 1. IV xor plaintext
-        for (size_t i = 0; i < CX_AES_BLOCK_SIZE; i++) {
-            ctx->cache[i] ^= ctx->IV[i];
-        }
-        // 2. encrypt the result to obtain cyphertext 3. use cyphertext as new IV
-        cx_err_t err = cx_aes_enc_block(&aes_key->aesKey, ctx->cache, ctx->IV);
-        ASSERT(err == CX_OK);
-        memmove(outBuffer + written, ctx->IV, CX_AES_BLOCK_SIZE);
-        written += CX_AES_BLOCK_SIZE;
-
-        // append cyphertext to hmac and clear cache
-        err = cx_hmac_update((cx_hmac_t*) &ctx->hmacCtx, ctx->IV, CX_AES_BLOCK_SIZE);
-        ASSERT(err == CX_OK);
-        ctx->cacheLength = 0;
-        explicit_bzero(ctx->cache, SIZEOF(ctx->cache));
+        written += processDHOneBlockFromCache(ctx, aes_key, outBuffer + written, outSize - written);
     }
 
     TRACE("Leaving dh_encode_append, written: %d", (int) written);
@@ -156,31 +215,49 @@ __noinline_due_to_stack__ size_t dh_encode_finalize(dh_context_t* ctx,
     for (size_t i = ctx->cacheLength; i < CX_AES_BLOCK_SIZE; i++) {
         ctx->cache[i] = fillValue;
     }
+    ctx->cacheLength = CX_AES_BLOCK_SIZE;
 
-    // encrypt last block
-    STATIC_ASSERT(SIZEOF(ctx->IV) >= CX_AES_BLOCK_SIZE, "dh_context_t->IV too small");
-    STATIC_ASSERT(SIZEOF(ctx->cache) >= CX_AES_BLOCK_SIZE, "dh_context_t->cache too small");
-    // 1. IV xor plaintext
-    for (size_t i = 0; i < CX_AES_BLOCK_SIZE; i++) {
-        ctx->cache[i] ^= ctx->IV[i];
-    }
-    // 2. eencrypt the result to obtain cyphertext
-    ASSERT(outSize >= CX_AES_BLOCK_SIZE);
-    cx_err_t err = cx_aes_enc_block(&aes_key->aesKey, ctx->cache, outBuffer);
-    ASSERT(err == CX_OK);
+    uint8_t written = 0;
+    written += processDHOneBlockFromCache(ctx, aes_key, outBuffer + written, outSize - written);
 
-    // append cyphertext to hmac
-    err = cx_hmac_update((cx_hmac_t*) &ctx->hmacCtx, outBuffer, CX_AES_BLOCK_SIZE);
-    ASSERT(err == CX_OK);
-
-    // finalize hmac and append it to cyphertext
-    ASSERT(outSize >= CX_AES_BLOCK_SIZE + DH_HMAC_SIZE);
-    size_t hmacOutSize = outSize - CX_AES_BLOCK_SIZE;
-    err = cx_hmac_final((cx_hmac_t*) &ctx->hmacCtx, outBuffer + CX_AES_BLOCK_SIZE, &hmacOutSize);
+    // finalize hmac and append base64 encode it and append to cyphertext
+    size_t hmacOutSize = SIZEOF(ctx->base64EncodingCache) - ctx->base64EncodingCacheLen;
+    cx_err_t err = cx_hmac_final((cx_hmac_t*) &ctx->hmacCtx,
+                                 ctx->base64EncodingCache + ctx->base64EncodingCacheLen,
+                                 &hmacOutSize);
     ASSERT(err == CX_OK);
     ASSERT(hmacOutSize == DH_HMAC_SIZE);
+    ctx->base64EncodingCacheLen += DH_HMAC_SIZE;
+    written += base64EncWholeBlocks(ctx->base64EncodingCache,
+                                    &ctx->base64EncodingCacheLen,
+                                    outBuffer + written,
+                                    outSize - written);
 
-    return CX_AES_BLOCK_SIZE + DH_HMAC_SIZE;
+    // the last base64 encoding block
+    uint8_t lastBlock[3] = {0, 0, 0};
+    switch (ctx->base64EncodingCacheLen) {
+        case 0:
+            break;
+        case 1:
+            ASSERT(outSize >= written + BASE64_OUT_BLOCK_SIZE);
+            lastBlock[0] = ctx->base64EncodingCache[0];
+            base64EncBlock(lastBlock, outBuffer + written);
+            *(outBuffer + written + 2) = '=';
+            *(outBuffer + written + 3) = '=';
+            written += BASE64_OUT_BLOCK_SIZE;
+            break;
+        case 2:
+            ASSERT(outSize >= written + BASE64_OUT_BLOCK_SIZE);
+            lastBlock[0] = ctx->base64EncodingCache[0];
+            lastBlock[1] = ctx->base64EncodingCache[1];
+            base64EncBlock(lastBlock, outBuffer + written);
+            *(outBuffer + written + 3) = '=';
+            written += BASE64_OUT_BLOCK_SIZE;
+            break;
+        default:
+            ASSERT(false);
+    }
+    return written;
 }
 
 __noinline_due_to_stack__ size_t dh_encode(bip44_path_t* pathSpec,
@@ -206,13 +283,19 @@ __noinline_due_to_stack__ size_t dh_encode(bip44_path_t* pathSpec,
             dh_context_t ctx;
             written +=
                 dh_encode_init(&ctx, &key, iv, ivSize, outBuffer + written, outSize - written);
+            TRACE("Init: written %d", written);
+            TRACE_BUFFER(outBuffer, written);
             written += dh_encode_append(&ctx,
                                         &key,
                                         inBuffer,
                                         inSize,
                                         outBuffer + written,
                                         outSize - written);
+            TRACE("Append: written %d", written);
+            TRACE_BUFFER(outBuffer, written);
             written += dh_encode_finalize(&ctx, &key, outBuffer + written, outSize - written);
+            TRACE("Finalize: written %d", written);
+            TRACE_BUFFER(outBuffer, written);
         }
         FINALLY {
             explicit_bzero(&key, sizeof(key));

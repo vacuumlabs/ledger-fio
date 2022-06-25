@@ -88,10 +88,10 @@ testStep(" - - -", "Sign minimal devel DH tranaction");
     // Validate DH encoded secret
     const privateKey = PrivateKey(Buffer.from("4d597899db76e87933e7c6841c2d661810f070bad20487ef20eb84e182695a3a", "hex"))
     const sharedSecret = privateKey.getSharedSecret(PublicKey(Buffer.from(otherPublicKey, "hex")));
-    const IV = Buffer.from(dhEncodedMsg, "hex").slice(0, 16);
+    const IV = Buffer.from(Buffer.from(dhEncodedMsg, "hex").toString(), "base64").slice(0, 16);
     const msg = Buffer.from("0102030405" + "4e69636520616e64206c6f6e67206c6f6e67206c6f6e67206c6f6e6720737472696e67", "hex");
     const encrypt = checkEncrypt(sharedSecret, Buffer.from(msg, "hex"), IV);
-    assert.equal(encrypt.toString("hex"), dhEncodedMsg.toString("hex"));
+    assert.equal(encrypt.toString("base64"), Buffer.from(dhEncodedMsg, "hex").toString());
     
     // Finish 
     const buffer16 = getAPDUDataBuffer("", "");

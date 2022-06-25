@@ -49,7 +49,7 @@ class ButtonsAndSnapshots {
 		const test_device = this.snapshotName; 
 		const originalScreenshotSHA = this.pngSha256Previous;
 		// e.g. test-transactions.staking-sign-ts.02-transfer-top-shot-moment-p256-sha3-256/nanos.01.png
-		const png = this.scriptName.replace(".js", "") + "/" + test_device + "." + this.pngNum.toString(10).padStart(2, '0') + ".png"
+		const png = this.scriptName + "/" + test_device + "." + this.pngNum.toString(10).padStart(2, '0') + ".png"
 		console.log(humanTime() + " curlScreenShot() // " + png + ".new.png");
 
 		const makeScreenshot = (process.env.TEST_PNG_RE_GEN_FOR && (this.scriptName.substring(0, process.env.TEST_PNG_RE_GEN_FOR.length) == process.env.TEST_PNG_RE_GEN_FOR));
