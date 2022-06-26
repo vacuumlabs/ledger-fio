@@ -18,6 +18,8 @@ const PrivateKey = Ecc.PrivateKey;
 const Signature = Ecc.Signature;
 const arrayToHex = fiojs.Numeric.arrayToHex;
 import { JsSignatureProvider } from "@fioprotocol/fiojs/dist/chain-jssig.js"
+import { createSharedCipher } from "@fioprotocol/fiojs/dist/encryption-fio.js";
+import { checkDecrypt } from "@fioprotocol/fiojs/dist/encryption-check.js";
 
 //import {base64ToBinary, arrayToHex} from "@fioprotocol/fiojs/dist/chain-numeric"
 
@@ -53,6 +55,10 @@ const abiReqobtMainnet = await (await fetch(httpEndpointMainnet + '/v1/chain/get
     body: `{"account_name": "fio.reqobt"}`,
     method: 'POST',
 })).json()
+const abiReqobtTestnet = await (await fetch(httpEndpointTestnet + '/v1/chain/get_abi', {
+    body: `{"account_name": "fio.reqobt"}`,
+    method: 'POST',
+})).json()
 
 // Get a Map of all the types from fio.address
 const typesFioAddressTestnet = ser.getTypesFromAbi(ser.createInitialTypes(), abiFioAddressTestnet.abi)
@@ -60,47 +66,141 @@ const typesTransactionTestnet = ser.getTypesFromAbi(ser.createInitialTypes(), ab
 const typesFioAddressMainnet = ser.getTypesFromAbi(ser.createInitialTypes(), abiFioAddressMainnet.abi)
 const typesTransactionMainnet = ser.getTypesFromAbi(ser.createInitialTypes(), abiMsigMainnet.abi)
 const typesTransaction2Mainnet = ser.getTypesFromAbi(ser.createInitialTypes(), abiReqobtMainnet.abi)
+const typesTransaction2Testnet = ser.getTypesFromAbi(ser.createInitialTypes(), abiReqobtTestnet.abi)
 
 //console.log(typesFioAddressMainnet)
-console.log(typesFioAddressMainnet)
+/*console.log(typesFioAddressMainnet)
 console.log(typesTransactionMainnet)
 console.log(typesTransaction2Mainnet)
 console.log(typesTransactionMainnet.get('transaction'))
 console.log(typesTransactionMainnet.get('transaction_header'))
 console.log(typesTransactionMainnet.get('action'))
+console.log(typesTransactionMainnet.get('permission_level'))
 console.log(typesFioAddressMainnet.get('trnsfiopubky'))
-console.log(typesTransaction2Mainnet.get('newfundsreq'))
+console.log(typesTransaction2Mainnet.get('newfundsreq'))*/
 
-/*
+
 const networkInfo = {
     "TESTNET": {
         chainId: infoTestnet.chain_id,
         typesFioAddress: typesFioAddressTestnet,
         typesTransaction: typesTransactionTestnet,
+        typesTransaction2: typesTransaction2Testnet,
     },
     "MAINNET": {
         chainId: infoMainnet.chain_id,
         typesFioAddress: typesFioAddressMainnet,
         typesTransaction: typesTransactionMainnet,
+        typesTransaction2: typesTransaction2Mainnet,
     },
 }
 
+const path = [44 + HARDENED, 235 + HARDENED, 0 + HARDENED, 0, 0]
+const privateKeyDHex = "4d597899db76e87933e7c6841c2d661810f070bad20487ef20eb84e182695a3a" 
+const privateKey = PrivateKey(Buffer.from(privateKeyDHex, "hex"))
+const publicKey = privateKey.toPublic()
+
+const otherPath = [44 + HARDENED, 235 + HARDENED, 0 + HARDENED, 0, 1]
+const otherPrivateKeyDHex = "90835ae980cd10e9ca7df05d0e3b3c22e0aed0e75527511337f7c53a9d0c6c69" 
+const otherPrivateKey = PrivateKey(Buffer.from(otherPrivateKeyDHex,"hex"))
+const otherPublicKey = otherPrivateKey.toPublic()
 
 
+//------------------- TWO TRANSACTIONS ------------------------------------------------
 
-// Serializes and signs transaction using fiojs
-async function buildTxAndSignatureFioJs(network, tx, pubkey) {
-    // We serialize the transaction
-    // Get the addaddress action type
-    const actionAddaddress = networkInfo[network].typesFioAddress.get('trnsfiopubky')
+const txMemo = {
+    expiration: "2021-08-28T12:50:36.686",
+    ref_block_num: 0x1122,
+    ref_block_prefix: 0x33445566,
+    context_free_actions: [],
+    actions: [{
+        account: "fio.reqobt",
+        name: "newfundsreq",
+        authorization: [{
+            actor: "aftyershcu22",
+            permission: "active",
+        }],
+        data: {
+            payer_fio_address: "My payer address",
+            payee_fio_address:  "My payee address",
+            max_fee: 0x11223344,
+            tpid: "rewards@wallet",
+            actor: "aftyershcu22",
 
-    // Serialize the actions[] "data" field (This example assumes a single action, though transactions may hold an array of actions.)
+            payee_public_key: otherPublicKey,
+            payee_public_address: "My payee public address",
+            amount: "amount 1000",
+            chain_code: "BTC",
+            token_code: "BTC",
+            memo: "I have memo",
+            hash: "",
+            offline_url: "",
+        },
+    }],
+}
+
+const txHash = {
+    expiration: "2021-08-28T12:50:36.686",
+    ref_block_num: 0x1122,
+    ref_block_prefix: 0x33445566,
+    context_free_actions: [],
+    actions: [{
+        account: "fio.reqobt",
+        name: "newfundsreq",
+        authorization: [{
+            actor: "aftyershcu22",
+            permission: "active",
+        }],
+        data: {
+            payer_fio_address: "My payer address",
+            payee_fio_address:  "My payee address",
+            max_fee: 0x11223344,
+            tpid: "rewards@wallet",
+            actor: "aftyershcu22",
+
+            payee_public_key: otherPublicKey,
+            payee_public_address: "My payee public address",
+            amount: "amount 1000",
+            chain_code: "BTC",
+            token_code: "BTC",
+            memo: "",
+            hash: "I have hash",
+            offline_url: "I have url",
+        },
+    }],
+}
+
+//------------------- SERIALIZE TRANSACTION ------------------------------------------------
+
+async function buildTxUsingFioJs(network, tx, iv) {
+    const content = {
+        payee_public_address: tx.actions[0].data.payee_public_address,
+        amount: tx.actions[0].data.amount,
+        chain_code: tx.actions[0].data.chain_code,
+        token_code: tx.actions[0].data.token_code,
+        memo: tx.actions[0].data.memo,
+        hash: tx.actions[0].data.hash,
+        offline_url: tx.actions[0].data.offline_url,
+    }
+
+    const sharedCipher = createSharedCipher({privateKey: privateKey.toBuffer(), publicKey: tx.actions[0].data.payee_public_key.toString()})
+    const encryptedContent = sharedCipher.encrypt('new_funds_content', content, iv)
+
+    const data = {
+        payer_fio_address: tx.actions[0].data.payer_fio_address,
+        payee_fio_address: tx.actions[0].data.payee_fio_address,
+        content: encryptedContent,
+        max_fee: tx.actions[0].data.max_fee,
+        tpid: tx.actions[0].data.tpid,
+        actor: tx.actions[0].data.actor,
+    }
+
+    const actionAddress = networkInfo[network].typesTransaction2.get('newfundsreq')
     const buffer = new ser.SerialBuffer({textEncoder, textDecoder})
-    actionAddaddress.serialize(buffer, tx.actions[0].data)
+    actionAddress.serialize(buffer, data)
     const serializedData = arrayToHex(buffer.asUint8Array())
 
-    // Get the actions parameter from the transaction and replace the data field with the serialized data field
-    let serializedAction = tx.actions[0] 
+    let serializedAction = tx.actions[0]
     serializedAction = {
         ...serializedAction,
         data: serializedData,
@@ -116,81 +216,16 @@ async function buildTxAndSignatureFioJs(network, tx, pubkey) {
         transaction_extensions: [],
     }
 
-    // Get the transaction action type
-    const txnaction = networkInfo[network].typesTransaction.get('transaction')
-
-    // Serialize the transaction
+    const txTransaction = networkInfo[network].typesTransaction.get('transaction')
     const buffer2 = new ser.SerialBuffer({textEncoder, textDecoder})
-    txnaction.serialize(buffer2, rawTransaction)
+    txTransaction.serialize(buffer2, rawTransaction)
     const serializedTransaction = buffer2.asUint8Array()
 
-
-
-    //Lets compute hash in using Signature.sign
-    const msg = Buffer.concat([Buffer.from(networkInfo[network].chainId, "hex"), serializedTransaction, Buffer.allocUnsafe(32).fill(0)])
-    const hash = crypto.createHash('sha256').update(msg).digest('hex')
-
-    
-    
-    //Now using signatureProvider.sign
-    const signatureProvider = new JsSignatureProvider([
-        PrivateKey.fromHex(privateKeyDHex).toString(),
-        PrivateKey.fromHex(otherPrivateKeyDHex).toString()
-    ]);
-    const requiredKeys = [pubkey.toString()]
-    const serializedContextFreeData = null
-
-    const signedTxn = await signatureProvider.sign({
-        chainId: networkInfo[network].chainId,
-        requiredKeys: requiredKeys,
-        serializedTransaction: serializedTransaction,
-        serializedContextFreeData: serializedContextFreeData,
-    })
-
-    return {
-        serializedTx: serializedTransaction,
-        fullMsg: msg,
-        hash: crypto.createHash('sha256').update(msg).digest('hex'),
-        signature: signedTxn.signatures[0],
-    }
+    return {tx: Buffer.from(serializedTransaction), enc: encryptedContent}
 }
 
 
-const path = [44 + HARDENED, 235 + HARDENED, 0 + HARDENED, 0, 0]
-const privateKeyDHex = "4d597899db76e87933e7c6841c2d661810f070bad20487ef20eb84e182695a3a" 
-const privateKey = PrivateKey(Buffer.from(privateKeyDHex, "hex"))
-//const privateKey = PrivateKey(hex_to_buf(privateKeyDHex))
-const publicKey = privateKey.toPublic()
-
-const otherPath = [44 + HARDENED, 235 + HARDENED, 0 + HARDENED, 0, 1]
-const otherPrivateKeyDHex = "90835ae980cd10e9ca7df05d0e3b3c22e0aed0e75527511337f7c53a9d0c6c69" 
-//const otherPrivateKey = PrivateKey(hex_to_buf(otherPrivateKeyDHex))
-const otherPrivateKey = PrivateKey(Buffer.from(otherPrivateKeyDHex,"hex"))
-const otherPublicKey = otherPrivateKey.toPublic()
-
-const basicTx = {
-    expiration: "2021-08-28T12:50:36.686",
-    ref_block_num: 0x1122,
-    ref_block_prefix: 0x33445566,
-    context_free_actions: [],
-    actions: [{
-        account: "fio.token",
-        name: "trnsfiopubky",
-        authorization: [{
-            actor: "aftyershcu22",
-            permission: "active",
-        }],
-        data: {
-            payee_public_key: "FIO8PRe4WRZJj5mkem6qVGKyvNFgPsNnjNN6kPhh6EaCpzCVin5Jj",
-            amount: "20",
-            max_fee: 0x11223344,
-            tpid: "rewards@wallet",
-            actor: "aftyershcu22",
-        },
-    }],
-    transaction_extensions: [],
-}
-
+//---------------------------TESTS---------------------------------------------------------
 
 const scriptName = getScriptName(fileURLToPath(import.meta.url));
 testStart(scriptName);
@@ -202,92 +237,61 @@ const device = getButtonsAndSnapshots(scriptName, speculosConf);
 
 await device.makeStartingScreenshot();
 
-
-testStep(" - - -", "Sign testnet transaction");
-{
-    const network = "TESTNET"
-    const tx = basicTx
-
-    // Lets sign the transaction with fiojs
-    const {serializedTx, fullMsg, hash, signature} = await buildTxAndSignatureFioJs(network, tx, publicKey)
-    console.log("Full message:")
-    console.log(fullMsg.toString("hex"));
-
+async function runTxTest(network, tx, review1, review2) {
     // Lets sign the transaction with ledger
     const chainId = networkInfo[network].chainId
     const ledgerPromise = app.signTransaction({path, chainId, tx})
-    await device.review([1, 1, 2, 1, 1, 2], "Review sign");
+    await device.review2(review1, review2, "Review sign");
     const ledgerResponse = await ledgerPromise;
-    const signatureLedger = Signature.fromHex(ledgerResponse.witness.witnessSignatureHex)
+    console.log(ledgerResponse)
 
+    const iv = Buffer.from(ledgerResponse.dhEncryptedData, "base64").slice(0, 16)
+
+    const pair = await buildTxUsingFioJs(network, tx, iv)
+    const serTx = pair.tx
+    const encContent = pair.enc
+    console.log("Test data:")
+    console.log(tx)
+    console.log(serTx.toString("hex"))
+    console.log(encContent)
+
+    const sharedCipher = createSharedCipher({privateKey: privateKey.toBuffer(), publicKey: tx.actions[0].data.payee_public_key.toString()})
+    const plaintextFio = checkDecrypt(sharedCipher.sharedSecret, Buffer.from(encContent, "base64"))
+    const plaintextLedger = checkDecrypt(sharedCipher.sharedSecret, Buffer.from(ledgerResponse.dhEncryptedData, "base64"))
+    console.log(Buffer.from(plaintextFio).toString("hex"))
+    console.log(Buffer.from(plaintextLedger).toString("hex"))
+    assert.equal(Buffer.from(plaintextFio).toString("hex"), Buffer.from(plaintextLedger).toString("hex"))
+
+    const fullMsg = Buffer.concat([Buffer.from(networkInfo[network].chainId, "hex"), serTx, Buffer.allocUnsafe(32).fill(0)])
+    console.log(fullMsg.toString("hex"))
+    const hash = crypto.createHash('sha256').update(fullMsg).digest('hex')
     assert.equal(ledgerResponse.txHashHex, hash);
+
+    const signatureLedger = Signature.fromHex(ledgerResponse.witness.witnessSignatureHex)
     assert.equal(signatureLedger.verify(fullMsg, publicKey), true);
     assert.equal(signatureLedger.verify(fullMsg, otherPublicKey), false);
 }
 
-testStep(" - - -", "Sign mainnet transaction");
+testStep(" - - -", "Sign testnet transaction - memo");
 {
-    const network = "MAINNET"
-    const tx = basicTx
-
-    // Lets sign the transaction with fiojs
-    const {serializedTx, fullMsg, hash, signature} = await buildTxAndSignatureFioJs(network, tx, publicKey)
-
-    // Lets sign the transaction with ledger
-    const chainId = networkInfo[network].chainId
-    const ledgerPromise = app.signTransaction({path, chainId, tx})
-    await device.review([1, 1, 2, 1, 1, 2], "Review sign");
-    const ledgerResponse = await ledgerPromise;
-    const signatureLedger = Signature.fromHex(ledgerResponse.witness.witnessSignatureHex)
-
-    assert.equal(ledgerResponse.txHashHex, hash);
-    assert.equal(signatureLedger.verify(fullMsg, publicKey), true);
-    assert.equal(signatureLedger.verify(fullMsg, otherPublicKey), false);
+    await runTxTest("TESTNET", txMemo, [1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 3], [1, 1, 3])
 }
 
-
-testStep(" - - -", "Invalid transaction: actor dont match");
+testStep(" - - -", "Sign testnet mainnet - memo");
 {
-    const network = "MAINNET"
-    const action = {...basicTx.actions[0], name: "name.error"}
-    const tx = {...basicTx, actions: [action]}
-
-    // Lets sign the transaction with ledger
-    const chainId = networkInfo[network].chainId
-    const promise = app.signTransaction({path, chainId, tx})
-    await assert.rejects(promise);
+    await runTxTest("MAINNET", txMemo, [1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 3], [1, 1, 3])
 }
 
-testStep(" - - -", "Invalid derivation path");
+testStep(" - - -", "Sign testnet transaction - hash");
 {
-    const network = "MAINNET"
-    const tx = basicTx
-   
-    // Lets sign the transaction with ledger
-    const chainId = networkInfo[network].chainId
-    const promise = app.signTransaction({path: [44 + HARDENED, 235 + HARDENED, 0 + HARDENED, 1, 0], chainId, tx})
-    const assertPromise = assert.rejects(promise, DeviceStatusError, "Action rejected by Ledger's security policy");
-    await assertPromise;
+    await runTxTest("TESTNET", txHash, [1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 3], [1, 1, 3])
 }
 
-testStep(" - - -", "Sign transaction reject");
+testStep(" - - -", "Sign testnet mainnet - hash");
 {
-    const network = "TESTNET"
-    const tx = basicTx
-
-    // Lets sign the transaction with fiojs
-    const {serializedTx, fullMsg, hash, signature} = await buildTxAndSignatureFioJs(network, tx, publicKey)
-    console.log("Full message:")
-    console.log(fullMsg.toString("hex"));
-
-    // Lets sign the transaction with ledger
-    const chainId = networkInfo[network].chainId
-    const ledgerPromise = app.signTransaction({path, chainId, tx})
-    await device.reviewReject([1, 1, 2, 1, 1, 2], "Review sign");
-    await assert.rejects(ledgerPromise, DeviceStatusError, "Action rejected by user");
+    await runTxTest("MAINNET", txHash, [1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 3], [1, 1, 3])
 }
-
 
 await transport.close()
 testEnd(scriptName);
-process.stdin.pause();*/
+process.stdin.pause();

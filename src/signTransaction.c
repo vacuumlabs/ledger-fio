@@ -306,7 +306,7 @@ __noinline_due_to_stack__ void signTx_handleShowMessageAPDU(
         memmove(ctx->key, constData->displayKey, constData->displayKeyLen);
         ctx->key[constData->displayKeyLen] = 0;
         memmove(ctx->value, constData2->displayValue, constData2->displayValueLen);
-        ctx->key[constData2->displayValueLen] = 0;
+        ctx->value[constData2->displayValueLen] = 0;
     }
 
     // Reading data finished, from now on we use G_io_apdu_buffer for output
@@ -637,7 +637,7 @@ static void signTx_handleDHStart_ui_runStep() {
 }
 
 __noinline_due_to_stack__ void signTx_handleStartDHEncodingAPDU(uint8_t p2,
-                                                                uint8_t* constDataBuffer,
+                                                                MARK_UNUSED_NO_DEVEL uint8_t* constDataBuffer,
                                                                 size_t constSize,
                                                                 uint8_t* varDataBuffer,
                                                                 size_t varSize) {
