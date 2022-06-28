@@ -24,6 +24,8 @@ enum {
     ERR_INVALID_STATE = 0x6E06,
     // Some part of request data is invalid (includes not enough data)
     ERR_INVALID_DATA = 0x6E07,
+    // Request is not valid in the context of previous calls
+    ERR_INTEGRITY_CHECK_FAILED = 0x6E08,
 
     // User rejected the action
     ERR_REJECTED_BY_USER = 0x6E09,

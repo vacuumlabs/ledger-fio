@@ -636,11 +636,12 @@ static void signTx_handleDHStart_ui_runStep() {
     UI_STEP_END(HANDLE_DH_START_STEP_INVALID);
 }
 
-__noinline_due_to_stack__ void signTx_handleStartDHEncodingAPDU(uint8_t p2,
-                                                                MARK_UNUSED_NO_DEVEL uint8_t* constDataBuffer,
-                                                                size_t constSize,
-                                                                uint8_t* varDataBuffer,
-                                                                size_t varSize) {
+__noinline_due_to_stack__ void signTx_handleStartDHEncodingAPDU(
+    uint8_t p2,
+    MARK_UNUSED_NO_DEVEL uint8_t* constDataBuffer,
+    size_t constSize,
+    uint8_t* varDataBuffer,
+    size_t varSize) {
     // Sanity checks and trace buffers
     TRACE_STACK_USAGE();
     {
@@ -786,6 +787,9 @@ __noinline_due_to_stack__ void signTx_handleEndDHEncodingAPDU(
 
     // Apend data to hash (final blocks of DH encryption) and prepare response
     {
+        // To be sure that we are encoding correct DH data
+        VALIDATE(integrityCheckEvaluate(&ctx->integrity), ERR_INTEGRITY_CHECK_FAILED);
+
         VALIDATE(ctx->dhIsActive, ERR_INVALID_STATE);
         // Counted section that started within DH encoding cannot end after DH encoding
         VALIDATE(ctx->dhCountedSectionEntryLevel == ctx->countedSections.currentLevel,
@@ -916,7 +920,7 @@ __noinline_due_to_stack__ void signTx_handleFinishAPDU(
     // measures we finalize counted section
     {
         VALIDATE(!ctx->dhIsActive, ERR_INVALID_STATE);
-        VALIDATE(integrityCheckFinalize(&ctx->integrity), ERR_INVALID_STATE);
+        VALIDATE(integrityCheckEvaluate(&ctx->integrity), ERR_INTEGRITY_CHECK_FAILED);
         VALIDATE(countedSectionFinalize(&ctx->countedSections), ERR_INVALID_DATA);
     }
 

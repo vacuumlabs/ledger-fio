@@ -18,11 +18,11 @@ __noinline_due_to_stack__ void integrityCheckProcessInstruction(tx_integrity_t *
                                                                 const uint8_t *constData,
                                                                 uint8_t constDataLength);
 
-__noinline_due_to_stack__ bool integrityCheckFinalize(tx_integrity_t *integrity);
+__noinline_due_to_stack__ bool integrityCheckEvaluate(tx_integrity_t *integrity);
 
 #ifdef DEVEL
 #include "hash.h"
-__noinline_due_to_stack__ bool _integrityCheckFinalize(tx_integrity_t *integrity,
+__noinline_due_to_stack__ bool _integrityCheckEvaluate(tx_integrity_t *integrity,
                                                        const uint8_t (*allowedHashes)[SHA_256_SIZE],
                                                        uint16_t allowedHashesLength);
 

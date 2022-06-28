@@ -235,6 +235,52 @@ testStep(" - - -", "If you reject DH encryption it fails imediately, without exp
     await device.makeStartingScreenshot();
 }
 //-------------------------------------------------------------------------------------
+testStep(" - - -", "Modifying anything within DH block should lead to integrity check failure");
+{
+    //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e path=44'/235'/0'/0/0
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
+    console.log(buffer11.toString("hex"))
+    const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
+    await device.curlScreenShot();
+    device.curlButton("both", "Confirm chain"); //!!!!!!
+    const response11 = await promise11;
+    assert.equal(response11.toString("hex"), "9000");
+
+    const otherPublicKey = "0484e52dfea57b8f1787488a356374cd8e8515b8ad8db3dd4f9088d8e42ed2fb6d571e8894cccbdbf15e1bd84f8b4362f52d1b5b712b9775c0a51cdd5ee9a9e8ca";
+    //START DH encryption //this is 9ubkey for path=44'/235'/0'/0/2000
+    const buffer12 = getAPDUDataBuffer("", otherPublicKey);
+    const promise12 = transport.send(215, 0x20, 0x08, 0, buffer12);
+    await device.curlScreenShot();
+    await device.curlButtonAndScreenshot("both", "message");
+    device.curlButton("both", "Confirm their pubkey"); 
+    const response12 = await promise12;
+    assert.equal(response12.slice(-2).toString("hex"), "9000");
+    let dhEncodedMsg = response12.slice(0, -2).toString("hex");
+
+    //Append "0102030406" to transaction - this should be 0102030405
+    const buffer13 = getAPDUDataBuffer("0102030406", "");
+    const promise13 = transport.send(215, 0x20, 0x02, 0, buffer13);
+    const response13 = await promise13;
+    assert.equal(response13.slice(-2).toString("hex"), "9000");
+    dhEncodedMsg += response13.slice(0, -2).toString("hex");
+
+    //SHOW DATA 02-string, 01-no validation, 0000000000000000-min, 0000000000000000-max, 05-policy, Key = "String" (06537472696e67)
+    const buffer14 = getAPDUDataBuffer("0201000000000000000000000000000000000506537472696e67", "4e69636520616e64206c6f6e67206c6f6e67206c6f6e67206c6f6e6720737472696e67");
+    const promise14 = transport.send(215, 0x20, 0x04, 0, buffer14);
+    await device.curlScreenShot();
+    device.curlButton("both", "Confirm message"); //!!!!!!
+    const response14 = await promise14;
+    assert.equal(response14.slice(-2).toString("hex"), "9000");
+    dhEncodedMsg += response14.slice(0, -2).toString("hex");
+
+    //END DH ENCRYPTION
+    const buffer15 = getAPDUDataBuffer("", "");
+    const promise15 = transport.send(215, 0x20, 0x09, 0, buffer15);
+    await assert.rejects(promise15, err(0x6e08));
+
+    await device.makeStartingScreenshot();
+}
+//-------------------------------------------------------------------------------------
 
 await transport.close();
 testEnd(scriptName);

@@ -145,7 +145,7 @@ testStep(" - - -", "One byte constant data difference should cause integrity val
     //Finish path=44'/235'/0'/0/0
     const buffer14 = getAPDUDataBuffer("", "");
     const promise14 = transport.send(215, 0x20, 0x10, 0, buffer14);
-    await assert.rejects(promise14, err(0x6e06));
+    await assert.rejects(promise14, err(0x6e08));
 
     await device.makeStartingScreenshot();
 } 
