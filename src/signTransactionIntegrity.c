@@ -96,7 +96,16 @@ __noinline_due_to_stack__ void integrityCheckProcessInstruction(tx_integrity_t *
 
 __noinline_due_to_stack__ bool _integrityCheckEvaluate(tx_integrity_t *integrity,
                                                        const uint8_t (*allowedHashes)[SHA_256_SIZE],
-                                                       uint16_t allowedHashesLength) {
+                                                       uint16_t allowedHashesLength) {                                                        
+    PRINTF("Integrity check for: {");
+    for(size_t i=0; i<SIZEOF(integrity->integrityHash)-1; i++) {
+        PRINTF("0x%x ,", integrity->integrityHash[i]);
+    }
+    PRINTF("0x%x}\n", integrity->integrityHash[SIZEOF(integrity->integrityHash)-1]);
+#if defined(DEVEL) && defined(NO_INTEGRITY_CHECK)
+    TRACE("Integrity check skipped");
+    return true;
+#endif
     ASSERT(integrity->initialized_magic == TX_INTEGRITY_HASH_INITIALIZED_MAGIC);
     for (uint16_t i = 0; i < allowedHashesLength; i++) {
         STATIC_ASSERT(SIZEOF(allowedHashes[i]) == SIZEOF(integrity->integrityHash),

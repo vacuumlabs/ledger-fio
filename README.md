@@ -39,6 +39,10 @@ Starts the container and runs shell (only for container build)
 `make size`
 Determines the size of the app. 
 
+Further interesting options are: `
+- `NO_PULL=1`- do not pull containers (this works also for other commands using containers)
+- `NO_INTEGRITY_CHECK=1- IF ` - integrity check is always ok, must also have `DEVEL=1`.
+
 
 ## Javascript layer
 
@@ -78,6 +82,8 @@ Starts the container. You can interact with it on ports:
 `make speculos_port_5001_stop`
 Stops the container
 
+Further interesting options are: `
+- `NO_PULL=1`- do not pull containers (this works also for other commands using containers)
 
 ### Running tests on Speculos
 
@@ -94,6 +100,8 @@ for `getPublicKey.js` integration tests. `TEST_PNG_RE_GEN_FOR=snapshots make spe
 `make speculos_port_5001_unit_test`
 Runs unit tests on Speculos. Requires DEVEL build.
 
+Further interesting options are: `
+- `NO_PULL=1`- do not pull containers (this works also for other commands using containers)
 
 ## Testing on physical device
 
