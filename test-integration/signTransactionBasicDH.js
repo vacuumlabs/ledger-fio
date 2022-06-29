@@ -68,8 +68,8 @@ const typesTransactionMainnet = ser.getTypesFromAbi(ser.createInitialTypes(), ab
 const typesTransaction2Mainnet = ser.getTypesFromAbi(ser.createInitialTypes(), abiReqobtMainnet.abi)
 const typesTransaction2Testnet = ser.getTypesFromAbi(ser.createInitialTypes(), abiReqobtTestnet.abi)
 
-//console.log(typesFioAddressMainnet)
 /*console.log(typesFioAddressMainnet)
+console.log(typesFioAddressMainnet)
 console.log(typesTransactionMainnet)
 console.log(typesTransaction2Mainnet)
 console.log(typesTransactionMainnet.get('transaction'))
