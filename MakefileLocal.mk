@@ -95,6 +95,9 @@ ifeq ($(DEVEL), 1)
 	else
 		DEFINES += PRINTF=mcu_usb_printf
 	endif
+	ifeq ($(NO_INTEGRITY_CHECK), 1)
+	DEFINES += NO_INTEGRITY_CHECK
+	endif
 else
 	DEFINES += RESET_ON_CRASH
 	DEFINES += PRINTF\(...\)=

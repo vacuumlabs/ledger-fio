@@ -52,6 +52,7 @@ define run_docker
 	-e BOLOS_SDK=$(BOLOS_SDK_DIRECTORY) \
 	-e DEVEL=$(DEVEL) \
 	-e TARGET_NAME=$(TARGET_NAME) \
+	-e NO_INTEGRITY_CHECK=$(NO_INTEGRITY_CHECK) \
 	-u $(USERID):$(USERID) \
 	-v $(shell pwd):/app \
 	$(1) \

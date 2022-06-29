@@ -30,12 +30,13 @@ endef
 
 .PHONY: speculos_port_5001_test_internal
 speculos_port_5001_test_internal:
-	$(call run_announce,$@)
-	$(call run_nodejs_test,5001,40001,getVersion.js)
-	$(call run_nodejs_test,5001,40001,getSerial.js)
-	$(call run_nodejs_test,5001,40001,getPublicKey.js)
-	$(call run_nodejs_test,5001,40001,signTransactionBasic.js)
-	$(call run_nodejs_test,5001,40001,signTransactionBasicDH.js)
+#	$(call run_announce,$@)
+#	$(call run_nodejs_test,5001,40001,getVersion.js)
+#	$(call run_nodejs_test,5001,40001,getSerial.js)
+#	$(call run_nodejs_test,5001,40001,getPublicKey.js)
+#	$(call run_nodejs_test,5001,40001,signTransactionBasic.js)
+#	$(call run_nodejs_test,5001,40001,signTransactionNewfundsreq.js)
+	$(call run_nodejs_test,5001,40001,signTransactionRecordobt.js)
 	@echo "# ALL TESTS COMPLETED!" | tee -a speculos-port-5001.log
 
 .PHONY: speculos_port_5001_unit_test_internal
