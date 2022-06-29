@@ -141,6 +141,8 @@ void getPublicKey_handleAPDU(uint8_t p1,
         TRACE_BUFFER(wireDataBuffer, wireDataSize);
 
         size_t parsedSize = bip44_parseFromWire(&ctx->pathSpec, wireDataBuffer, wireDataSize);
+        BIP44_PRINTF(&ctx->pathSpec);
+        PRINTF("\n");
         VALIDATE(parsedSize == wireDataSize, ERR_INVALID_DATA);
     }
 

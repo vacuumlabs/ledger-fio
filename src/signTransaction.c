@@ -1,7 +1,5 @@
 #include "common.h"
 #include "handlers.h"
-
-#include "endian.h"
 #include "eos_utils.h"
 #include "getSerial.h"
 #include "state.h"
@@ -152,6 +150,8 @@ __noinline_due_to_stack__ void signTx_handleInitAPDU(uint8_t p2,
         const size_t parsedSize = bip44_parseFromWire(&ctx->wittnessPath,
                                                       varData->derivationPath,
                                                       varSize - SIZEOF(varData->chainId));
+        BIP44_PRINTF(&ctx->wittnessPath);
+        PRINTF("\n");
         VALIDATE(parsedSize == varSize - SIZEOF(varData->chainId), ERR_INVALID_DATA);
 
         STATIC_ASSERT(SIZEOF(ctx->dataToAppendToTx) >= SIZEOF(varData->chainId),

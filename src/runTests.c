@@ -5,7 +5,6 @@
 #include "hexUtils.h"
 #include "hash.h"
 #include "bip44.h"
-#include "endian.h"
 #include "keyDerivation.h"
 #include "textUtils.h"
 #include "uiHelpers.h"
@@ -26,7 +25,6 @@ void handleRunTests(uint8_t p1 MARK_UNUSED,
         TRACE_STACK_USAGE();
         PRINTF("Running tests\n");
         run_hex_test();
-        run_endian_test();
         run_textUtils_test();
         run_bip44_test();
         run_key_derivation_test();

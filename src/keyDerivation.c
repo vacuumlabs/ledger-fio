@@ -6,7 +6,6 @@
 #include "keyDerivation.h"
 #include "hash.h"
 #include "utils.h"
-#include "endian.h"
 #include "fio.h"
 #include "securityPolicy.h"
 

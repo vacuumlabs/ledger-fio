@@ -40,7 +40,7 @@ console.log("This test requires app in DEVEL mode.")
 testStep(" - - -", "Sign minimal devel DH tranaction");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e path=44'/235'/0'/0/0
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e052c000080eb000080000000800000000000000000");
     console.log(buffer11.toString("hex"))
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
@@ -138,7 +138,7 @@ testStep(" - - -", "Sign minimal devel DH tranaction");
 testStep(" - - -", "You cannt just end counted section within DH encription without starting it");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e path=44'/235'/0'/0/0
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e052c000080eb000080000000800000000000000000");
     console.log(buffer11.toString("hex"))
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();
@@ -175,7 +175,7 @@ testStep(" - - -", "You cannt just end counted section within DH encription with
 testStep(" - - -", "Counted section from within DH encoding mus be finished");
 {
     //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e path=44'/235'/0'/0/0
-    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e058000002c800000eb800000000000000000000000");
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e052c000080eb000080000000800000000000000000");
     console.log(buffer11.toString("hex"))
     const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
     await device.curlScreenShot();

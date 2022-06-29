@@ -1,6 +1,5 @@
 #include "common.h"
 #include "bip44.h"
-#include "endian.h"
 
 static const uint32_t MAX_REASONABLE_ADDRESS = 1000;
 
@@ -14,12 +13,13 @@ size_t bip44_parseFromWire(bip44_path_t* pathSpec, const uint8_t* dataBuffer, si
     // Ensure length is valid
     VALIDATE(length <= ARRAY_LEN(pathSpec->path), ERR_INVALID_DATA);
     VALIDATE(length * 4 + 1 <= dataSize, ERR_INVALID_DATA);
+    STATIC_ASSERT(sizeof(pathSpec->path[0]) == 4, "Incompatible path types.");
 
     pathSpec->length = length;
 
     size_t offset = 1;
     for (size_t i = 0; i < length; i++) {
-        pathSpec->path[i] = u4be_read(dataBuffer + offset);
+        memmove(&pathSpec->path[i], dataBuffer + offset, sizeof(pathSpec->path[i]));
         offset += 4;
     }
     return offset;

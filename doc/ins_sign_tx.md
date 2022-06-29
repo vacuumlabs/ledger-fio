@@ -1,5 +1,7 @@
 # Sign Transaction
 
+This is out of date at the moment.
+
 **Description**
 
 Construct and sign a transaction (returns just the signature).
