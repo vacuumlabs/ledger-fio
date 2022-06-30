@@ -137,6 +137,30 @@ testStep(" - - -", "Data do not match");
     await device.makeStartingScreenshot();
 }
 //-------------------------------------------------------------------------------------
+testStep(" - - -", "Data do not match using name conversion");
+{
+    //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e path=44'/235'/0'/0/0
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e052c000080eb000080000000800000000000000000");
+    console.log(buffer11.toString("hex"))
+    const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
+    await device.curlScreenShot();
+    device.curlButton("both", "Confirm chain"); //!!!!!!
+    const response11 = await promise11;
+    assert.equal(response11.toString("hex"), "9000");
+
+    //Store data to register1
+    const buffer12 = getAPDUDataBuffer("", "0011223344556677");
+    const promise12 = transport.send(215, 0x20, 0x07, 0x01, buffer12);
+    const response12 = await promise12;
+    assert.equal(response12.toString("hex"), "9000");
+
+    //SHOW DATA 02-string, 01-no validation, 0000000000000000-min, 0000000000000000-max, 45-policy, Key = "HexString" (09486578537472696e67)
+    const buffer14 = getAPDUDataBuffer("0201000000000000000000000000000000004509486578537472696e67", "0011223344556677");
+    const promise14 = transport.send(215, 0x20, 0x04, 0, buffer14);
+    await assert.rejects(promise14, err(0x6e07));
+
+    await device.makeStartingScreenshot();
+}
 
 
 await transport.close();

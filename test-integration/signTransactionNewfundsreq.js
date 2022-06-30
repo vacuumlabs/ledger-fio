@@ -133,8 +133,6 @@ const txMemo = {
             chain_code: "BTC",
             token_code: "BTC",
             memo: "I have memo",
-//            hash: "",
-//            offline_url: "",
         },
     }],
 }
@@ -272,24 +270,28 @@ async function runTxTest(network, tx, review1, review2) {
     assert.equal(signatureLedger.verify(fullMsg, otherPublicKey), false);
 }
 
+const longSequence1 = [1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 1, 3];
+const longSequence2 = [1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 3];
+const secondSequence = [1, 3]
+
 testStep(" - - -", "Sign testnet transaction - memo");
 {
-    await runTxTest("TESTNET", txMemo, [1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 3], [1, 1, 3])
+    await runTxTest("TESTNET", txMemo, longSequence1, secondSequence)
 }
 
 testStep(" - - -", "Sign testnet mainnet - memo");
 {
-    await runTxTest("MAINNET", txMemo, [1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 3], [1, 1, 3])
+    await runTxTest("MAINNET", txMemo, longSequence1, secondSequence)
 }
 
 testStep(" - - -", "Sign testnet transaction - hash");
 {
-    await runTxTest("TESTNET", txHash, [1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 3], [1, 1, 3])
+    await runTxTest("TESTNET", txHash, longSequence2, secondSequence)
 }
 
 testStep(" - - -", "Sign testnet mainnet - hash");
 {
-    await runTxTest("MAINNET", txHash, [1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 1, 3], [1, 1, 3])
+    await runTxTest("MAINNET", txHash, longSequence2, secondSequence)
 }
 
 await transport.close()

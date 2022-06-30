@@ -3,6 +3,7 @@
 #include "eos_utils.h"
 #include "getSerial.h"
 #include "state.h"
+#include "fio.h"
 #include "hash.h"
 #include "lcx_rng.h"
 #include "securityPolicy.h"
@@ -20,6 +21,7 @@ typedef enum {
     VALUE_STORAGE_CHECK_R1 = 0x10,
     VALUE_STORAGE_CHECK_R2 = 0x20,
     VALUE_STORAGE_CHECK_R3 = 0x30,
+    VALUE_STORAGE_CHECK_R1_DECODE_NAME = 0x40,
 } tx_storage_check_t;
 
 enum {
@@ -356,7 +358,7 @@ __noinline_due_to_stack__ void signTx_handleAppendDataAPDU(uint8_t p2,
     {
         tx_storage_check_t storage = constData->valuePolicyAndStorage & 0xF0;
         TRACE("Storage request :%d, Stored length %d,%d,%d",
-              (int) storage,
+              (int) storage/0x10,
               (int) ctx->storage.storedValueLen1,
               (int) ctx->storage.storedValueLen2,
               (int) ctx->storage.storedValueLen3);
@@ -373,6 +375,19 @@ __noinline_due_to_stack__ void signTx_handleAppendDataAPDU(uint8_t p2,
             CASE_STORAGE_EQUALS(1);
             CASE_STORAGE_EQUALS(2);
             CASE_STORAGE_EQUALS(3);
+            case VALUE_STORAGE_CHECK_R1_DECODE_NAME: {
+                ASSERT(ctx->storage.initialized_magic == TX_STORAGE_INITIALIZED_MAGIC);           
+                ASSERT(ctx->storage.storedValueLen1 <= SIZEOF(ctx->storage.storedValue1));
+                char buffer[14];
+                uint8array_name_to_string(ctx->storage.storedValue1, ctx->storage.storedValueLen1, buffer, SIZEOF(buffer));
+                VALIDATE(varSize < SIZEOF(buffer), ERR_INVALID_DATA);
+                TRACE("%s", buffer);
+                TRACE("%s", varData->value);
+                TRACE("%d", varSize);
+                VALIDATE(buffer[varSize] == 0, ERR_INVALID_DATA);
+                VALIDATE(!memcmp(buffer, varData->value, varSize), ERR_INVALID_DATA);
+                break;
+            }
             case VALUE_STORAGE_CHECK_NO:
                 break;
             default:
