@@ -305,3 +305,62 @@ __noinline_due_to_stack__ size_t dh_encode(bip44_path_t* pathSpec,
 
     return written;
 }
+
+__noinline_due_to_stack__ static void validateHmac(dh_aes_key_t* aes_key,
+                                                   const uint8_t* buffer,
+                                                   size_t inSize) {
+    VALIDATE(inSize >= DH_AES_IV_SIZE + CX_AES_BLOCK_SIZE + DH_HMAC_SIZE, ERR_INVALID_DATA);
+
+    cx_hmac_sha256_t hmac;
+    cx_err_t err = cx_hmac_sha256_init_no_throw(&hmac, aes_key->km, SIZEOF(aes_key->km));
+    ASSERT(err == CX_OK);
+    err = cx_hmac_update((cx_hmac_t*) &hmac, buffer, inSize - DH_HMAC_SIZE);
+    ASSERT(err == CX_OK);
+    uint8_t hmacBuf[DH_HMAC_SIZE];
+    size_t outLen = SIZEOF(hmacBuf);
+    err = cx_hmac_final((cx_hmac_t*) &hmac, hmacBuf, &outLen);
+    ASSERT(err == CX_OK);
+    ASSERT(outLen == DH_HMAC_SIZE);
+    VALIDATE(!memcmp(hmacBuf, buffer + inSize - DH_HMAC_SIZE, DH_HMAC_SIZE), ERR_INVALID_HMAC);
+}
+
+__noinline_due_to_stack__ size_t dh_decode(bip44_path_t* pathSpec,
+                                           public_key_t* publicKey,
+                                           uint8_t* buffer,
+                                           size_t inSize) {
+    VALIDATE(inSize >= DH_AES_IV_SIZE + CX_AES_BLOCK_SIZE + DH_HMAC_SIZE, ERR_INVALID_DATA);
+    VALIDATE(inSize % CX_AES_BLOCK_SIZE == 0, ERR_INVALID_DATA);
+
+    dh_aes_key_t aes_key;
+    dh_init_aes_key(&aes_key, pathSpec, publicKey);
+
+    // validate HMAC
+    validateHmac(&aes_key, buffer, inSize);
+    TRACE("HMAC validation succesfull.");
+
+    // initiate DH decryptions
+    uint8_t IV[CX_AES_BLOCK_SIZE];
+    memcpy(IV, buffer, SIZEOF(IV));
+    size_t read =
+        DH_AES_IV_SIZE;  // we do not decode IV, this also creates a buffer so we can decode inplace
+    size_t written = 0;
+
+    for (; read < inSize - DH_HMAC_SIZE; read += CX_AES_BLOCK_SIZE) {
+        // 1. Decode next block
+        ASSERT(read - written == CX_AES_BLOCK_SIZE);
+        cx_err_t err = cx_aes_dec_block(&aes_key.aesKey, buffer + read, buffer + written);
+        ASSERT(err == CX_OK);
+        // 2. XOR with IV
+        for (size_t i = 0; i < CX_AES_BLOCK_SIZE; i++) {
+            buffer[written + i] ^= IV[i];
+        }
+        // 3. Cyphertext is the new IV ... we do not care that we copy part of HMAC in last
+        // iteration here
+        memcpy(IV, buffer + read, CX_AES_BLOCK_SIZE);
+        written += CX_AES_BLOCK_SIZE;
+    }
+
+    TRACE("Finishing decription, written:%d, lastCharacter:%d", written, buffer[written - 1]);
+    // Calculate redulting length based on the last decoded value
+    return written - buffer[written - 1];
+}
