@@ -358,7 +358,7 @@ __noinline_due_to_stack__ void signTx_handleAppendDataAPDU(uint8_t p2,
     {
         tx_storage_check_t storage = constData->valuePolicyAndStorage & 0xF0;
         TRACE("Storage request :%d, Stored length %d,%d,%d",
-              (int) storage/0x10,
+              (int) storage / 0x10,
               (int) ctx->storage.storedValueLen1,
               (int) ctx->storage.storedValueLen2,
               (int) ctx->storage.storedValueLen3);
@@ -376,10 +376,13 @@ __noinline_due_to_stack__ void signTx_handleAppendDataAPDU(uint8_t p2,
             CASE_STORAGE_EQUALS(2);
             CASE_STORAGE_EQUALS(3);
             case VALUE_STORAGE_CHECK_R1_DECODE_NAME: {
-                ASSERT(ctx->storage.initialized_magic == TX_STORAGE_INITIALIZED_MAGIC);           
+                ASSERT(ctx->storage.initialized_magic == TX_STORAGE_INITIALIZED_MAGIC);
                 ASSERT(ctx->storage.storedValueLen1 <= SIZEOF(ctx->storage.storedValue1));
                 char buffer[14];
-                uint8array_name_to_string(ctx->storage.storedValue1, ctx->storage.storedValueLen1, buffer, SIZEOF(buffer));
+                uint8array_name_to_string(ctx->storage.storedValue1,
+                                          ctx->storage.storedValueLen1,
+                                          buffer,
+                                          SIZEOF(buffer));
                 VALIDATE(varSize < SIZEOF(buffer), ERR_INVALID_DATA);
                 TRACE("%s", buffer);
                 TRACE("%s", varData->value);
