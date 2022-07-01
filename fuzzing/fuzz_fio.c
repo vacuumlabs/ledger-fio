@@ -11,19 +11,15 @@ typedef struct {
 } header_t;
 
 int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
-    // the size of the data should not exceed the max size for lc + header size
-    if (Size > sizeof(header_t) && Size < sizeof(header_t) + 0xff){
-        header_t * header = (void *) Data;
+    // The size of the data should exceed the length of the header
+    if (Size >= sizeof(header_t)){
+        header_t * header = (header_t *) Data;
 
-        // Compute lc
-        uint8_t lc = Size - (sizeof(header_t) - sizeof(uint8_t));
-        header->lc = lc;
-
-        uint8_t* data = (uint8_t *)(Data + sizeof(*header) - sizeof(uint8_t)); // remove size of lc
+        uint8_t* data = (uint8_t *)(Data + sizeof(*header));
 
         handler_fn_t* handlerFn = lookupHandler(header->ins);
         handlerFn(header->p1, header->p2, data, header->lc, true);
     }
-
+    
     return 0;
 }

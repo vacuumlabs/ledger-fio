@@ -8,9 +8,9 @@ set(CMAKE_C_STANDARD 11)
 set(BOLOS_SDK $ENV{BOLOS_SDK})
 add_compile_definitions(IO_HID_EP_LENGTH=64)
 
-add_compile_definitions(HAVE_ECC HAVE_HASH HAVE_SHA256 HAVE_RIPEMD160)
+add_compile_definitions(HAVE_ECC HAVE_HASH HAVE_HMAC HAVE_SHA256 HAVE_RIPEMD160 HAVE_ECDSA HAVE_ECC_WEIERSTRASS HAVE_SECP256K1_CURVE )
 include_directories(.
-        ../src/lib
+        ../src
         "${BOLOS_SDK}/include"
         "${BOLOS_SDK}/lib_cxng/include"
         "${BOLOS_SDK}/lib_ux/include"
@@ -42,6 +42,9 @@ add_definitions(
     -DAPPVERSION="0.0.2"
 
     -DOS_IO_SEPROXYHAL
+    -DIO_SEPROXYHAL_BUFFER_SIZE_B=128
+    -DRESET_ON_CRASH
+    
     -DHAVE_BAGL
     -DHAVE_SPRINTF
     -DHAVE_SNPRINTF_FORMAT_U
@@ -55,8 +58,6 @@ add_definitions(
     -DWEBUSB_URL_SIZE_B=0
     -DWEBUSB_URL=""
     -DHAVE_BOLOS_APP_STACK_CANARY
-    -DIO_SEPROXYHAL_BUFFER_SIZE_B=128
-    -DRESET_ON_CRASH
 )
 
 set(APP_SOURCES
@@ -73,15 +74,30 @@ set(APP_SOURCES
     ${APP_SRC_DIR}/getPublicKey.c
     ${APP_SRC_DIR}/signTransaction.h
     ${APP_SRC_DIR}/signTransaction.c
-    ${APP_SRC_DIR}/io.h
-    ${APP_SRC_DIR}/io.c
     ${APP_SRC_DIR}/uiHelpers.h
     ${APP_SRC_DIR}/uiHelpers.c
     ${APP_SRC_DIR}/state.h
     ${APP_SRC_DIR}/state.c
     ${APP_SRC_DIR}/bip44.h
     ${APP_SRC_DIR}/bip44.c
-
+    ${APP_SRC_DIR}/uiHelpers.h
+    ${APP_SRC_DIR}/uiHelpers.c
+    ${APP_SRC_DIR}/securityPolicy.h
+    ${APP_SRC_DIR}/securityPolicy.c
+    ${APP_SRC_DIR}/keyDerivation.h
+    ${APP_SRC_DIR}/keyDerivation.c
+    ${APP_SRC_DIR}/textUtils.h
+    ${APP_SRC_DIR}/textUtils.c
+    ${APP_SRC_DIR}/endian.h
+    ${APP_SRC_DIR}/uiHelpers_nanos.c
+    ${APP_SRC_DIR}/eos_utils.h
+    ${APP_SRC_DIR}/eos_utils.c
+    ${APP_SRC_DIR}/uiScreens.h
+    ${APP_SRC_DIR}/uiScreens.c
+    ${APP_SRC_DIR}/fio.h
+    ${APP_SRC_DIR}/fio.c
+    ${APP_SRC_DIR}/hexUtils.h
+    ${APP_SRC_DIR}/hexUtils.c
 )
 
 add_executable(fuzz_message
