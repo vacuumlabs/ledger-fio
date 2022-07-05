@@ -58,9 +58,6 @@ DEFINES += HAVE_PENDING_REVIEW_SCREEN
 ## USB HID?
 DEFINES += HAVE_IO_USB HAVE_L4_USBLIB IO_USB_MAX_ENDPOINTS=4 IO_HID_EP_LENGTH=64 HAVE_USB_APDU
 
-## USB U2F
-DEFINES += HAVE_U2F HAVE_IO_U2F U2F_PROXY_MAGIC=\"FIO\" USB_SEGMENT_SIZE=64
-
 ## WEBUSB
 #WEBUSB_URL = https://www.ledger.com/pages/supported-crypto-assets
 #DEFINES += HAVE_WEBUSB WEBUSB_URL_SIZE_B=$(shell echo -n $(WEBUSB_URL) | wc -c) WEBUSB_URL=$(shell echo -n $(WEBUSB_URL) | sed -e "s/./\\\'\0\\\',/g")
@@ -150,7 +147,7 @@ include $(BOLOS_SDK)/Makefile.glyphs
 
 ### computed variables
 APP_SOURCE_PATH  += src
-SDK_SOURCE_PATH  += lib_stusb lib_stusb_impl lib_u2f
+SDK_SOURCE_PATH  += lib_stusb lib_stusb_impl
 SDK_SOURCE_PATH  += lib_ux
 ifeq ($(TARGET_NAME),TARGET_NANOX)
 	SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
