@@ -22,6 +22,8 @@ security_policy_t policyDerivePrivateKey(const bip44_path_t* pathSpec);
 security_policy_t policyForSignTxDHEnd();
 security_policy_t policyForSignTxFinish();
 
+security_policy_t policyForDecodeDHDecode(const bip44_path_t* pathSpec);
+
 static inline void ENSURE_NOT_DENIED(security_policy_t policy) {
     if (policy == POLICY_DENY) {
         THROW(ERR_REJECTED_BY_POLICY);

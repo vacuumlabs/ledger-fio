@@ -65,3 +65,22 @@ __noinline_due_to_stack__ void ui_displayPubkeyScreen(const char* screenHeader,
 
     ui_displayPaginatedText(screenHeader, buffer, callback);
 }
+
+__noinline_due_to_stack__ void ui_displayAsciiBufferScreen(const char* screenHeader,
+                                                           const uint8_t* buffer,
+                                                           size_t bufferSize,
+                                                           ui_callback_fn_t callback) {
+    str_validateTextBuffer(buffer, bufferSize);
+    ASSERT(strlen(screenHeader) > 0);
+    ASSERT(strlen(screenHeader) < BUFFER_SIZE_PARANOIA);
+    ASSERT(bufferSize > 0);
+    char buffer2[200];
+    ASSERT(bufferSize < SIZEOF(buffer2));
+    explicit_bzero(buffer2, SIZEOF(buffer2));
+    memcpy(buffer2, buffer, bufferSize);
+    buffer2[bufferSize] = 0;
+
+    
+
+    ui_displayPaginatedText(screenHeader, buffer2, callback);
+}

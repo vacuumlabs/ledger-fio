@@ -62,3 +62,12 @@ security_policy_t policyDerivePrivateKey(const bip44_path_t* pathSpec) {
 
     ALLOW();
 }
+
+security_policy_t policyForDecodeDHDecode(const bip44_path_t* pathSpec) {
+    DENY_UNLESS(bip44_hasValidFIOPrefix(pathSpec));
+    DENY_UNLESS(bip44_containsAddress(pathSpec));
+    DENY_IF(bip44_containsMoreThanAddress(pathSpec));
+
+    ALLOW();
+}
+
