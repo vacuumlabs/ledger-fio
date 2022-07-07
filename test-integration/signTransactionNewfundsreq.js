@@ -15,9 +15,9 @@ import fiojs from '@fioprotocol/fiojs'
 const ser = fiojs.Serialize;
 const Ecc = fiojs.Ecc
 const PrivateKey = Ecc.PrivateKey;
+const PublicKey = Ecc.PublicKey;
 const Signature = Ecc.Signature;
 const arrayToHex = fiojs.Numeric.arrayToHex;
-import { JsSignatureProvider } from "@fioprotocol/fiojs/dist/chain-jssig.js"
 import { createSharedCipher } from "@fioprotocol/fiojs/dist/encryption-fio.js";
 import { checkDecrypt } from "@fioprotocol/fiojs/dist/encryption-check.js";
 
@@ -127,7 +127,7 @@ const txMemo = {
             tpid: "rewards@wallet",
             actor: "aftyershcu22",
 
-            payee_public_key: otherPublicKey,
+            payee_public_key: otherPublicKey.toUncompressed().toBuffer().toString("hex"),
             payee_public_address: "My payee public address",
             amount: "amount 1000",
             chain_code: "BTC",
@@ -156,7 +156,7 @@ const txHash = {
             tpid: "rewards@wallet",
             actor: "aftyershcu22",
 
-            payee_public_key: otherPublicKey,
+            payee_public_key: otherPublicKey.toUncompressed().toBuffer().toString("hex"),
             payee_public_address: "My payee public address",
             amount: "amount 1000",
             chain_code: "BTC",
@@ -181,7 +181,8 @@ async function buildTxUsingFioJs(network, tx, iv) {
         offline_url: tx.actions[0].data.offline_url,
     }
 
-    const sharedCipher = createSharedCipher({privateKey: privateKey.toBuffer(), publicKey: tx.actions[0].data.payee_public_key.toString()})
+    const pk = PublicKey(Buffer.from(tx.actions[0].data.payee_public_key, "hex")).toString()
+    const sharedCipher = createSharedCipher({privateKey: privateKey.toBuffer(), publicKey: pk})
     const encryptedContent = sharedCipher.encrypt('new_funds_content', content, iv)
 
     const data = {
@@ -253,7 +254,8 @@ async function runTxTest(network, tx, review1, review2) {
     console.log(serTx.toString("hex"))
     console.log(encContent)
 
-    const sharedCipher = createSharedCipher({privateKey: privateKey.toBuffer(), publicKey: tx.actions[0].data.payee_public_key.toString()})
+    const pk = PublicKey(Buffer.from(tx.actions[0].data.payee_public_key, "hex")).toString()
+    const sharedCipher = createSharedCipher({privateKey: privateKey.toBuffer(), publicKey: pk})
     const plaintextFio = checkDecrypt(sharedCipher.sharedSecret, Buffer.from(encContent, "base64"))
     const plaintextLedger = checkDecrypt(sharedCipher.sharedSecret, Buffer.from(ledgerResponse.dhEncryptedData, "base64"))
     console.log(Buffer.from(plaintextFio).toString("hex"))

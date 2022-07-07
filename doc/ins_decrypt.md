@@ -76,8 +76,8 @@ Sends remaining decoded data. You need to send this message even if the data
   - check P1 is valid
   - check P2 is valid
   - check data is valid:
-    - `Lc >= 66` (we have path_len)
-    - `1 + path_len * 4 == Lc`
+    - `Lc >= 66` (we have public key and path_len)
+    - `65 + 1 + path_len * 4 == Lc`
   - check if public key is valid
   - check derivation path is valid and within FIO BIP32 space
     - `path_len == 5`
@@ -85,8 +85,8 @@ Sends remaining decoded data. You need to send this message even if the data
     - `path[1] == 235'`
     - `path[2] == 0'` 
     - `path[3] == 0` 
-    - Ledger might impose more restrictions, see implementation of `policyForGetPublicKey` in [src/securityPolicy.c](../src/securityPolicy.c) for details
-- validate that decpoded message confirms to format imposed by newfundsreq/recordobt context structure
+    - Ledger might impose more restrictions, see implementation of `policyForDecodeDHDecode` in [src/securityPolicy.c](../src/securityPolicy.c) for details
+- validate that decoded message confirms to format imposed by newfundsreq / recordobt content structure
 - display relevant decoded fields
-- respond with decoded message
+- after confirmation respond with decoded message
  

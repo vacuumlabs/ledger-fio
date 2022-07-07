@@ -313,7 +313,7 @@ __noinline_due_to_stack__ static void run_dh_decode_failed_hmac_tests() {
     TRACE_STACK_USAGE();
 
     //"000102030405060708090a0b0c0d0e0f9508b492f96f067cc72ef8c7c24ac2072310c4e1d36bd6737958f0a3a005576d60a63b30e52db993fdb53f67ba03cd0abed894f54929ac6addfd7076970597a43a36c525ad1fc4349c69be21718ab07bc639172663927cb075fa777797e0c1c4";we
-    //change first byte
+    // change first byte
     char* msgHex =
         "100102030405060708090a0b0c0d0e0f9508b492f96f067cc72ef8c7c24ac2072310c4e1d36bd6737958f0a3a0"
         "05576d60a63b30e52db993fdb53f67ba03cd0abed894f54929ac6addfd7076970597a43a36c525ad1fc4349c69"

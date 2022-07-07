@@ -80,7 +80,5 @@ __noinline_due_to_stack__ void ui_displayAsciiBufferScreen(const char* screenHea
     memcpy(buffer2, buffer, bufferSize);
     buffer2[bufferSize] = 0;
 
-    
-
     ui_displayPaginatedText(screenHeader, buffer2, callback);
 }

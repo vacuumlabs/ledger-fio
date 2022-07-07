@@ -31,7 +31,6 @@ __noinline_due_to_stack__ void ui_displayAsciiBufferScreen(const char* screenHea
                                                            size_t bufferSize,
                                                            ui_callback_fn_t callback);
 
-
 #ifdef DEVEL
 void run_uiScreens_test();
 #endif  // DEVEL

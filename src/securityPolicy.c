@@ -70,4 +70,3 @@ security_policy_t policyForDecodeDHDecode(const bip44_path_t* pathSpec) {
 
     ALLOW();
 }
-
