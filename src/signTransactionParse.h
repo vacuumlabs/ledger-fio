@@ -15,6 +15,9 @@ typedef enum {
     VALUE_FORMAT_FIO_AMOUNT = 0x10,
     VALUE_FORMAT_UINT64 = 0x14,
     VALUE_FORMAT_VARUINT32 = 0x17,
+
+    // Special
+    VALUE_FORMAT_MEMO_HASH = 0x20,
 } value_format_t;
 
 typedef enum {

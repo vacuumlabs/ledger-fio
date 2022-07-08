@@ -74,6 +74,34 @@ static void displayName(const uint8_t *value,
                               MAX_DISPLAY_VALUE_LENGTH);  // null terminated, no return vallue
 }
 
+static void displayMemoHash(const uint8_t *value,
+                            uint8_t valueLen,
+                            char display[MAX_DISPLAY_VALUE_LENGTH]) {
+    TRACE_BUFFER(value, valueLen);
+    VALIDATE(valueLen >= 1, ERR_INVALID_DATA);
+    if (value[0] == 1) {  // has memo
+        VALIDATE(valueLen >= 2, ERR_INVALID_DATA);
+        size_t memoLen = value[1];
+        VALIDATE(valueLen == memoLen + 4,
+                 ERR_INVALID_DATA);  // has memo, memo length, memo, no hash, no url
+        VALIDATE(value[2 + memoLen] == 0, ERR_INVALID_DATA);
+        VALIDATE(value[3 + memoLen] == 0, ERR_INVALID_DATA);
+    } else if (value[0] == 0) {  // no memo
+        TRACE("No memo");
+        VALIDATE(valueLen >= 3, ERR_INVALID_DATA);
+        VALIDATE(value[1] == 1, ERR_INVALID_DATA);  // has hash
+        size_t hashLen = value[2];
+        VALIDATE(valueLen >= hashLen + 5, ERR_INVALID_DATA);
+        VALIDATE(value[hashLen + 3] == 1, ERR_INVALID_DATA);  // has url
+        size_t urlLen = value[hashLen + 4];
+        VALIDATE(valueLen == hashLen + urlLen + 5, ERR_INVALID_DATA);
+    } else {
+        VALIDATE(false, ERR_INVALID_DATA);
+    }
+    // These data are not meant to e displayed at themoement
+    snprintf(display, MAX_DISPLAY_VALUE_LENGTH, "NOT IMPLEMENTED");
+}
+
 //-------------------- NUMBER PARSING FUNCTIONS ----------------------
 
 static void parseUInt64(const uint8_t *value, uint8_t valueLen, uint64_t *number) {
@@ -218,6 +246,10 @@ void parseValueToDisplay(value_format_t format,
             parseVarUInt32(value, valueLen, &number);
             validateNumber(validation, arg1, arg2, number);
             displayNumber(number, display);
+            break;
+        }
+        case VALUE_FORMAT_MEMO_HASH: {
+            displayMemoHash(value, valueLen, display);
             break;
         }
         default:

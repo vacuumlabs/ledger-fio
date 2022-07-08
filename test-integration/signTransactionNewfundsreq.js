@@ -68,18 +68,6 @@ const typesTransactionMainnet = ser.getTypesFromAbi(ser.createInitialTypes(), ab
 const typesTransaction2Mainnet = ser.getTypesFromAbi(ser.createInitialTypes(), abiReqobtMainnet.abi)
 const typesTransaction2Testnet = ser.getTypesFromAbi(ser.createInitialTypes(), abiReqobtTestnet.abi)
 
-/*console.log(typesFioAddressMainnet)
-console.log(typesFioAddressMainnet)
-console.log(typesTransactionMainnet)
-console.log(typesTransaction2Mainnet)
-console.log(typesTransactionMainnet.get('transaction'))
-console.log(typesTransactionMainnet.get('transaction_header'))
-console.log(typesTransactionMainnet.get('action'))
-console.log(typesTransactionMainnet.get('permission_level'))
-console.log(typesFioAddressMainnet.get('trnsfiopubky'))
-console.log(typesTransaction2Mainnet.get('newfundsreq'))*/
-
-
 const networkInfo = {
     "TESTNET": {
         chainId: infoTestnet.chain_id,
@@ -272,28 +260,27 @@ async function runTxTest(network, tx, review1, review2) {
     assert.equal(signatureLedger.verify(fullMsg, otherPublicKey), false);
 }
 
-const longSequence1 = [1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 1, 3];
-const longSequence2 = [1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 1, 1, 3];
+const longSequence = [1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 3];
 const secondSequence = [1, 3]
 
 testStep(" - - -", "Sign testnet transaction - memo");
 {
-    await runTxTest("TESTNET", txMemo, longSequence1, secondSequence)
+    await runTxTest("TESTNET", txMemo, longSequence, secondSequence)
 }
 
 testStep(" - - -", "Sign testnet mainnet - memo");
 {
-    await runTxTest("MAINNET", txMemo, longSequence1, secondSequence)
+    await runTxTest("MAINNET", txMemo, longSequence, secondSequence)
 }
 
 testStep(" - - -", "Sign testnet transaction - hash");
 {
-    await runTxTest("TESTNET", txHash, longSequence2, secondSequence)
+    await runTxTest("TESTNET", txHash, longSequence, secondSequence)
 }
 
 testStep(" - - -", "Sign testnet mainnet - hash");
 {
-    await runTxTest("MAINNET", txHash, longSequence2, secondSequence)
+    await runTxTest("MAINNET", txHash, longSequence, secondSequence)
 }
 
 await transport.close()
