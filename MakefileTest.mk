@@ -34,11 +34,11 @@ speculos_port_5001_test_internal:
 	$(call run_nodejs_test,5001,40001,getVersion.js)
 	$(call run_nodejs_test,5001,40001,getSerial.js)
 	$(call run_nodejs_test,5001,40001,getPublicKey.js)
+	$(call run_nodejs_test,5001,40001,decodeMessage.js)
 	$(call run_nodejs_test,5001,40001,signTransactionTrnsfiopubky.js)
 	$(call run_nodejs_test,5001,40001,signTransactionNewfundsreq.js)
 	$(call run_nodejs_test,5001,40001,signTransactionRecordobt.js)
 	$(call run_nodejs_test,5001,40001,signTransactionAddaddress.js)
-	$(call run_nodejs_test,5001,40001,decodeMessage.js)
 	@echo "# ALL TESTS COMPLETED!" | tee -a speculos-port-5001.log
 
 .PHONY: speculos_port_5001_unit_test_internal

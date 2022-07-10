@@ -77,11 +77,16 @@ static void displayName(const uint8_t *value,
 static void displayMemoHash(const uint8_t *value,
                             uint8_t valueLen,
                             char display[MAX_DISPLAY_VALUE_LENGTH]) {
+    // data format:
+    // hasMemo(0x00/0x01), if yes then memolength (1b, < 127) and memo
+    // then hash and offline url in the same manner
+    // Either memo is present, or both hash and offline url.
     TRACE_BUFFER(value, valueLen);
     VALIDATE(valueLen >= 1, ERR_INVALID_DATA);
     if (value[0] == 1) {  // has memo
         VALIDATE(valueLen >= 2, ERR_INVALID_DATA);
         size_t memoLen = value[1];
+        VALIDATE(memoLen < 127, ERR_INVALID_DATA);
         VALIDATE(valueLen == memoLen + 4,
                  ERR_INVALID_DATA);  // has memo, memo length, memo, no hash, no url
         VALIDATE(value[2 + memoLen] == 0, ERR_INVALID_DATA);
@@ -91,15 +96,55 @@ static void displayMemoHash(const uint8_t *value,
         VALIDATE(valueLen >= 3, ERR_INVALID_DATA);
         VALIDATE(value[1] == 1, ERR_INVALID_DATA);  // has hash
         size_t hashLen = value[2];
+        VALIDATE(hashLen < 127, ERR_INVALID_DATA);
         VALIDATE(valueLen >= hashLen + 5, ERR_INVALID_DATA);
         VALIDATE(value[hashLen + 3] == 1, ERR_INVALID_DATA);  // has url
         size_t urlLen = value[hashLen + 4];
+        VALIDATE(urlLen < 127, ERR_INVALID_DATA);
         VALIDATE(valueLen == hashLen + urlLen + 5, ERR_INVALID_DATA);
     } else {
         VALIDATE(false, ERR_INVALID_DATA);
     }
     // These data are not meant to e displayed at themoement
     snprintf(display, MAX_DISPLAY_VALUE_LENGTH, "NOT IMPLEMENTED");
+}
+
+static void displayChainCodeTokenCodePublicAddr(const uint8_t *value,
+                                                uint8_t valueLen,
+                                                char display[MAX_DISPLAY_VALUE_LENGTH]) {
+    // Format: chain code length(varUINT), chain code, token code lenth (varUINT), token code,
+    // publicAddrLen (varUINT), publicAddr
+    TRACE_BUFFER(value, valueLen);
+    VALIDATE(valueLen >= 1, ERR_INVALID_DATA);
+    size_t chainCodeLen = value[0];  // always just one byte as it needs to be <=10
+    VALIDATE(1 <= chainCodeLen && chainCodeLen <= 10, ERR_INVALID_DATA);
+    VALIDATE(valueLen >= chainCodeLen + 2, ERR_INVALID_DATA);
+    size_t tokenCodeLen = value[chainCodeLen + 1];  // always just one byte as it needs to be <=10
+    VALIDATE(1 <= tokenCodeLen && tokenCodeLen <= 10, ERR_INVALID_DATA);
+    VALIDATE(valueLen >= chainCodeLen + tokenCodeLen + 3, ERR_INVALID_DATA);
+    uint64_t publicAddrLen = 0;
+    size_t publicAddrLenLen = getNumberFromVarUInt(value + chainCodeLen + tokenCodeLen + 2,
+                                                   valueLen - (chainCodeLen + tokenCodeLen + 2),
+                                                   &publicAddrLen);
+    size_t publicAddrStart = chainCodeLen + tokenCodeLen + 2 + publicAddrLenLen;
+    VALIDATE(1 <= publicAddrLen && publicAddrLen <= 128, ERR_INVALID_DATA);
+    VALIDATE(valueLen == publicAddrStart + publicAddrLen, ERR_INVALID_DATA);
+
+    str_validateTextBuffer(value + 1, chainCodeLen);
+    str_validateTextBuffer(value + chainCodeLen + 2, tokenCodeLen);
+    str_validateTextBuffer(value + publicAddrStart, publicAddrLen);
+
+    // prepare to display
+    ASSERT(chainCodeLen + 1 + tokenCodeLen + 1 + publicAddrLen < MAX_DISPLAY_VALUE_LENGTH);
+    snprintf(display,
+             MAX_DISPLAY_VALUE_LENGTH,
+             "%.*s:%.*s:%.*s",
+             chainCodeLen,
+             value + 1,
+             tokenCodeLen,
+             value + chainCodeLen + 2,
+             (int) publicAddrLen,
+             value + publicAddrStart);
 }
 
 //-------------------- NUMBER PARSING FUNCTIONS ----------------------
@@ -250,6 +295,10 @@ void parseValueToDisplay(value_format_t format,
         }
         case VALUE_FORMAT_MEMO_HASH: {
             displayMemoHash(value, valueLen, display);
+            break;
+        }
+        case VALUE_FORMAT_CHAIN_CODE_TOKEN_CODE_PUBLIC_ADDR: {
+            displayChainCodeTokenCodePublicAddr(value, valueLen, display);
             break;
         }
         default:
