@@ -147,6 +147,43 @@ static void displayChainCodeTokenCodePublicAddr(const uint8_t *value,
              value + publicAddrStart);
 }
 
+static void displayChainCodeContractAddressTokenId(const uint8_t *value,
+                                                   uint8_t valueLen,
+                                                   char display[MAX_DISPLAY_VALUE_LENGTH]) {
+    // Format: chain code length(varUINT), chain code, token code lenth (varUINT), token code,
+    // publicAddrLen (varUINT), publicAddr
+    TRACE_BUFFER(value, valueLen);
+    VALIDATE(valueLen >= 1, ERR_INVALID_DATA);
+    size_t chainCodeLen = value[0];  // always just one byte as it needs to be <=10
+    VALIDATE(1 <= chainCodeLen && chainCodeLen <= 10, ERR_INVALID_DATA);
+    VALIDATE(valueLen >= chainCodeLen + 2, ERR_INVALID_DATA);
+    uint64_t contractAddressLen = 0;
+    size_t contractAddressLenLen = getNumberFromVarUInt(value + chainCodeLen + 1,
+                                                        valueLen - (chainCodeLen + 1),
+                                                        &contractAddressLen);
+    size_t contractAddrStart = 1 + chainCodeLen + contractAddressLenLen;
+    VALIDATE(1 <= contractAddressLen && contractAddressLen <= 128, ERR_INVALID_DATA);
+    VALIDATE(valueLen >= contractAddrStart + contractAddressLen + 1, ERR_INVALID_DATA);
+    size_t tokenIdLen = value[contractAddrStart + contractAddressLen];
+    VALIDATE(valueLen == contractAddrStart + contractAddressLen + 1 + tokenIdLen, ERR_INVALID_DATA);
+
+    str_validateTextBuffer(value + 1, chainCodeLen);
+    str_validateTextBuffer(value + contractAddrStart, contractAddressLen);
+    str_validateTextBuffer(value + contractAddrStart + contractAddressLen + 1, tokenIdLen);
+
+    // prepare to display
+    ASSERT(chainCodeLen + 1 + contractAddressLen + 1 + tokenIdLen < MAX_DISPLAY_VALUE_LENGTH);
+    snprintf(display,
+             MAX_DISPLAY_VALUE_LENGTH,
+             "%.*s:%.*s:%.*s",
+             chainCodeLen,
+             value + 1,
+             (int) contractAddressLen,
+             value + contractAddrStart,
+             tokenIdLen,
+             value + contractAddrStart + contractAddressLen + 1);
+}
+
 //-------------------- NUMBER PARSING FUNCTIONS ----------------------
 
 static void parseUInt64(const uint8_t *value, uint8_t valueLen, uint64_t *number) {
@@ -299,6 +336,10 @@ void parseValueToDisplay(value_format_t format,
         }
         case VALUE_FORMAT_CHAIN_CODE_TOKEN_CODE_PUBLIC_ADDR: {
             displayChainCodeTokenCodePublicAddr(value, valueLen, display);
+            break;
+        }
+        case VALUE_FORMAT_CHAIN_CODE_CONTRACT_ADDR_TOKEN_ID: {
+            displayChainCodeContractAddressTokenId(value, valueLen, display);
             break;
         }
         default:

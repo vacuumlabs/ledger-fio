@@ -19,6 +19,7 @@ typedef enum {
     // Special
     VALUE_FORMAT_MEMO_HASH = 0x20,
     VALUE_FORMAT_CHAIN_CODE_TOKEN_CODE_PUBLIC_ADDR = 0x21,
+    VALUE_FORMAT_CHAIN_CODE_CONTRACT_ADDR_TOKEN_ID = 0x22,
 } value_format_t;
 
 typedef enum {
