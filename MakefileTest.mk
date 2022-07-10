@@ -42,6 +42,8 @@ speculos_port_5001_test_internal:
 	$(call run_nodejs_test,5001,40001,signTransactionRemaddress.js)
 	$(call run_nodejs_test,5001,40001,signTransactionAddnft.js)
 	$(call run_nodejs_test,5001,40001,signTransactionRemnft.js)
+	$(call run_nodejs_test,5001,40001,signTransactionOtherFioAddress.js)	
+	$(call run_nodejs_test,5001,40001,signTransactionOtherFioReqobt.js)	
 	@echo "# ALL TESTS COMPLETED!" | tee -a speculos-port-5001.log
 
 .PHONY: speculos_port_5001_unit_test_internal
