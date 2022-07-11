@@ -1019,12 +1019,10 @@ __noinline_due_to_stack__ void signTx_handleFinishAPDU(
                 TRACE_BUFFER(G_io_apdu_buffer, PUBKEY_LENGTH);
 
                 if (check_canonical(G_io_apdu_buffer + 1)) {
+                    TRACE("Try %d succesfull!", tries);
                     break;
                 } else {
-                    TRACE(
-                        "Try %d unsuccesfull! We will not get correct "
-                        "signature!!!!!!!!!!!!!!!!!!!!!!!!!",
-                        tries);
+                    TRACE("Try %d unsuccesfull!", tries);
                     tries++;
                 }
             }
