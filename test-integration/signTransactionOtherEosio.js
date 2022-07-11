@@ -222,6 +222,200 @@ testStep(" - - -", "Sign testnet transaction - voteproducer one producer");
     assert.equal(signatureLedger.verify(fullMsg, otherPublicKey), false);
 }
 
+testStep(" - - -", "Sign testnet transaction - voteproducer two producer");
+{
+    const network = "TESTNET"
+    const tx = {
+        ...basicTx,
+        actions: [{
+            account: "eosio",
+            name: "voteproducer",
+            authorization: [{
+                actor: "aftyershcu22",
+                permission: "active",
+            }],
+            data: {
+                producers: ["Producer 1", "Producer 2"],
+                fio_address: "FIO8PRe4WRZJj5mkem6qVGKyvNFgPsNnjNN6kPhh6EaCpzCVin5Jj",
+                max_fee: 0x11223344,
+                actor: "aftyershcu22",
+            },
+        }],
+    
+    }
+
+    // Lets sign the transaction with fiojs
+    const {serializedTx, fullMsg, hash, signature} = await buildTxAndSignatureFioJs(network, tx, tx.actions[0].name, publicKey)
+    console.log("Full message:")
+    console.log(fullMsg.toString("hex"));
+
+    // Lets sign the transaction with ledger
+    const chainId = networkInfo[network].chainId
+    const ledgerPromise = app.signTransaction({path, chainId, tx})
+    await device.review([1, 1, 2, 1, 1, 1, 2], "Review sign");
+    const ledgerResponse = await ledgerPromise;
+    const signatureLedger = Signature.fromHex(ledgerResponse.witness.witnessSignatureHex)
+
+    assert.equal(ledgerResponse.txHashHex, hash);
+    assert.equal(signatureLedger.verify(fullMsg, publicKey), true);
+    assert.equal(signatureLedger.verify(fullMsg, otherPublicKey), false);
+}
+
+testStep(" - - -", "Sign testnet transaction - voteproducer three producer");
+{
+    const network = "TESTNET"
+    const tx = {
+        ...basicTx,
+        actions: [{
+            account: "eosio",
+            name: "voteproducer",
+            authorization: [{
+                actor: "aftyershcu22",
+                permission: "active",
+            }],
+            data: {
+                producers: ["Producer 1", "Producer 2", "Producer 3"],
+                fio_address: "FIO8PRe4WRZJj5mkem6qVGKyvNFgPsNnjNN6kPhh6EaCpzCVin5Jj",
+                max_fee: 0x11223344,
+                actor: "aftyershcu22",
+            },
+        }],
+    
+    }
+
+    // Lets sign the transaction with fiojs
+    const {serializedTx, fullMsg, hash, signature} = await buildTxAndSignatureFioJs(network, tx, tx.actions[0].name, publicKey)
+    console.log("Full message:")
+    console.log(fullMsg.toString("hex"));
+
+    // Lets sign the transaction with ledger
+    const chainId = networkInfo[network].chainId
+    const ledgerPromise = app.signTransaction({path, chainId, tx})
+    await device.review([1, 1, 2, 1, 1, 1, 1, 2], "Review sign");
+    const ledgerResponse = await ledgerPromise;
+    const signatureLedger = Signature.fromHex(ledgerResponse.witness.witnessSignatureHex)
+
+    assert.equal(ledgerResponse.txHashHex, hash);
+    assert.equal(signatureLedger.verify(fullMsg, publicKey), true);
+    assert.equal(signatureLedger.verify(fullMsg, otherPublicKey), false);
+}
+
+testStep(" - - -", "Sign testnet transaction - voteproducer four producer");
+{
+    const network = "TESTNET"
+    const tx = {
+        ...basicTx,
+        actions: [{
+            account: "eosio",
+            name: "voteproducer",
+            authorization: [{
+                actor: "aftyershcu22",
+                permission: "active",
+            }],
+            data: {
+                producers: ["Producer 1", "Producer 2", "Producer 3", "Producer 4"],
+                fio_address: "FIO8PRe4WRZJj5mkem6qVGKyvNFgPsNnjNN6kPhh6EaCpzCVin5Jj",
+                max_fee: 0x11223344,
+                actor: "aftyershcu22",
+            },
+        }],
+    
+    }
+
+    // Lets sign the transaction with fiojs
+    const {serializedTx, fullMsg, hash, signature} = await buildTxAndSignatureFioJs(network, tx, tx.actions[0].name, publicKey)
+    console.log("Full message:")
+    console.log(fullMsg.toString("hex"));
+
+    // Lets sign the transaction with ledger
+    const chainId = networkInfo[network].chainId
+    const ledgerPromise = app.signTransaction({path, chainId, tx})
+    await device.review([1, 1, 2, 1, 1, 1, 1, 1, 2], "Review sign");
+    const ledgerResponse = await ledgerPromise;
+    const signatureLedger = Signature.fromHex(ledgerResponse.witness.witnessSignatureHex)
+
+    assert.equal(ledgerResponse.txHashHex, hash);
+    assert.equal(signatureLedger.verify(fullMsg, publicKey), true);
+    assert.equal(signatureLedger.verify(fullMsg, otherPublicKey), false);
+}
+
+testStep(" - - -", "Sign mainnet transaction - voteproducer five producer");
+{
+    const network = "MAINNET"
+    const tx = {
+        ...basicTx,
+        actions: [{
+            account: "eosio",
+            name: "voteproducer",
+            authorization: [{
+                actor: "aftyershcu22",
+                permission: "active",
+            }],
+            data: {
+                producers: ["Producer 1", "Producer 2", "Producer 3", "Producer 4", "Producer 5"],
+                fio_address: "FIO8PRe4WRZJj5mkem6qVGKyvNFgPsNnjNN6kPhh6EaCpzCVin5Jj",
+                max_fee: 0x11223344,
+                actor: "aftyershcu22",
+            },
+        }],
+    
+    }
+
+    // Lets sign the transaction with fiojs
+    const {serializedTx, fullMsg, hash, signature} = await buildTxAndSignatureFioJs(network, tx, tx.actions[0].name, publicKey)
+    console.log("Full message:")
+    console.log(fullMsg.toString("hex"));
+
+    // Lets sign the transaction with ledger
+    const chainId = networkInfo[network].chainId
+    const ledgerPromise = app.signTransaction({path, chainId, tx})
+    await device.review([1, 1, 2, 1, 1, 1, 1, 1, 1, 2], "Review sign");
+    const ledgerResponse = await ledgerPromise;
+    const signatureLedger = Signature.fromHex(ledgerResponse.witness.witnessSignatureHex)
+
+    assert.equal(ledgerResponse.txHashHex, hash);
+    assert.equal(signatureLedger.verify(fullMsg, publicKey), true);
+    assert.equal(signatureLedger.verify(fullMsg, otherPublicKey), false);
+}
+
+testStep(" - - -", "Sign mainnet transaction - voteproxy");
+{
+    const network = "MAINNET"
+    const tx = {
+        ...basicTx,
+        actions: [{
+            account: "eosio",
+            name: "voteproxy",
+            authorization: [{
+                actor: "aftyershcu22",
+                permission: "active",
+            }],
+            data: {
+                proxy: "Proxy",
+                fio_address: "FIO8PRe4WRZJj5mkem6qVGKyvNFgPsNnjNN6kPhh6EaCpzCVin5Jj",
+                max_fee: 0x11223344,
+                actor: "aftyershcu22",
+            },
+        }],
+    
+    }
+
+    // Lets sign the transaction with fiojs
+    const {serializedTx, fullMsg, hash, signature} = await buildTxAndSignatureFioJs(network, tx, tx.actions[0].name, publicKey)
+    console.log("Full message:")
+    console.log(fullMsg.toString("hex"));
+
+    // Lets sign the transaction with ledger
+    const chainId = networkInfo[network].chainId
+    const ledgerPromise = app.signTransaction({path, chainId, tx})
+    await device.review([1, 1, 2, 1, 1, 2], "Review sign");
+    const ledgerResponse = await ledgerPromise;
+    const signatureLedger = Signature.fromHex(ledgerResponse.witness.witnessSignatureHex)
+
+    assert.equal(ledgerResponse.txHashHex, hash);
+    assert.equal(signatureLedger.verify(fullMsg, publicKey), true);
+    assert.equal(signatureLedger.verify(fullMsg, otherPublicKey), false);
+}
 
 await transport.close()
 testEnd(scriptName);
