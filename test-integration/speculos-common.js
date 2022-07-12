@@ -1,4 +1,5 @@
 import { execSync  } from 'child_process';
+import assert from 'assert/strict';
 import { basename } from 'path';
 
 // see https://stackoverflow.com/questions/9763441/milliseconds-to-time-in-javascript
@@ -142,7 +143,7 @@ async function sleep(ms, what) {
 }
 
 function getScriptName(path) {
-    return "snapshots/"+basename(path);
+    return "snapshots/"+basename(path).replace(".js", "");
 }
 
 function getSpeculosDefaultConf() {
@@ -155,4 +156,15 @@ function getSpeculosDefaultConf() {
 	};
 }
 
-export {testStart, testCombo, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, compareGetVersionAPDUs, humanTime, sleep, getScriptName, syncBackTicks, getSpeculosDefaultConf};
+function getAPDUDataBuffer(constHex, varHex) {
+	assert.equal(constHex.length % 2, 0);
+	assert.equal(varHex.length % 2, 0);
+    const constBuffer = Buffer.from(constHex, "hex")
+    const varBuffer = Buffer.from(varHex, "hex")
+	const buf = Buffer.allocUnsafe(2);	
+	buf.writeUInt8(constBuffer.length, 0);
+	buf.writeUInt8(varBuffer.length, 1);
+	return Buffer.concat([buf, constBuffer, varBuffer])
+}
+
+export {testStart, testCombo, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, compareGetVersionAPDUs, humanTime, sleep, getScriptName, syncBackTicks, getSpeculosDefaultConf, getAPDUDataBuffer};

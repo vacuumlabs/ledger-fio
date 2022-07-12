@@ -34,13 +34,30 @@ speculos_port_5001_test_internal:
 	$(call run_nodejs_test,5001,40001,getVersion.js)
 	$(call run_nodejs_test,5001,40001,getSerial.js)
 	$(call run_nodejs_test,5001,40001,getPublicKey.js)
-	$(call run_nodejs_test,5001,40001,signTransactionBasic.js)
+	$(call run_nodejs_test,5001,40001,decodeMessage.js)
+	$(call run_nodejs_test,5001,40001,signTransactionTrnsfiopubky.js)
+	$(call run_nodejs_test,5001,40001,signTransactionNewfundsreq.js)
+	$(call run_nodejs_test,5001,40001,signTransactionRecordobt.js)
+	$(call run_nodejs_test,5001,40001,signTransactionAddaddress.js)
+	$(call run_nodejs_test,5001,40001,signTransactionRemaddress.js)
+	$(call run_nodejs_test,5001,40001,signTransactionAddnft.js)
+	$(call run_nodejs_test,5001,40001,signTransactionRemnft.js)
+	$(call run_nodejs_test,5001,40001,signTransactionOtherFioAddress.js)	
+	$(call run_nodejs_test,5001,40001,signTransactionOtherFioReqobt.js)	
+	$(call run_nodejs_test,5001,40001,signTransactionOtherFioStaking.js)	
+	$(call run_nodejs_test,5001,40001,signTransactionOtherEosio.js)	
 	@echo "# ALL TESTS COMPLETED!" | tee -a speculos-port-5001.log
 
 .PHONY: speculos_port_5001_unit_test_internal
 speculos_port_5001_unit_test_internal:
 	$(call run_announce,$@)
 	$(call run_nodejs_test,5001,40001,runUnitTests.js)
+	$(call run_nodejs_test,5001,40001,signTransactionCommandsBasic.js)
+	$(call run_nodejs_test,5001,40001,signTransactionCommandsShowData.js)
+	$(call run_nodejs_test,5001,40001,signTransactionCommandsCountedSection.js)
+	$(call run_nodejs_test,5001,40001,signTransactionCommandsStorage.js)
+	$(call run_nodejs_test,5001,40001,signTransactionCommandsDH.js)
+	$(call run_nodejs_test,5001,40001,signTransactionCommandsDHAndCountedSections.js)
 	@echo "# ALL TESTS COMPLETED!" | tee -a speculos-port-5001.log
 
 .PHONY: speculos_port_5001_unit_test
@@ -62,7 +79,19 @@ ledger_test:
 	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node getVersion.js
 	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node getSerial.js
 	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node getPublicKey.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node signTransactionBasic.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node decodeMessage.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node signTransactionTrnsfiopubky.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node signTransactionNewfundsreq.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node signTransactionRecordobt.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node signTransactionAddaddress.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node signTransactionRemaddress.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node signTransactionAddnft.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node signTransactionRemaddress.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node signTransactionOtherFioAddress.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node signTransactionOtherFioReqobt.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node signTransactionOtherFioStaking.js
+	#We don't do signTransactionEosio as it is too time consuming
+	$(call run_nodejs_test,5001,40001,signTransactionOtherEosio.js)	
 	@echo "# ALL TESTS COMPLETED!"
 	
 .PHONY: ledger_unit_test

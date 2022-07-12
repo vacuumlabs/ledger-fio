@@ -4,10 +4,15 @@
 
 Construct and sign a transaction (returns just the signature).
 
-Due to Ledger constraints and potential security implications (parsing errors), FIO Ledger app uses a custom format for streaming the transaction to be signed. The main rationale behind is the following:
-1) Serializing is easier than parsing. This is true especially if transaction chunks would not be aligned with processing (e.g., inputs/outputs arbitrarily split between multiple APDUs). This also allows a potentially smaller memory footprint on the device.
-2) SignTx communication protocol is more extensible in the future.
-3) Potential security improvement --- because SignTx does not output the serialized transaction, only the witnesses, the host app is responsible for serializing the transaction itself. Any serialization mismatch between host and Ledger would result in a transaction which is rejected by nodes.
+For FIO app main use cases it is instrumental that the app is as small as possible, while we need to have >20 different workflows for various actions. To accomplish this we designed several commands to serialize transaction while displaying (or not) parts of it. Each command is divided into constant part and variable part. Constant parts of the commands are used to calculate integrity hash by contatenating integrity hash of the previous command with constant parts of current command to produce new integrity hash. This process creates a Merkle tree and at every critical step (signing transaction, finishing DH encryption) we compare the integrity hash to one stored in the app. This guarantees that to get ether a signature or encrypted message, the constant parts of theinstructions and the ordering of the instructions have to match exactly.
+
+For the list of allowed command sequences, see [List of allowed command sequences](allowed_command_sequences.md)
+
+The main rationale behind is the following:
+1) This approach reduces app size. The app size is almost constant while we add new features.
+2) Decreases memory footprint (and no need to use flash memory). We never store whole transaction on the device. The data arrives in natural chunks.
+3) Communication protocol is easily extensible in the future.
+4) Potential security improvement --- because SignTx does not output the serialized transaction, only the witnesses, the host app is responsible for serializing the transaction itself. Any serialization mismatch between host and Ledger would result in a transaction which is rejected by nodes.
 
 **SignTx Limitations**
 
@@ -19,144 +24,137 @@ The communication protocol is designed to *ease* the Ledger App implementation (
 
 Given these requirements in mind, here is how transaction signing works:
 
-## Signing
-
-Transaction signing consists of an exchange of several APDUs. During this exchange, Ledger keeps track of its current internal state, so APDU messages have to be sent in the order of increasing P1 values, and the entities in the transaction body are serialized in the same order as the messages are received. The Ledger maintains an internal state and refuses to accept APDU messages that are out of place by aborting the transaction being signed. 
-
-**General command**
-
-|Field|Value|
-|-----|-----|
-| CLA | `0xD7` |
-| INS | `0x21` |
-|  P1 | signing phase |
-|  P2 | (specific for each subcall) |
-
-The phases must follow in sequence, each call exactly once. Ledger is computing the rolling hash of the serialized transaction.
-
-### Initialize signing
-
-Initializes signing request.
+## General command structure
 
 **Command**
 
-|Field|Value|
-|-----|-----|
-|  P1 | `0x01` |
-|  P2 | unused |
+| Field | Value    |
+| ----- | -------- |
+| CLA   | `0xD7`   |
+| INS   | `0x20`   |
+| P1    | command  |
+| P2    | variable |
+| Lc    | variable |
 
-*Data*
+**Data**
 
-|Field| Length | Comments|
-|------|-----|-----|
-| chainId                                | 32 |  |
+| Field                 | Length   | Comments                            |
+| ----------------------| -------- | ----------------------------------- |
+| Constant data length  | 1        |                                     |
+| Variable data length  | 1        |                                     |
+| Constant data         | variable | Length matches constant data length |
+| Variable data         | variable | Length matches variable data length |
 
-*Serialization*
+Ledger will will process only certain paths, other paths will be rejected by app policy (see Ledger responsibilities section). 
 
-Serializes chainId as it is.
+**Return value**
 
-### Transaction header
-
-|Field|Value|
-|-----|-----|
-|  P1 | `0x02` |
-|  P2 | unused |
-
-*Data*
-
-|Field| Length | Comments|
-|-----|--------|--------|
-| Expiration | 4 | time_t, little endian |
-| Ref block num | 2 | little endian |
-| Ref block prefix | 4 | little endian |
-
-*Serialization*
-
-Converts all three integer to big endian for serialization. Then it adds 4 zero bytes which stand for `max_net_usage_words`, `max_cpu_usage_ms`, `delay_sec`, and number of context-free actions. 
+FINISH command returns signature and serialized transaction hash. All other commands wither do return nothing, or return newly encoded Diffie-Hellman blocks if we are within DH-encoded sections
 
 
-### Action header
+## List of commands
 
-**Command**
+### INIT
 
-|Field|Value|
-|-----|-----|
-|  P1 | `0x03` |
-|  P2 | unused |
+| Field | Value    |
+| P1    | `0x01`   |
+| P2    | unused   |
 
-*Data*
+**Constant data**
+| Field                             | Length | Comments                            |
+| --------------------------------- | -------| ----------------------------------- |
+(none)
 
-|Field| Length | Comments|
-|-----|--------|--------|
-| Contract, Account, Name | 16 |  serialized as they go into the transaction |
+**Variable data**
+| Field                             | Length | Comments                            |
+| --------------------------------- | -------| ----------------------------------- |
+| Chain ID                          | 32     | Must be mainnet or testnet chainId |
+| BIP32 path len                    | 1      | min 2, max 10                      |
+| First derivation index            | 4      | Little endian. Must be 44'         |
+| Second derivation index           | 4      | Little endian. Must be 235'        |
+| (optional) Third derivation index | 4      | Little endian                      |
+| ...                               | ...    | ...                                |
+| (optional) Last derivation index  | 4      | Little endian                      |
+| (optional) No. of remaining keys  | 4      | Little endian                      |
 
-Ledger knows and recognizes the constant and asigns correct action to it.
+**Ledger actions**
+- Validate Chain Id
+- Validate derivation path, ledger accepts only certain derivation paths (see [src/securityPolicy.c](../src/securityPolicy.c))
+- Appends Chain Id to the transaction
+- Display chain to the user
 
-*Serialization*
+### APPEND_CONST_DATA 
 
-Adds one byte with value 1, this stands for one action. 16 bytes from APDU data follows.
+| Field | Value    |
+| P1    | `0x01`   |
+| P2    | unused   |
 
+**Constant data**
+| Field                             | Length   | Comments                            |
+| --------------------------------- | -------- | ----------------------------------- |
+| Data to append to transaction     | variable |                                     |
 
-### Action Authorization
+**Variable data**
+| Field                             | Length | Comments                            |
+| --------------------------------- | -------| ----------------------------------- |
+(none)
 
-**Command (top-level output data)**
+**Ledger actions**
+- Appends data to the transaction
 
-|Field|Value|
-|-----|-----|
-|  P1 | `0x04` |
-|  P2 | unused |
+### SHOW_MESSAGE
+----------
+Key Len
+Key
+Value Len
+Value
+----------
+===================
+APPEND_DATA
+----------
+ValueFormat: NAME, STRING, UINT64 (1b)					
+ValueValidation: NONE, LENGTH, EQUALS_STORED (1b)
+ValueValidationArg 1 (8b)
+ValueValidationArg 2 (8b)
+Policy + storage (1b) higher 4 bits storage, lower 4 bits policy
+Key Len: 
+Key
+----------
+Value
+===================
+START_COUNTED_SECTION 
+----------
+ValueFormat: must be number format (1b)					
+ValueValidation: NONE, LENGTH (1b)
+ValueValidationArg 1 (8b)
+ValueValidationArg 2 (8b)
+----------
+expected length
+====================
+END_COUNTED_SECTION 
+----------
+----------
+====================
+STORE_VALUE
+P2: Register to store 1/2/3 1 and 2 have 8b, 3 has 64b
+----------
+----------
+Value
+====================
+Start DH encryprion
+----------
+----------
+Encryption pubkey
+====================
+End DH encryprion
+----------
+----------
+====================
+FINISH
+----------
+----------
+====================
 
-*Data*
-
-|Field| Length | Comments|
-|-----|--------|--------|
-| Actor | 8 | Serialized as `name`|
-| Permission | 8 | Serialized as `name`|
-
-*Serialization*
-
-Adds one byte with value 1, this stands for one authorization. Actor and Permission follow (8+8 bytes).
-
-
-### Action Data
-
-As of now, only Transfer FIO tokens action is implemented.
-
-|Field|Value|
-|-----|-----|
-|  P1 | `0x05` |
-|  P2 | unused |
-
-*Data*
-
-We add trailing zeroes to the string. Thus APDU data length will be Data length (as it goes to the transaction) +3. This is for two trailing 0's and data length field.
-
-|Field| Length | Comments|
-|-----|--------|--------|
-| Data length | 1 | Length of the action data in the transaction|
-| Pubkey length | 1 | |
-| Pubkey | Pubkey length | |
-| 0 | 1 | Pubkey trailing `0` |
-| Amount | 8 | little endian in SUFs |
-| Fee | 8 | little endian in SUFs |
-| Actor | 8 | Serialized as `name`, must match Action authorization `actor` |
-| tpid length | 1 | |
-| tpid | tpid length | |
-| 0 | 1 | Tpid trailing `0` |
-
-For both pubkey and tpid we have both length and trailing 0. The reason for this is that it makes the code on ledger slightly easier, while it has very little impact on JS code.
-
-*Serialization*
-
-The data are serialized as in APDU, except:
-- the two trailing 0's are omitted
-- amount and fee are converted to big endian.
-The Data length field must be equal to the length of the rest of serialized data.
-
-### Compute witnesses
-
-Given a valid BIP44 path, sign TxHash by Ledger. Return the hash and the signature.
-The caller is responsible for assembling the actual witness.
 
 **Command**
 
