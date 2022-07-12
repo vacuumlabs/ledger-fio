@@ -96,7 +96,7 @@ static void decodeNewfundsreqMemo_ui_runStep() {
         ui_displayPaginatedText("Decode shared", "secret", this_fn);
     }
     UI_STEP(DECODE_NEWFUNDSREQ_MEMO_UI_STEP_MESSAGE2) {
-        ui_displayPaginatedText("Interpreting", "the message as Request funds,", this_fn);
+        ui_displayPaginatedText("Interpreting", "the message as Request funds", this_fn);
     }
     UI_STEP(DECODE_NEWFUNDSREQ_MEMO_UI_STEP_OUR_PATH) {
         ui_displayPathScreen("Our path", &ctx->pathSpec, this_fn);
@@ -172,7 +172,7 @@ static void decodeNewfundsreqHash_ui_runStep() {
         ui_displayPaginatedText("Decode shared", "secret", this_fn);
     }
     UI_STEP(DECODE_NEWFUNDSREQ_HASH_UI_STEP_MESSAGE2) {
-        ui_displayPaginatedText("Interpreting", "the message as Request funds,", this_fn);
+        ui_displayPaginatedText("Interpreting", "the message as Request funds", this_fn);
     }
     UI_STEP(DECODE_NEWFUNDSREQ_HASH_UI_STEP_OUR_PATH) {
         ui_displayPathScreen("Our path", &ctx->pathSpec, this_fn);
@@ -288,7 +288,9 @@ static void decodeRecordobtMemo_ui_runStep() {
         ui_displayPaginatedText("Decode shared", "secret", this_fn);
     }
     UI_STEP(DECODE_RECORDOBT_MEMO_UI_STEP_MESSAGE2) {
-        ui_displayPaginatedText("Interpreting", "the message as Request funds,", this_fn);
+        ui_displayPaginatedText("Interpreting",
+                                "the message as Record other blockchain transaction metadata",
+                                this_fn);
     }
     UI_STEP(DECODE_RECORDOBT_MEMO_UI_STEP_OUR_PATH) {
         ui_displayPathScreen("Our path", &ctx->pathSpec, this_fn);
@@ -385,7 +387,9 @@ static void decodeRecordobtHash_ui_runStep() {
         ui_displayPaginatedText("Decode shared", "secret", this_fn);
     }
     UI_STEP(DECODE_RECORDOBT_HASH_UI_STEP_MESSAGE2) {
-        ui_displayPaginatedText("Interpreting", "the message as Request funds,", this_fn);
+        ui_displayPaginatedText("Interpreting",
+                                "the message as Record other blockchain transaction metadata",
+                                this_fn);
     }
     UI_STEP(DECODE_RECORDOBT_HASH_UI_STEP_OUR_PATH) {
         ui_displayPathScreen("Our path", &ctx->pathSpec, this_fn);

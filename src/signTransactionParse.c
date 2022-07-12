@@ -74,6 +74,18 @@ static void displayName(const uint8_t *value,
                               MAX_DISPLAY_VALUE_LENGTH);  // null terminated, no return vallue
 }
 
+static void displayASCIIStringWithLength(const uint8_t *value,
+                                         uint8_t valueLen,
+                                         char display[MAX_DISPLAY_VALUE_LENGTH]) {
+    uint64_t strLen = 0;
+    uint8_t strLenLen = getNumberFromVarUInt(value, valueLen, &strLen);
+    VALIDATE(strLen < MAX_DISPLAY_VALUE_LENGTH, ERR_INVALID_DATA);
+    VALIDATE(valueLen == strLenLen + strLen, ERR_INVALID_DATA);
+    str_validateTextBuffer(value + strLenLen, strLen);
+    memcpy(display, value + strLenLen, strLen);
+    display[strLen] = 0;
+}
+
 static void displayMemoHash(const uint8_t *value,
                             uint8_t valueLen,
                             char display[MAX_DISPLAY_VALUE_LENGTH]) {
@@ -308,6 +320,9 @@ void parseValueToDisplay(value_format_t format,
             break;
         case VALUE_FORMAT_NAME:
             displayName(value, valueLen, display);
+            break;
+        case VALUE_FORMAT_ASCII_STRING_WITH_LENGTH:
+            displayASCIIStringWithLength(value, valueLen, display);
             break;
         case VALUE_FORMAT_FIO_AMOUNT: {
             uint64_t amount;
