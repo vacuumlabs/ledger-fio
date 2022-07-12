@@ -213,7 +213,7 @@ testStep(" - - -", "Sign testnet transaction - cancalefndreq");
     // Lets sign the transaction with ledger
     const chainId = networkInfo[network].chainId
     const ledgerPromise = app.signTransaction({path, chainId, tx})
-    await device.review([1, 1, 2, 1, 2], "Review sign");
+    await device.review([1, 1, 1, 1, 2], "Review sign");
     const ledgerResponse = await ledgerPromise;
     const signatureLedger = Signature.fromHex(ledgerResponse.witness.witnessSignatureHex)
 
@@ -222,7 +222,7 @@ testStep(" - - -", "Sign testnet transaction - cancalefndreq");
     assert.equal(signatureLedger.verify(fullMsg, otherPublicKey), false);
 }
 
-testStep(" - - -", "Sign mainnet transaction - cancalefndreq");
+testStep(" - - -", "Sign mainnet transaction - crejectfndreq");
 {
     const network = "MAINNET"
     const tx = {
@@ -252,7 +252,7 @@ testStep(" - - -", "Sign mainnet transaction - cancalefndreq");
     // Lets sign the transaction with ledger
     const chainId = networkInfo[network].chainId
     const ledgerPromise = app.signTransaction({path, chainId, tx})
-    await device.review([1, 1, 2, 1, 2], "Review sign");
+    await device.review([1, 1, 1, 1, 2], "Review sign");
     const ledgerResponse = await ledgerPromise;
     const signatureLedger = Signature.fromHex(ledgerResponse.witness.witnessSignatureHex)
 

@@ -237,8 +237,7 @@ async function runTxTest(network, tx, review1, review2) {
     const pair = await buildTxUsingFioJs(network, tx, iv)
     const serTx = pair.tx
     const encContent = pair.enc
-    console.log("Test data:")
-    console.log(tx)
+    console.log("Serialized tx + encoded conent:")
     console.log(serTx.toString("hex"))
     console.log(encContent)
 
@@ -260,8 +259,8 @@ async function runTxTest(network, tx, review1, review2) {
     assert.equal(signatureLedger.verify(fullMsg, otherPublicKey), false);
 }
 
-const longSequence = [1, 1, 1, 1, 1, 1, 3, 2, 1, 1, 3];
-const secondSequence = [1, 3]
+const longSequence = [1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2];
+const secondSequence = [1, 2]
 
 testStep(" - - -", "Sign testnet transaction - memo");
 {

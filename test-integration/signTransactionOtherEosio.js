@@ -213,7 +213,7 @@ async function test(i) {
         // Lets sign the transaction with ledger
         const chainId = networkInfo[network].chainId
         const ledgerPromise = app.signTransaction({path, chainId, tx})
-        await device.review([1, 2, ...[...Array(i)].map(k => 1), 2, 1, 2], "Review sign");
+        await device.review([1, 1, ...[...Array(i)].map(k => 1), 2, 1, 2], "Review sign");
         const ledgerResponse = await ledgerPromise;
         const signatureLedger = Signature.fromHex(ledgerResponse.witness.witnessSignatureHex)
     
@@ -285,7 +285,7 @@ testStep(" - - -", "Sign mainnet transaction - voteproxy");
     // Lets sign the transaction with ledger
     const chainId = networkInfo[network].chainId
     const ledgerPromise = app.signTransaction({path, chainId, tx})
-    await device.review([1, 1, 2, 1, 1, 2], "Review sign");
+    await device.review([1, 1, 1, 2, 1, 2], "Review sign");
     const ledgerResponse = await ledgerPromise;
     const signatureLedger = Signature.fromHex(ledgerResponse.witness.witnessSignatureHex)
 

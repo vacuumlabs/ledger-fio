@@ -253,8 +253,16 @@ class LedgerButtonsAndSnapshots {
 		await this.wait("Please, review the transaction on the device.")
 	}
 
+	async review2(textWhat) {
+		await this.wait("Please, review the transaction on the device.")
+	}
+
 	async reviewPartial(textWhat) {
 		await this.wait("Please, review part of the transaction till error occours.")
+	}
+
+	async reviewReject(count, textWhat) {
+		await this.wait("Please, review the transaction clink through this and reject it. (You need to click through this first)")
 	}
 
 	async toggleExpertMode(textWhat) { 

@@ -97,7 +97,7 @@ testStep(" - - -", "await app.decodeMessage() - newfundsreq memo");
 {
     const decodeMessagePromise = app.decodeMessage({path: path, publicKeyHex: otherPublicKey.toUncompressed().toBuffer().toString("hex"), 
                                                     message: encryptedContent1, context: "newfundsreq"});
-    await device.review([1, 2, 1, 3, 2, 1, 1, 1, 1], "Review decode message");
+    await device.review([1, 1, 1, 2, 1, 1, 1, 1, 1], "Review decode message");
     const decodeMessageResponse = await decodeMessagePromise;
     assert.equal(decodeMessageResponse.message.toString("hex"), "145061796565207075626c696320616464726573730a416d6f756e74203130300442544331044254433201074d79206d656d6f0000")
 }
@@ -106,7 +106,7 @@ testStep(" - - -", "await app.decodeMessage() - newfundsreq hash");
 {
     const decodeMessagePromise = app.decodeMessage({path: path, publicKeyHex: otherPublicKey.toUncompressed().toBuffer().toString("hex"), 
                                                     message: encryptedContent2, context: "newfundsreq"});
-    await device.review([1, 2, 1, 3, 2, 1, 1, 1, 1, 1], "Review decode message");
+    await device.review([1, 1, 1, 2, 1, 1, 1, 1, 1, 1], "Review decode message");
     const decodeMessageResponse = await decodeMessagePromise;
     assert.equal(decodeMessageResponse.message.toString("hex"), "145061796565207075626c696320616464726573730a416d6f756e7420313030044254433104425443320001074d792068617368010b4f66666c696e652055524c")    
 }
@@ -115,7 +115,7 @@ testStep(" - - -", "await app.decodeMessage() - recordobt memo");
 {
     const decodeMessagePromise = app.decodeMessage({path: path, publicKeyHex: otherPublicKey.toUncompressed().toBuffer().toString("hex"), 
                                                     message: encryptedContent3, context: "recordobt"});
-    await device.review([1, 2, 1, 3, 3, 2, 1, 1, 1, 1, 1, 1], "Review decode message");
+    await device.review([1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1], "Review decode message");
     const decodeMessageResponse = await decodeMessagePromise;
     assert.equal(decodeMessageResponse.message.toString("hex"), "145061796572207075626c69632061646472657373145061796565207075626c696320616464726573730a416d6f756e74203130300442544331044254433206537461747573064f627420494401074d79206d656d6f0000")
 }
@@ -125,7 +125,7 @@ testStep(" - - -", "await app.decodeMessage() - recordobt hash");
     console.log(encryptedContent4)
     const decodeMessagePromise = app.decodeMessage({path: path, publicKeyHex: otherPublicKey.toUncompressed().toBuffer().toString("hex"), 
                                                     message: encryptedContent4, context: "recordobt"});
-    await device.review([1, 2, 1, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1], "Review decode message");
+    await device.review([1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1], "Review decode message");
     const decodeMessageResponse = await decodeMessagePromise;
     assert.equal(decodeMessageResponse.message.toString("hex"), "2d5061796572207075626c696320616464726573732069732076657279206c6f6e672c206c6f6e672c206c6f6e672d5061796565207075626c696320616464726573732069732076657279206c6f6e672c206c6f6e672c206c6f6e670a416d6f756e74203130300442544331044254433206537461747573064f62742049440001234d792068617368206973207175697465206c6f6e6720746f6f2c20746f6f2c20746f6f01224f66666c696e652055524c206973207175697465206c6f6e6720746f6f2c20746f6f")    
 }
@@ -141,7 +141,7 @@ testStep(" - - -", "await app.decodeMessage() - newfundsreq rejected by user");
 {
     const decodeMessagePromise = app.decodeMessage({path: path, publicKeyHex: otherPublicKey.toUncompressed().toBuffer().toString("hex"), 
                                                     message: encryptedContent1, context: "newfundsreq"});
-    await device.reviewReject([1, 2, 1, 3, 2, 1, 1, 1, 1], "Review decode message");
+    await device.reviewReject([1, 1, 1, 2, 1, 1, 1, 1, 1], "Review decode message");
     await assert.rejects(decodeMessagePromise, DeviceStatusError); 
 }
 
