@@ -28,7 +28,7 @@ The public key and derivation path will be shown either way if the derivation pa
 | (optional) Last derivation index  | 4      | Little endian                      |
 | (optional) No. of remaining keys  | 4      | Little endian                      |
 
-Ledger will will process only certain paths, other paths will be rejected by app policy (see Ledger responsibilities section). 
+Ledger will process only certain paths, other paths will be rejected by app policy (see Ledger responsibilities section). 
 
 **Response**
 

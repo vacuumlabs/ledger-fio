@@ -16,3 +16,4 @@ pkg
 *.log
 *.new.png
 yarn.lock
+null.d

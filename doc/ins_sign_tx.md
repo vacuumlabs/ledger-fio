@@ -57,17 +57,20 @@ FINISH command returns signature and serialized transaction hash. All other comm
 ### INIT
 
 | Field | Value    |
+| ---------------- |
 | P1    | `0x01`   |
 | P2    | unused   |
 
 **Constant data**
+
 | Field                             | Length | Comments                            |
-| --------------------------------- | -------| ----------------------------------- |
-(none)
+| --------------------------------- | ------ | ----------------------------------- |
+| (none)                            |        |                                     |
 
 **Variable data**
-| Field                             | Length | Comments                            |
-| --------------------------------- | -------| ----------------------------------- |
+
+| Field                             | Length | Comments                           |
+| --------------------------------- | -------| ---------------------------------- |
 | Chain ID                          | 32     | Must be mainnet or testnet chainId |
 | BIP32 path len                    | 1      | min 2, max 10                      |
 | First derivation index            | 4      | Little endian. Must be 44'         |
@@ -78,51 +81,98 @@ FINISH command returns signature and serialized transaction hash. All other comm
 | (optional) No. of remaining keys  | 4      | Little endian                      |
 
 **Ledger actions**
+
 - Validate Chain Id
 - Validate derivation path, ledger accepts only certain derivation paths (see [src/securityPolicy.c](../src/securityPolicy.c))
 - Appends Chain Id to the transaction
 - Display chain to the user
+- Initialize integrity validation
 
 ### APPEND_CONST_DATA 
 
 | Field | Value    |
-| P1    | `0x01`   |
+| ---------------- |
+| P1    | `0x02`   |
 | P2    | unused   |
 
 **Constant data**
+
 | Field                             | Length   | Comments                            |
 | --------------------------------- | -------- | ----------------------------------- |
 | Data to append to transaction     | variable |                                     |
 
 **Variable data**
+
 | Field                             | Length | Comments                            |
-| --------------------------------- | -------| ----------------------------------- |
-(none)
+| --------------------------------- | ------ | ----------------------------------- |
+| (none)                            |        |                                     |
 
 **Ledger actions**
+
 - Appends data to the transaction
+- Continue integrity validation
 
 ### SHOW_MESSAGE
-----------
-Key Len
-Key
-Value Len
-Value
-----------
-===================
-APPEND_DATA
-----------
-ValueFormat: NAME, STRING, UINT64 (1b)					
-ValueValidation: NONE, LENGTH, EQUALS_STORED (1b)
-ValueValidationArg 1 (8b)
-ValueValidationArg 2 (8b)
-Policy + storage (1b) higher 4 bits storage, lower 4 bits policy
-Key Len: 
-Key
-----------
-Value
-===================
-START_COUNTED_SECTION 
+
+| Field | Value    |
+| ---------------- |
+| P1    | `0x03`   |
+| P2    | unused   |
+
+**Constant data**
+
+| Field                             | Length   | Comments                            |
+| --------------------------------- | -------- | ----------------------------------- |
+| Key Len                           | 1        |                                     |
+| Key                               | variable |                                     |
+| Value Len                         | 1        |                                     |
+| Value                             | variable |                                     |
+
+**Variable data**
+
+| Field                             | Length | Comments                            |
+| --------------------------------- | ------ | ----------------------------------- |
+| (none)                            |        |                                     |
+
+**Ledger actions**
+
+- Display the message
+- Continue integrity validation
+
+### APPEND_DATA
+
+| Field | Value    |
+| ---------------- |
+| P1    | `0x04`   |
+| P2    | unused   |
+
+**Constant data**
+
+| Field                             | Length   | Comments                                   |
+| --------------------------------- | -------- | ------------------------------------------ |
+| Value Format                      | 1        | NAME, STRING, UINT64                       |
+| ValueValidation                   | 1        | NONE, LENGTH, EQUALS_STORED                |
+| ValueValidationArg 1              | 8        |                                            |
+| ValueValidationArg 2              | 8        |                                            |
+| Policy and storage                | 1        | higher 4 bits storage, lower 4 bits policy |
+| Key length                        | 1        |                                            |
+| Key                               | variable |                                            |
+
+**Variable data**
+
+| Field                             | Length   | Comments                            |
+| --------------------------------- | -------- | ----------------------------------- |
+| Value                             | variable |                                     |
+
+**Ledger actions**
+
+- Parse and validate the value
+- Append value to tx
+- Display key and value if policy requires it
+- Continue integrity validation
+
+### START_COUNTED_SECTION 
+
 ----------
 ValueFormat: must be number format (1b)					
 ValueValidation: NONE, LENGTH (1b)
@@ -130,47 +180,63 @@ ValueValidationArg 1 (8b)
 ValueValidationArg 2 (8b)
 ----------
 expected length
-====================
-END_COUNTED_SECTION 
+
+### END_COUNTED_SECTION 
 ----------
 ----------
-====================
-STORE_VALUE
+
+### STORE_VALUE
 P2: Register to store 1/2/3 1 and 2 have 8b, 3 has 64b
 ----------
 ----------
 Value
-====================
-Start DH encryprion
+
+### Start DH encryprion
 ----------
 ----------
 Encryption pubkey
-====================
-End DH encryprion
+
+### End DH encryprion
 ----------
 ----------
-====================
-FINISH
-----------
-----------
-====================
 
+### FINISH
 
-**Command**
+| Field | Value    |
+| ---------------- |
+| P1    | `0x10`   |
+| P2    | unused   |
 
-|Field|Value|
-|-----|-----|
-|  P1 | `0x10` |
-|  P2 | unused |
-| data | BIP44 path. See [GetExtPubKey call](ins_get_public_key.md) for a format example |
+**Constant data**
 
-*Serialization*
+| Field                             | Length   | Comments                            |
+| --------------------------------- | -------- | ----------------------------------- |
+| Data to append to transaction     | variable |                                     |
 
-Adds 33 empty bytes. This stands for extension points (1 byte) and context-free data (32 bytes).
+**Variable data**
+
+| Field                             | Length | Comments                                                            |
+| --------------------------------- | ------ | ------------------------------------------------------------------- |
+| BIP32 path len                    | 1      | min 2, max 10                      |
+| First derivation index            | 4      | Little endian. Must be 44'         |
+| Second derivation index           | 4      | Little endian. Must be 235'        |
+| (optional) Third derivation index | 4      | Little endian                      |
+| ...                               | ...    | ...                                |
+| (optional) Last derivation index  | 4      | Little endian                      |
+| (optional) No. of remaining keys  | 4      | Little endian                      |
+
+Ledger will process only certain paths, other paths will be rejected by app policy (see Ledger responsibilities section). 
+
+**Ledger actions**
+
+- Adds 33 empty bytes to tx. This stands for extension points (1 byte) and context-free data (32 bytes).
+- Finish integrity validation
+- Request confirmation to sign the transaction
+- Return the signature and hash
 
 **Response**
 
-|Field|Length| Comments|
-|-----|-----|-----|
-| Signature |65| Witness signature.|
-| Hash |32| Serialized Tx hash.|
+| Field     | Length | Comments           |
+| --------- | ------ | ------------------ |
+| Signature | 65     | Witness signature  |
+| Hash      | 32     | Serialized Tx hash |

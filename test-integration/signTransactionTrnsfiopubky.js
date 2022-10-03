@@ -270,6 +270,47 @@ testStep(" - - -", "Sign transaction reject");
     await assert.rejects(ledgerPromise, DeviceStatusError, "Action rejected by user");
 }
 
+testStep(" - - -", "Sign mainnet transaction - large values");
+{
+    const network = "MAINNET"
+    const tx = {
+        expiration: "2021-08-28T12:50:36.686",
+        ref_block_num: 0x1122,
+        ref_block_prefix: 0x33445566,
+        context_free_actions: [],
+        actions: [{
+            account: "fio.token",
+            name: "trnsfiopubky",
+            authorization: [{
+                actor: "aftyershcu22",
+                permission: "active",
+            }],
+            data: {
+                payee_public_key: "FIO8PRe4WRZJj5mkem6qVGKyvNFgPsNnjNN6kPhh6EaCpzCVin5Jj",
+                amount: BigInt("0x7F223344556677"),
+                max_fee: "27340676326057591",
+                tpid: "rewards@wallet",
+                actor: "aftyershcu22",
+            },
+        }],
+        transaction_extensions: [],
+    }
+
+    // Lets sign the transaction with fiojs
+    const {serializedTx, fullMsg, hash, signature} = await buildTxAndSignatureFioJs(network, tx, publicKey)
+
+    // Lets sign the transaction with ledger
+    const chainId = networkInfo[network].chainId
+    const ledgerPromise = app.signTransaction({path, chainId, tx})
+    await device.review([1, 1, 2, 1, 1, 2], "Review sign");
+    const ledgerResponse = await ledgerPromise;
+    const signatureLedger = Signature.fromHex(ledgerResponse.witness.witnessSignatureHex)
+
+    assert.equal(ledgerResponse.txHashHex, hash);
+    assert.equal(signatureLedger.verify(fullMsg, publicKey), true);
+    assert.equal(signatureLedger.verify(fullMsg, otherPublicKey), false);
+}
+
 await transport.close()
 testEnd(scriptName);
 process.stdin.pause()
