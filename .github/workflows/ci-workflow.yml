@@ -16,7 +16,7 @@ jobs:
 
       - name: Build
         run: |
-          make DEBUG=1
+          make DEVEL=1
 
       - name: Upload app binary NanoS
         uses: actions/upload-artifact@v2
@@ -37,7 +37,7 @@ jobs:
 
       - name: Build
         run: |
-          make DEBUG=1 BOLOS_SDK=$NANOX_SDK
+          make DEVEL=1 BOLOS_SDK=$NANOX_SDK
 
       - name: Upload app binary NanoX
         uses: actions/upload-artifact@v2
@@ -58,7 +58,7 @@ jobs:
 
       - name: Build
         run: |
-          make DEBUG=1 BOLOS_SDK=$NANOSP_SDK
+          make DEVEL=1 BOLOS_SDK=$NANOSP_SDK
 
       - name: Upload app binary NanoSP
         uses: actions/upload-artifact@v2
@@ -87,6 +87,36 @@ jobs:
           name: scan-build
           path: scan-build
           
+  job_speculos_nanos_unit_tests_5001:
+    name: NanoS Speculos 5001 unit tests
+    needs: job_nanoS_build_debug
+    runs-on: ubuntu-latest  
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.10.0
+      - name: Download app binary
+        uses: actions/download-artifact@v2
+        with:
+          name: fio-app-nanoS-debug
+          path: bin
+
+      - name: install speculos
+        run: |
+          export BOLOS_SDK=
+          make js-yarn
+          make test-yarn
+      - name: Run tests
+        run: |
+          make speculos_port_5001_unit_test
+      - name: Upload Speculos 5001s log
+        uses: actions/upload-artifact@v2
+        with:
+          name: speculos-ut-5001s-log
+          path: tests_speculos/speculos-port-5001.log
   job_speculos_nanos_tests_5001:
     name: NanoS Speculos 5001 tests
     needs: job_nanoS_build_debug
@@ -117,11 +147,6 @@ jobs:
         with:
           name: speculos-5001s-log
           path: tests_speculos/speculos-port-5001.log
-      - name: Upload Speculos 5003s log
-        uses: actions/upload-artifact@v2
-        with:
-          name: speculos-5001s-log
-          path: tests_speculos/speculos-port-5003.log
   job_speculos_nanox_tests_5001:
     name: NanoX Speculos 5001 tests
     needs: job_nanoX_build_debug
