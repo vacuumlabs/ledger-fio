@@ -75,6 +75,7 @@ static void fio_main(void) {
     volatile size_t rx = 0;
     volatile size_t tx = 0;
     volatile uint8_t flags = 0;
+    unsigned int _rx;
 
     // Exchange APDUs until EXCEPTION_IO_RESET is thrown.
     for (;;) {
@@ -90,7 +91,8 @@ static void fio_main(void) {
             TRY {
                 rx = tx;
                 tx = 0;  // ensure no race in CATCH_OTHER if io_exchange throws an error
-                ASSERT((unsigned int) rx < sizeof(G_io_apdu_buffer));
+                _rx = rx;
+                ASSERT(_rx < sizeof(G_io_apdu_buffer));
                 rx = (unsigned int) io_exchange((uint8_t)(CHANNEL_APDU | flags), (uint16_t) rx);
                 flags = 0;
 
