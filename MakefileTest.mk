@@ -70,6 +70,10 @@ speculos_port_5001_test:
 	$(call run_announce,$@)
 	$(MAKE) --no-print-directory speculos_port_5001_start && ($(MAKE) --no-print-directory speculos_port_5001_test_internal; ret=$$?;$(MAKE) --no-print-directory speculos_port_5001_stop;$(call run_announce,note: logs: cat speculos-port-5001.log);cat speculos-port-5001.log; exit $$ret)
 
+.PHONY: get_integrity_hashes_ftom_logs
+get_integrity_hashes_ftom_logs:
+	sed -n -e  's/^.*Integrity check for: //p' speculos-port-5001.log
+
 
 #Test on physical device
 

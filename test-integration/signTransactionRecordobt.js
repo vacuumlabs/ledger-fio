@@ -150,7 +150,7 @@ const txHash = {
             permission: "active",
         }],
         data: {
-            fio_request_id: "Fio request ID",
+            fio_request_id: "",
             payer_fio_address: "My payer address",
             payee_fio_address:  "My payee address",
             max_fee: 0x11223344,
