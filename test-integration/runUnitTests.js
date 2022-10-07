@@ -1,6 +1,6 @@
 import { testStart, testStep, testEnd, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
 import { getButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
-import { Fio } from "../ledgerjs-fio/dist/src/fio.js"
+import { Fio } from "ledgerjs-hw-app-fio"
 import { fileURLToPath } from 'url';
 import { getTransport } from "./speculos-transport.js";
 
