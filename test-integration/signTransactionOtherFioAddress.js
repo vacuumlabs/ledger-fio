@@ -1,7 +1,7 @@
 import { testStart, testStep, testEnd, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js"
 import { getTransport } from "./speculos-transport.js"
 import { getButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js"
-import { Fio, DeviceStatusError, HARDENED } from "../ledgerjs-fio/dist/src/fio.js"
+import { Fio, DeviceStatusError, HARDENED } from "ledgerjs-hw-app-fio"
 import { fileURLToPath } from 'url';
 import assert from 'assert/strict';
 import fetch from "node-fetch"
