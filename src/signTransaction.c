@@ -440,8 +440,9 @@ __noinline_due_to_stack__ void signTx_handleAppendDataAPDU(uint8_t p2,
     }
             CASE(POLICY_ALLOW_WITHOUT_PROMPT, HANDLE_SIMPLE_STEP_RESPOND);
             CASE(POLICY_SHOW_BEFORE_RESPONSE, HANDLE_SIMPLE_STEP_DISPLAY_DETAILS);
-            CASE(POLICY_SHOW_BEFORE_RESPONSE_IF_NONEMPTY, 
-                 strnlen(ctx->value, SIZEOF(ctx->value)) == 0 ? HANDLE_SIMPLE_STEP_RESPOND : HANDLE_SIMPLE_STEP_DISPLAY_DETAILS)
+            CASE(POLICY_SHOW_BEFORE_RESPONSE_IF_NONEMPTY,
+                 strnlen(ctx->value, SIZEOF(ctx->value)) == 0 ? HANDLE_SIMPLE_STEP_RESPOND
+                                                              : HANDLE_SIMPLE_STEP_DISPLAY_DETAILS)
             default:
                 THROW(ERR_NOT_IMPLEMENTED);
 #undef CASE

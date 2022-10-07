@@ -280,6 +280,7 @@ async function runTxTest(network, tx, review1, review2) {
 }
 
 const longSequence = [1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2];
+const longSequenceHash = [1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2]; //has empty fio_request_id
 const secondSequence = [1, 2]
 
 testStep(" - - -", "Sign testnet transaction - memo");
@@ -294,12 +295,12 @@ testStep(" - - -", "Sign testnet mainnet - memo");
 
 testStep(" - - -", "Sign testnet transaction - hash");
 {
-    await runTxTest("TESTNET", txHash, longSequence, secondSequence)
+    await runTxTest("TESTNET", txHash, longSequenceHash, secondSequence)
 }
 
 testStep(" - - -", "Sign testnet mainnet - hash");
 {
-    await runTxTest("MAINNET", txHash, longSequence, secondSequence)
+    await runTxTest("MAINNET", txHash, longSequenceHash, secondSequence)
 }
 
 await transport.close()
