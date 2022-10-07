@@ -11,6 +11,7 @@ typedef enum {
     POLICY_PROMPT_BEFORE_RESPONSE = 3,
     POLICY_PROMPT_WARN_UNUSUAL = 4,
     POLICY_SHOW_BEFORE_RESPONSE = 5,  // Show on display but do not ask for explicit confirmation
+    POLICY_SHOW_BEFORE_RESPONSE_IF_NONEMPTY = 6,
 } security_policy_t;
 
 security_policy_t policyForGetPublicKey(const bip44_path_t* pathSpec, get_key_p1_t show_or_not);

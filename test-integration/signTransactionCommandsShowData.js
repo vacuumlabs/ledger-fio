@@ -278,6 +278,38 @@ testStep(" - - -", "UInt64 incorrect length");
     await device.makeStartingScreenshot();
 }
 //-------------------------------------------------------------------------------------
+testStep(" - - -", "Policy show if not empty empty check");
+{
+    //INIT chainId=b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e
+    const buffer11 = getAPDUDataBuffer("", "b20901380af44ef59c5918439a1f9a41d83669020319a80574b804a5f95cbd7e052c000080eb000080000000800000000000000000");
+    const promise11 = transport.send(215, 0x20, 0x01, 0, buffer11);
+    await device.curlScreenShot();
+    device.curlButton("both", "Confirm chain"); //!!!!!!
+    const response11 = await promise11;
+    assert.equal(response11.toString("hex"), "9000");
+
+    //SHOW DATA 02-string, 01-no validation, 0000000000000000-min, 0000000000000000-max, 06-policy, Key = "String" (06537472696e67)
+    const buffer16 = getAPDUDataBuffer("0201000000000000000000000000000000000606537472696e67", "");
+    const promise16 = transport.send(215, 0x20, 0x04, 0, buffer16);
+    const response16 = await promise16;
+    assert.equal(response16.toString("hex"), "9000");
+
+    //SHOW DATA 02-string, 01-no validation, 0000000000000000-min, 0000000000000000-max, 06-policy, Key = "String" (06537472696e67)
+    const buffer17 = getAPDUDataBuffer("0201000000000000000000000000000000000606537472696e67", "53");
+    const promise17 = transport.send(215, 0x20, 0x04, 0, buffer17);
+    await device.curlScreenShot();
+    device.curlButton("both", "Comfirm String");
+    const response17 = await promise17;
+    assert.equal(response17.toString("hex"), "9000");
+
+    //SHOW DATA 02-string, 01-no validation, 0000000000000000-min, 0000000000000000-max, 06-policy, Key = "String" (06537472696e67)
+    const buffer18 = getAPDUDataBuffer("0201000000000000000000000000000000000606537472696e67", "ff");
+    const promise18 = transport.send(215, 0x20, 0x04, 0, buffer18);
+    await assert.rejects(promise18, err(0x6e07));
+
+    await device.makeStartingScreenshot();
+}
+//-------------------------------------------------------------------------------------
 
 
 await transport.close();
