@@ -124,37 +124,37 @@ static void displayMemoHash(const uint8_t *value,
 static void displayChainCodeTokenCodePublicAddr(const uint8_t *value,
                                                 uint8_t valueLen,
                                                 char display[MAX_DISPLAY_VALUE_LENGTH]) {
-    // Format: chain code length(varUINT), chain code, token code lenth (varUINT), token code,
+    // Format: token code lenth (varUINT), token code, chain code length(varUINT), chain code,
     // publicAddrLen (varUINT), publicAddr
     TRACE_BUFFER(value, valueLen);
     VALIDATE(valueLen >= 1, ERR_INVALID_DATA);
-    size_t chainCodeLen = value[0];  // always just one byte as it needs to be <=10
-    VALIDATE(1 <= chainCodeLen && chainCodeLen <= 10, ERR_INVALID_DATA);
-    VALIDATE(valueLen >= chainCodeLen + 2, ERR_INVALID_DATA);
-    size_t tokenCodeLen = value[chainCodeLen + 1];  // always just one byte as it needs to be <=10
+    size_t tokenCodeLen = value[0];  // always just one byte as it needs to be <=10
     VALIDATE(1 <= tokenCodeLen && tokenCodeLen <= 10, ERR_INVALID_DATA);
-    VALIDATE(valueLen >= chainCodeLen + tokenCodeLen + 3, ERR_INVALID_DATA);
+    VALIDATE(valueLen >= tokenCodeLen + 2, ERR_INVALID_DATA);
+    size_t chainCodeLen = value[tokenCodeLen + 1];  // always just one byte as it needs to be <=10
+    VALIDATE(1 <= chainCodeLen && chainCodeLen <= 10, ERR_INVALID_DATA);
+    VALIDATE(valueLen >= tokenCodeLen + chainCodeLen + 3, ERR_INVALID_DATA);
     uint64_t publicAddrLen = 0;
-    size_t publicAddrLenLen = getNumberFromVarUInt(value + chainCodeLen + tokenCodeLen + 2,
-                                                   valueLen - (chainCodeLen + tokenCodeLen + 2),
+    size_t publicAddrLenLen = getNumberFromVarUInt(value + tokenCodeLen + chainCodeLen + 2,
+                                                   valueLen - (tokenCodeLen + chainCodeLen + 2),
                                                    &publicAddrLen);
-    size_t publicAddrStart = chainCodeLen + tokenCodeLen + 2 + publicAddrLenLen;
+    size_t publicAddrStart = tokenCodeLen + chainCodeLen + 2 + publicAddrLenLen;
     VALIDATE(1 <= publicAddrLen && publicAddrLen <= 128, ERR_INVALID_DATA);
     VALIDATE(valueLen == publicAddrStart + publicAddrLen, ERR_INVALID_DATA);
 
-    str_validateTextBuffer(value + 1, chainCodeLen);
-    str_validateTextBuffer(value + chainCodeLen + 2, tokenCodeLen);
+    str_validateTextBuffer(value + 1, tokenCodeLen);
+    str_validateTextBuffer(value + tokenCodeLen + 2, chainCodeLen);
     str_validateTextBuffer(value + publicAddrStart, publicAddrLen);
 
     // prepare to display
-    ASSERT(chainCodeLen + 1 + tokenCodeLen + 1 + publicAddrLen < MAX_DISPLAY_VALUE_LENGTH);
+    ASSERT(tokenCodeLen + 1 + chainCodeLen + 1 + publicAddrLen < MAX_DISPLAY_VALUE_LENGTH);
     snprintf(display,
              MAX_DISPLAY_VALUE_LENGTH,
              "%.*s:%.*s:%.*s",
              chainCodeLen,
-             value + 1,
+             value + tokenCodeLen + 2,
              tokenCodeLen,
-             value + chainCodeLen + 2,
+             value + 1,
              (int) publicAddrLen,
              value + publicAddrStart);
 }

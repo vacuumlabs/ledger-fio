@@ -406,7 +406,7 @@ testStep(" - - -", "Sign mainnet transaction - five addresses");
                     {
                         public_address: "Fifth payer public address",
                         chain_code: "BTC",
-                        token_code: "BTC",                    
+                        token_code: "BTC2",                    
                     },
                 ],
             }

@@ -246,7 +246,7 @@ testStep(" - - -", "Sign mainnet transaction - two addresses");
                     {
                         public_address: "Second payer public address",
                         chain_code: "BTC",
-                        token_code: "BTC",                    
+                        token_code: "BTC2",                    
                     },
 
                 ],
