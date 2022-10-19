@@ -404,7 +404,7 @@ __noinline_due_to_stack__ void signTx_handleAppendDataAPDU(uint8_t p2,
     security_policy_t policy = POLICY_DENY;
     {
         str_validateTextBuffer(constData->displayKey, constData->displayKeyLen);
-        ASSERT(SIZEOF(ctx->key) >= constData->displayKeyLen+1);
+        ASSERT(SIZEOF(ctx->key) >= constData->displayKeyLen + 1);
         memcpy(ctx->key, constData->displayKey, constData->displayKeyLen);
         ctx->key[constData->displayKeyLen] = 0;
 
