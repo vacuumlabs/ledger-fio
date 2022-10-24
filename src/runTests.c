@@ -31,6 +31,7 @@ void handleRunTests(uint8_t p1 MARK_UNUSED,
         run_diffieHellman_test();
         run_integrityCheck_test();
         run_countedSection_test();
+        TRACE_STACK_USAGE();        
         PRINTF("All tests done\n");
     }
     END_ASSERT_NOEXCEPT;

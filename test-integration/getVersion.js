@@ -19,7 +19,7 @@ testStep(" - - -", "await app.runTests()");
 const {version, compatibility} = await app.getVersion();
 assert.equal(version.major, 1)
 assert.equal(version.minor, 0)
-assert.equal(version.patch, 0)
+assert.equal(version.patch, 1)
 assert.equal(compatibility.isCompatible, true)
 assert.equal(compatibility.recommendedVersion, null)
 

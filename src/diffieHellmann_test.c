@@ -36,12 +36,14 @@ __noinline_due_to_stack__ static void run_dh_encode_tests() {
         PRINTF("\n");
 
         public_key_t publicKey;
-        const char* publicKeyHex =
-            "0484e52dfea57b8f1787488a356374cd8e8515b8ad8db3dd4f9088d8e42ed2fb6d571e8894cccbdbf15e1b"
-            "d84f8b4362f52d1b5b712b9775c0a51cdd5ee9a9e8ca";
-        uint8_t publicKeyBuffer[65];
-        size_t publicKeyLen = decode_hex(publicKeyHex, publicKeyBuffer, SIZEOF(publicKeyBuffer));
-        ASSERT(publicKeyLen == 65);
+        const uint8_t publicKeyBuffer[65] = {
+            0x04, 0x84, 0xe5, 0x2d, 0xfe, 0xa5, 0x7b, 0x8f, 0x17, 0x87, 0x48, 0x8a, 0x35, 0x63, 0x74,
+            0xcd, 0x8e, 0x85, 0x15, 0xb8, 0xad, 0x8d, 0xb3, 0xdd, 0x4f, 0x90, 0x88, 0xd8, 0xe4, 0x2e, 
+            0xd2, 0xfb, 0x6d, 0x57, 0x1e, 0x88, 0x94, 0xcc, 0xcb, 0xdb, 0xf1, 0x5e, 0x1b, 0xd8, 0x4f, 
+            0x8b, 0x43, 0x62, 0xf5, 0x2d, 0x1b, 0x5b, 0x71, 0x2b, 0x97, 0x75, 0xc0, 0xa5, 0x1c, 0xdd, 
+            0x5e, 0xe9, 0xa9, 0xe8, 0xca,
+        };
+        size_t publicKeyLen = 65;
         cx_ecfp_init_public_key_no_throw(CX_CURVE_SECP256K1,
                                          publicKeyBuffer,
                                          publicKeyLen,
@@ -52,7 +54,7 @@ __noinline_due_to_stack__ static void run_dh_encode_tests() {
 #define TESTCASE(msgHex_, expectedEncMsg)                                \
     {                                                                    \
         const char* msgHex = msgHex_;                                    \
-        uint8_t msg[100];                                                \
+        uint8_t msg[50];                                                 \
         size_t msgLen = decode_hex(msgHex, msg, SIZEOF(msg));            \
         uint8_t encMsg[200];                                             \
         size_t encMsgLength = dh_encode(&pathSpec,                       \
@@ -330,9 +332,13 @@ __noinline_due_to_stack__ void run_diffieHellman_test() {
     PRINTF("12-word mnemonic: 11*abandon about\n");
     TRACE_STACK_USAGE();
     run_dh_encode_tests();
+    TRACE_STACK_USAGE();
     run_dh_encode_init_append_finalize_tests();
+    TRACE_STACK_USAGE();
     run_dh_decode_tests();
+    TRACE_STACK_USAGE();
     run_dh_decode_failed_hmac_tests();
+    TRACE_STACK_USAGE();
 }
 
 #endif  // DEVEL

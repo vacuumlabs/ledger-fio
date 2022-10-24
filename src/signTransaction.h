@@ -15,7 +15,7 @@ handler_fn_t signTransaction_handleAPDU;
 #define MAX_DISPLAY_KEY_LENGTH   20
 #define MAX_DISPLAY_VALUE_LENGTH 220
 
-#define MAX_TX_APPEND_IN_SINGLE_APDU PUBKEY_LENGTH
+#define MAX_TX_APPEND_IN_SINGLE_APDU 220
 
 typedef struct {
     uint32_t initialized_magic;
@@ -46,7 +46,7 @@ typedef struct {
     uint8_t dhCountedSectionEntryLevel;
     public_key_t otherPubkey;
     dh_context_t dhContext;
-    // DH encoding increases data length, we need to store the difference and add the value to
+    // DH encoding decreases data length, we need to store the difference and add the value to
     // counted section after we finish DH encoding
     uint16_t countedSectionDifference;
 

@@ -308,7 +308,7 @@ testStep(" - - -", "Sign mainnet transaction - three addresses");
                     },        
                     {
                         chain_code: "BTC3",
-                        contract_address: "Contract address3",
+                        contract_address: "Contract address3 and it is very long so we really try long strings too",
                         token_id: "Token3",
                         url: "My URL3",
                         hash: "My hash3",
@@ -327,7 +327,7 @@ testStep(" - - -", "Sign mainnet transaction - three addresses");
     // Lets sign the transaction with ledger
     const chainId = networkInfo[network].chainId
     const ledgerPromise = app.signTransaction({path, chainId, tx})
-    await device.review([1, 1, 2, 1, 1, 1, 1, 2], "Review sign");
+    await device.review([1, 1, 2, 1, 1, 2, 1, 2], "Review sign");
     const ledgerResponse = await ledgerPromise;
     const signatureLedger = Signature.fromHex(ledgerResponse.witness.witnessSignatureHex)
 
