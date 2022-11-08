@@ -24,7 +24,9 @@ TESTS_SPECULOS_DIR=test-integration
 define run_nodejs_test
 	@cd $(TESTS_SPECULOS_DIR) \
 	&& { { { \
-          TEST_SPECULOS_API_PORT=$(1) TEST_SPECULOS_APDU_PORT=$(2) TEST_DEVICE=$(TEST_DEVICE) node $(3) 2>&1; echo $$? >&3; \
+          TEST_SPECULOS_API_PORT=$(1) TEST_SPECULOS_APDU_PORT=$(2) TEST_DEVICE=$(TEST_DEVICE) \
+          APPVERSION_M=$(APPVERSION_M) APPVERSION_N=$(APPVERSION_N) APPVERSION_P=$(APPVERSION_P) \
+          node $(3) 2>&1; echo $$? >&3; \
         } | tee -a ../speculos-port-$(1).log >&4; } 3>&1 | { read xs; exit $$xs; } } 4>&1
 endef
 

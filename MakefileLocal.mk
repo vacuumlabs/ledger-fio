@@ -20,9 +20,6 @@ $(error Environment variable BOLOS_SDK is not set)
 endif
 
 APPNAME      = "FIO"
-APPVERSION_M = 1
-APPVERSION_N = 0
-APPVERSION_P = 1
 APPVERSION   = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 APPPATH = "44'/235'"
 

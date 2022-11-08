@@ -20,6 +20,10 @@
 # BOLOS_SDK NOT DEFINED		We use a containerized build approach
 # containerize build is recommended
 
+APPVERSION_M = 1
+APPVERSION_N = 0
+APPVERSION_P = 2
+
 NANOS_ID = 1
 WORDS = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
 PIN = 5555
