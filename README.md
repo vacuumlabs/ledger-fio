@@ -155,5 +155,25 @@ This requires `DEVEL=1` app version.
 
 If you use Speculos with `DEVEL=1` build, then you can find logs from `sha_256_append` function. Concatenating what went into hash computation gives the transaction body as signed by ledger.
 
+## How to add a new type of action
+
+The suggested method is the following:
+1. Start writing speculos integration test for the new action until the point when you can retrieve necessary types ftom ABI. Add the new test to the list of tests in MakefileTest.mk. You may want to comment out all other tests durring first phase of the development.
+2. Add new public type for the new action's data to ledgerjs-fio/src/types/public.ts . Do not forget to add the new type to Action definition. Add internal types for parsed action data to ledgerjs-fio/src/types/internal.ts . Again, do not forget to add the types ParsedAction definition.
+3. Add action data parsing to ledgerjs-fio/src/utils/parseTxActions.ts .
+4. Add action data parsing to ledgerjs-fio/src/utils/parse.ts .
+5. Prepare transaction template in ledgerjs-fio/src/interaction/transactionTemplates . To get the right serialization you have to follow ABI obtained in step 1. Add the new template into the template list in ledgerjs-fio/src/interaction/transactionTemplates/template_all.ts
+6. Build js and connect it with integration tests: `make js-build`, `make test-yarn`
+7. Build integration tests for the new action. If the action allows for multiple workflows, all of them must be in integration tests, otherwise we will not get all necessary hashes in later steps.
+8. Create a directory in test-integration/snapshots/ that matches the name of your test.
+9. Build the NanoS app in devel mode that ignores integrity check: `make clean`, `NO_INTEGRITY_CHECK=1 DEVEL=1 make`.
+10. Run Speculos integration tests, generating screenshots for the new test: `TEST_PNG_RE_GEN_FOR=snapshots make speculos_port_5001_test`. After this, the logs contain all necessary interity hashes.
+11. Retrieve the integrity hashes from the logs `make get_integrity_hashes_from_logs`. Append the new ones (or if you ran all the tests replace the whole list) to the list of hashes in src/signTransactionIntegrity.c . Run `make format` to format the changes.
+12. Build NanoS+ app `make clean`, `TARGET_DEVICE=NANO_SP make` and generate the snapshots for the new test `TEST_PNG_RE_GEN_FOR=snapshots TARGET_DEVICE=NANO_SP make speculos_port_5001_test` . Now the app is not in devel mode thus we validate that integrity hashes were added correctly. 
+13. Review all snapshots. Uncomment tests you commented in MakefileTest.mk . You can either run all tests again lacally, or use CI to run all tests.
+
+
+
+
 
 

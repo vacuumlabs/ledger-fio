@@ -17,7 +17,7 @@
 
 .PHONY: test-yarn
 test-yarn:
-	cd test-integration && yarn && cd ..
+	cd test-integration && yarn && yarn upgrade ledgerjs-hw-app-fio && cd ..
 	
 TESTS_SPECULOS_DIR=test-integration
 
@@ -46,6 +46,7 @@ speculos_port_5001_test_internal:
 	$(call run_nodejs_test,5001,40001,signTransactionOtherFioReqobt.js)	
 	$(call run_nodejs_test,5001,40001,signTransactionOtherFioStaking.js)	
 	$(call run_nodejs_test,5001,40001,signTransactionOtherEosio.js)	
+	$(call run_nodejs_test,5001,40001,signTransactionOtherFioOracle.js)	
 	@echo "# ALL TESTS COMPLETED!" | tee -a speculos-port-5001.log
 
 .PHONY: speculos_port_5001_unit_test_internal
@@ -70,8 +71,8 @@ speculos_port_5001_test:
 	$(call run_announce,$@)
 	$(MAKE) --no-print-directory speculos_port_5001_start && ($(MAKE) --no-print-directory speculos_port_5001_test_internal; ret=$$?;$(MAKE) --no-print-directory speculos_port_5001_stop;$(call run_announce,note: logs: cat speculos-port-5001.log);cat speculos-port-5001.log; exit $$ret)
 
-.PHONY: get_integrity_hashes_ftom_logs
-get_integrity_hashes_ftom_logs:
+.PHONY: get_integrity_hashes_from_logs
+get_integrity_hashes_from_logs:
 	sed -n -e  's/^.*Integrity check for: //p' speculos-port-5001.log
 
 
