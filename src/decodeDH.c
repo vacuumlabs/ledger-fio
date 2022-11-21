@@ -74,8 +74,6 @@ static void readOptionalStringWithLength(size_t *read, string_with_length_t **re
 enum {
     DECODE_NEWFUNDSREQ_MEMO_UI_STEP_MESSAGE1 = 200,
     DECODE_NEWFUNDSREQ_MEMO_UI_STEP_MESSAGE2,
-    DECODE_NEWFUNDSREQ_MEMO_UI_STEP_OUR_PATH,
-    DECODE_NEWFUNDSREQ_MEMO_UI_STEP_THEIR_PUBKEY,
     DECODE_NEWFUNDSREQ_MEMO_UI_STEP_PAYEE_PUBLIC_ADDRESS,
     DECODE_NEWFUNDSREQ_MEMO_UI_STEP_AMOUNT,
     DECODE_NEWFUNDSREQ_MEMO_UI_STEP_CHAIN_CODE,
@@ -97,12 +95,6 @@ static void decodeNewfundsreqMemo_ui_runStep() {
     }
     UI_STEP(DECODE_NEWFUNDSREQ_MEMO_UI_STEP_MESSAGE2) {
         ui_displayPaginatedText("Interpreting", "the message as Request funds", this_fn);
-    }
-    UI_STEP(DECODE_NEWFUNDSREQ_MEMO_UI_STEP_OUR_PATH) {
-        ui_displayPathScreen("Our path", &ctx->pathSpec, this_fn);
-    }
-    UI_STEP(DECODE_NEWFUNDSREQ_MEMO_UI_STEP_THEIR_PUBKEY) {
-        ui_displayPubkeyScreen("Their public key", &ctx->otherPubKey, this_fn);
     }
     UI_STEP(DECODE_NEWFUNDSREQ_MEMO_UI_STEP_PAYEE_PUBLIC_ADDRESS) {
         ui_displayAsciiBufferScreen("Payee public address",
@@ -149,8 +141,6 @@ static void decodeNewfundsreqMemo_ui_runStep() {
 enum {
     DECODE_NEWFUNDSREQ_HASH_UI_STEP_MESSAGE1 = 250,
     DECODE_NEWFUNDSREQ_HASH_UI_STEP_MESSAGE2,
-    DECODE_NEWFUNDSREQ_HASH_UI_STEP_OUR_PATH,
-    DECODE_NEWFUNDSREQ_HASH_UI_STEP_THEIR_PUBKEY,
     DECODE_NEWFUNDSREQ_HASH_UI_STEP_PAYEE_PUBLIC_ADDRESS,
     DECODE_NEWFUNDSREQ_HASH_UI_STEP_AMOUNT,
     DECODE_NEWFUNDSREQ_HASH_UI_STEP_CHAIN_CODE,
@@ -169,16 +159,10 @@ static void decodeNewfundsreqHash_ui_runStep() {
     UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
     UI_STEP(DECODE_NEWFUNDSREQ_HASH_UI_STEP_MESSAGE1) {
-        ui_displayPaginatedText("Decode shared", "secret", this_fn);
+        ui_displayPaginatedText("Decrypt content", "", this_fn);
     }
     UI_STEP(DECODE_NEWFUNDSREQ_HASH_UI_STEP_MESSAGE2) {
         ui_displayPaginatedText("Interpreting", "the message as Request funds", this_fn);
-    }
-    UI_STEP(DECODE_NEWFUNDSREQ_HASH_UI_STEP_OUR_PATH) {
-        ui_displayPathScreen("Our path", &ctx->pathSpec, this_fn);
-    }
-    UI_STEP(DECODE_NEWFUNDSREQ_HASH_UI_STEP_THEIR_PUBKEY) {
-        ui_displayPubkeyScreen("Their public key", &ctx->otherPubKey, this_fn);
     }
     UI_STEP(DECODE_NEWFUNDSREQ_HASH_UI_STEP_PAYEE_PUBLIC_ADDRESS) {
         ui_displayAsciiBufferScreen("Payee public address",
@@ -263,8 +247,6 @@ static void decodeNewfundsreqUIFlow() {
 enum {
     DECODE_RECORDOBT_MEMO_UI_STEP_MESSAGE1 = 300,
     DECODE_RECORDOBT_MEMO_UI_STEP_MESSAGE2,
-    DECODE_RECORDOBT_MEMO_UI_STEP_OUR_PATH,
-    DECODE_RECORDOBT_MEMO_UI_STEP_THEIR_PUBKEY,
     DECODE_RECORDOBT_MEMO_UI_STEP_PAYEE_PUBLIC_ADDRESS,
     DECODE_RECORDOBT_MEMO_UI_STEP_PAYER_PUBLIC_ADDRESS,
     DECODE_RECORDOBT_MEMO_UI_STEP_AMOUNT,
@@ -285,18 +267,12 @@ static void decodeRecordobtMemo_ui_runStep() {
     UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
     UI_STEP(DECODE_RECORDOBT_MEMO_UI_STEP_MESSAGE1) {
-        ui_displayPaginatedText("Decode shared", "secret", this_fn);
+        ui_displayPaginatedText("Decrypt content", "", this_fn);
     }
     UI_STEP(DECODE_RECORDOBT_MEMO_UI_STEP_MESSAGE2) {
         ui_displayPaginatedText("Interpreting",
                                 "the message as Record other blockchain transaction metadata",
                                 this_fn);
-    }
-    UI_STEP(DECODE_RECORDOBT_MEMO_UI_STEP_OUR_PATH) {
-        ui_displayPathScreen("Our path", &ctx->pathSpec, this_fn);
-    }
-    UI_STEP(DECODE_RECORDOBT_MEMO_UI_STEP_THEIR_PUBKEY) {
-        ui_displayPubkeyScreen("Their public key", &ctx->otherPubKey, this_fn);
     }
     UI_STEP(DECODE_RECORDOBT_MEMO_UI_STEP_PAYEE_PUBLIC_ADDRESS) {
         ui_displayAsciiBufferScreen("Payee public address",
@@ -361,8 +337,6 @@ static void decodeRecordobtMemo_ui_runStep() {
 enum {
     DECODE_RECORDOBT_HASH_UI_STEP_MESSAGE1 = 350,
     DECODE_RECORDOBT_HASH_UI_STEP_MESSAGE2,
-    DECODE_RECORDOBT_HASH_UI_STEP_OUR_PATH,
-    DECODE_RECORDOBT_HASH_UI_STEP_THEIR_PUBKEY,
     DECODE_RECORDOBT_HASH_UI_STEP_PAYEE_PUBLIC_ADDRESS,
     DECODE_RECORDOBT_HASH_UI_STEP_PAYER_PUBLIC_ADDRESS,
     DECODE_RECORDOBT_HASH_UI_STEP_AMOUNT,
@@ -384,18 +358,12 @@ static void decodeRecordobtHash_ui_runStep() {
     UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
     UI_STEP(DECODE_RECORDOBT_HASH_UI_STEP_MESSAGE1) {
-        ui_displayPaginatedText("Decode shared", "secret", this_fn);
+        ui_displayPaginatedText("Decrypt content", "", this_fn);
     }
     UI_STEP(DECODE_RECORDOBT_HASH_UI_STEP_MESSAGE2) {
         ui_displayPaginatedText("Interpreting",
                                 "the message as Record other blockchain transaction metadata",
                                 this_fn);
-    }
-    UI_STEP(DECODE_RECORDOBT_HASH_UI_STEP_OUR_PATH) {
-        ui_displayPathScreen("Our path", &ctx->pathSpec, this_fn);
-    }
-    UI_STEP(DECODE_RECORDOBT_HASH_UI_STEP_THEIR_PUBKEY) {
-        ui_displayPubkeyScreen("Their public key", &ctx->otherPubKey, this_fn);
     }
     UI_STEP(DECODE_RECORDOBT_HASH_UI_STEP_PAYEE_PUBLIC_ADDRESS) {
         ui_displayAsciiBufferScreen("Payee public address",
@@ -470,8 +438,8 @@ static void decodeRecordobtUIFlow() {
 
     explicit_bzero(&parsedContent, SIZEOF(parsedContent));
     size_t read = 0;
-    readStringWithLength(&read, &parsedContent.payee_public_address);
     readStringWithLength(&read, &parsedContent.payer_public_address);
+    readStringWithLength(&read, &parsedContent.payee_public_address);
     readStringWithLength(&read, &parsedContent.amount);
     readStringWithLength(&read, &parsedContent.chain_code);
     readStringWithLength(&read, &parsedContent.token_code);

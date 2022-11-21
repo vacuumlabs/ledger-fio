@@ -279,8 +279,8 @@ async function runTxTest(network, tx, review1, review2) {
     assert.equal(signatureLedger.verify(fullMsg, otherPublicKey), false);
 }
 
-const longSequence = [1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2];
-const longSequenceHash = [1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 2]; //has empty fio_request_id
+const longSequence = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+const longSequenceHash = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]; //has empty fio_request_id
 const secondSequence = [1, 2]
 
 testStep(" - - -", "Sign testnet transaction - memo");
