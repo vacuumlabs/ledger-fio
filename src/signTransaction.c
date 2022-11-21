@@ -631,7 +631,6 @@ __noinline_due_to_stack__ void signTx_handleStoreValueAPDU(
 // ======================= START DH ENCODING ===========================
 enum {
     HANDLE_DH_START_STEP_DISPLAY_MESSAGE = 800,
-    HANDLE_DH_START_STEP_DISPLAY_DETAILS_THEIR_PUBKEY,
     HANDLE_DH_START_STEP_RESPOND,
     HANDLE_DH_START_STEP_INVALID,
 };
@@ -644,11 +643,7 @@ static void signTx_handleDHStart_ui_runStep() {
     UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
     UI_STEP(HANDLE_DH_START_STEP_DISPLAY_MESSAGE) {
-        ui_displayPaginatedText("Initialize shared", "secred encryption", this_fn);
-    }
-
-    UI_STEP(HANDLE_DH_START_STEP_DISPLAY_DETAILS_THEIR_PUBKEY) {
-        ui_displayPaginatedText(ctx->key, ctx->value, this_fn);
+        ui_displayPaginatedText("Encrypting", "content", this_fn);
     }
 
     UI_STEP(HANDLE_DH_START_STEP_RESPOND) {
@@ -751,8 +746,7 @@ __noinline_due_to_stack__ void signTx_handleStartDHEncodingAPDU(
 // ======================= END DH ENCODING ===========================
 
 enum {
-    HANDLE_DH_END_STEP_DISPLAY_DETAILS_OUR_PUBKEY = 900,
-    HANDLE_DH_END_STEP_CONFIRM,
+    HANDLE_DH_END_STEP_CONFIRM = 900,
     HANDLE_DH_END_STEP_RESPOND,
     HANDLE_DH_END_STEP_INVALID,
 };
@@ -764,12 +758,8 @@ static void signTx_handleDHEnd_ui_runStep() {
 
     UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
-    UI_STEP(HANDLE_DH_END_STEP_DISPLAY_DETAILS_OUR_PUBKEY) {
-        ui_displayPaginatedText(ctx->key, ctx->value, this_fn);
-    }
-
     UI_STEP(HANDLE_DH_END_STEP_CONFIRM) {
-        ui_displayPrompt("Encrypt", "shared secret?", this_fn, respond_with_user_reject);
+        ui_displayPrompt("Encrypt content?", "", this_fn, respond_with_user_reject);
     }
 
     UI_STEP(HANDLE_DH_END_STEP_RESPOND) {
@@ -858,7 +848,7 @@ __noinline_due_to_stack__ void signTx_handleEndDHEncodingAPDU(
         ctx->ui_step = UI_STEP; \
         break;                  \
     }
-                CASE(POLICY_PROMPT_BEFORE_RESPONSE, HANDLE_DH_END_STEP_DISPLAY_DETAILS_OUR_PUBKEY);
+                CASE(POLICY_PROMPT_BEFORE_RESPONSE, HANDLE_DH_END_STEP_CONFIRM);
                 default:
                     THROW(ERR_NOT_IMPLEMENTED);
 #undef CASE

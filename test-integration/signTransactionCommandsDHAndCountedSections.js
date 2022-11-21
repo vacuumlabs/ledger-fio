@@ -61,8 +61,7 @@ testStep(" - - -", "Sign minimal devel DH tranaction");
     const buffer12 = getAPDUDataBuffer("", otherPublicKey);
     const promise12 = transport.send(215, 0x20, 0x08, 0, buffer12);
     await device.curlScreenShot();
-    await device.curlButtonAndScreenshot("both", "message");
-    device.curlButton("both", "Confirm their pubkey"); 
+    device.curlButton("both", "message");
     const response12 = await promise12;
     assert.equal(response12.slice(-2).toString("hex"), "9000");
     let dhEncodedMsg = response12.slice(0, -2).toString("hex");
@@ -96,7 +95,6 @@ testStep(" - - -", "Sign minimal devel DH tranaction");
     const buffer15 = getAPDUDataBuffer("", "");
     const promise15 = transport.send(215, 0x20, 0x09, 0, buffer15);
     await device.curlScreenShot();
-    await device.curlButtonAndScreenshot("both", "Confirm our pubkey"); 
     device.curlButton("right", "Confirm create shared secret"); //!!!!!!
     const response15 = await promise15;
     assert.equal(response15.slice(-2).toString("hex"), "9000");
@@ -159,8 +157,7 @@ testStep(" - - -", "You cannt just end counted section within DH encription with
     const buffer12 = getAPDUDataBuffer("", otherPublicKey);
     const promise12 = transport.send(215, 0x20, 0x08, 0, buffer12);
     await device.curlScreenShot();
-    await device.curlButtonAndScreenshot("both", "message");
-    device.curlButton("both", "Confirm their pubkey"); 
+    device.curlButton("both", "message");
     const response12 = await promise12;
     assert.equal(response12.slice(-2).toString("hex"), "9000");
 
@@ -188,8 +185,7 @@ testStep(" - - -", "Counted section from within DH encoding mus be finished");
     const buffer12 = getAPDUDataBuffer("", otherPublicKey);
     const promise12 = transport.send(215, 0x20, 0x08, 0, buffer12);
     await device.curlScreenShot();
-    await device.curlButtonAndScreenshot("both", "message");
-    device.curlButton("both", "Confirm their pubkey"); 
+    device.curlButton("both", "message");
     const response12 = await promise12;
     assert.equal(response12.slice(-2).toString("hex"), "9000");
 

@@ -22,7 +22,7 @@
 
 APPVERSION_M = 1
 APPVERSION_N = 0
-APPVERSION_P = 2
+APPVERSION_P = 3
 
 NANOS_ID = 1
 WORDS = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
