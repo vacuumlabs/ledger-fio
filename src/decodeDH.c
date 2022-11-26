@@ -91,7 +91,7 @@ static void decodeNewfundsreqMemo_ui_runStep() {
     UI_STEP_BEGIN(ctx->ui_step, this_fn);
 
     UI_STEP(DECODE_NEWFUNDSREQ_MEMO_UI_STEP_MESSAGE1) {
-        ui_displayPaginatedText("Decode shared", "secret", this_fn);
+        ui_displayPaginatedText("Decrypt content", "", this_fn);
     }
     UI_STEP(DECODE_NEWFUNDSREQ_MEMO_UI_STEP_MESSAGE2) {
         ui_displayPaginatedText("Interpreting", "the message as Request funds", this_fn);
