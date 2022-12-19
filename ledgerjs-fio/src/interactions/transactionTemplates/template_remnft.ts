@@ -3,7 +3,6 @@ import { Command, VALUE_STORAGE_COMPARE, COMMAND_APPEND_CONST_DATA, COMMAND_SHOW
          COMMAND_APPEND_DATA_BUFFER_DO_NOT_SHOW, COMMAND_APPEND_DATA_FIO_AMOUNT_SHOW, 
          ADD_STORAGE_CHECK,
          templateAlternative,
-         COMMAND_APPEND_DATA_CHAIN_CODE_CONTRACT_ADDR_TOKEN_TD_SHOW,
          COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW,
          COMMAND_APPEND_DATA_STRING_WITH_LENGTH_DO_NOT_SHOW} from "./commands"
 import { uint64_to_buf } from "../../utils/serialize"
@@ -28,8 +27,10 @@ function template1(chainId: HexString, tx: ParsedTransaction, parsedPath: ValidB
     
     return [
         COMMAND_APPEND_CONST_DATA("01" as HexString),
-        COMMAND_APPEND_DATA_CHAIN_CODE_CONTRACT_ADDR_TOKEN_TD_SHOW("Mapping 1", actionData.nfts[0].chain_code,
-                actionData.nfts[0].contract_address, actionData.nfts[0].token_id),
+        COMMAND_SHOW_MESSAGE("Mapping 1", ""),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("Chain code", Buffer.from(actionData.nfts[0].chain_code), 1, 10),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("Contract address", Buffer.from(actionData.nfts[0].contract_address), 1, 128),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("NFT Token ID", Buffer.from(actionData.nfts[0].token_id), 0, 128),
     ]
 }
 
@@ -47,10 +48,14 @@ function template2(chainId: HexString, tx: ParsedTransaction, parsedPath: ValidB
     
     return [
         COMMAND_APPEND_CONST_DATA("02" as HexString),
-        COMMAND_APPEND_DATA_CHAIN_CODE_CONTRACT_ADDR_TOKEN_TD_SHOW("Mapping 1", actionData.nfts[0].chain_code,
-                actionData.nfts[0].contract_address, actionData.nfts[0].token_id),
-        COMMAND_APPEND_DATA_CHAIN_CODE_CONTRACT_ADDR_TOKEN_TD_SHOW("Mapping 2", actionData.nfts[1].chain_code,
-                actionData.nfts[1].contract_address, actionData.nfts[1].token_id),
+        COMMAND_SHOW_MESSAGE("Mapping 1", ""),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("Chain code", Buffer.from(actionData.nfts[0].chain_code), 1, 10),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("Contract address", Buffer.from(actionData.nfts[0].contract_address), 1, 128),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("NFT Token ID", Buffer.from(actionData.nfts[0].token_id), 0, 128),
+        COMMAND_SHOW_MESSAGE("Mapping 2", ""),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("Chain code", Buffer.from(actionData.nfts[1].chain_code), 1, 10),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("Contract address", Buffer.from(actionData.nfts[1].contract_address), 1, 128),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("NFT Token ID", Buffer.from(actionData.nfts[1].token_id), 0, 128),
     ]
 }
 
@@ -68,12 +73,18 @@ function template3(chainId: HexString, tx: ParsedTransaction, parsedPath: ValidB
     
     return [
         COMMAND_APPEND_CONST_DATA("03" as HexString),
-        COMMAND_APPEND_DATA_CHAIN_CODE_CONTRACT_ADDR_TOKEN_TD_SHOW("Mapping 1", actionData.nfts[0].chain_code,
-                actionData.nfts[0].contract_address, actionData.nfts[0].token_id),
-        COMMAND_APPEND_DATA_CHAIN_CODE_CONTRACT_ADDR_TOKEN_TD_SHOW("Mapping 2", actionData.nfts[1].chain_code,
-                actionData.nfts[1].contract_address, actionData.nfts[1].token_id),
-        COMMAND_APPEND_DATA_CHAIN_CODE_CONTRACT_ADDR_TOKEN_TD_SHOW("Mapping 3", actionData.nfts[2].chain_code,
-                actionData.nfts[2].contract_address, actionData.nfts[2].token_id),
+        COMMAND_SHOW_MESSAGE("Mapping 1", ""),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("Chain code", Buffer.from(actionData.nfts[0].chain_code), 1, 10),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("Contract address", Buffer.from(actionData.nfts[0].contract_address), 1, 128),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("NFT Token ID", Buffer.from(actionData.nfts[0].token_id), 0, 128),
+        COMMAND_SHOW_MESSAGE("Mapping 2", ""),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("Chain code", Buffer.from(actionData.nfts[1].chain_code), 1, 10),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("Contract address", Buffer.from(actionData.nfts[1].contract_address), 1, 128),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("NFT Token ID", Buffer.from(actionData.nfts[1].token_id), 0, 128),
+        COMMAND_SHOW_MESSAGE("Mapping 3", ""),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("Chain code", Buffer.from(actionData.nfts[2].chain_code), 1, 10),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("Contract address", Buffer.from(actionData.nfts[2].contract_address), 1, 128),
+        COMMAND_APPEND_DATA_STRING_WITH_LENGTH_SHOW("NFT Token ID", Buffer.from(actionData.nfts[2].token_id), 0, 128),
     ]
 }
 
