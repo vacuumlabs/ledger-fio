@@ -381,7 +381,7 @@ Ends Diffie-Hellman encrypted block.
 ### FINISH
 
 | Field | Value    |
-| ---------------- |
+| ------|--------- |
 | P1    | `0x10`   |
 | P2    | unused   |
 

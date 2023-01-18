@@ -41,7 +41,7 @@ Determines the size of the app.
 
 Further interesting options are: `
 - `NO_PULL=1`- do not pull containers (this works also for other commands using containers)
-- `NO_INTEGRITY_CHECK=1` - integrity check is always ok, must also have `DEVEL=1`. If you run speculos tests you can obtain required integrity hashes from logs using `make get_integrity_hashes_ftom_logs`. You can copy them to signTransactionIntegrity.c . This is the easiest way to update integrity hash list after changes.
+- `NO_INTEGRITY_CHECK=1` - integrity check is always ok, must also have `DEVEL=1`. If you run speculos tests you can obtain required integrity hashes from logs using `make get_integrity_hashes_from_logs`. You can copy them to signTransactionIntegrity.c . This is the easiest way to update integrity hash list after changes.
 
 
 ## Javascript layer
