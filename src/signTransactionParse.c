@@ -96,13 +96,13 @@ static void displayMemoHash(const uint8_t *value,
     TRACE_BUFFER(value, valueLen);
     VALIDATE(valueLen >= 1, ERR_INVALID_DATA);
     if (value[0] == 1) {  // has memo
-        VALIDATE(valueLen >= 2, ERR_INVALID_DATA);
+        VALIDATE(valueLen >= 2, ERR_INVALID_DATA); // this also checks that memo has length at least 1
         size_t memoLen = value[1];
         VALIDATE(memoLen < 127, ERR_INVALID_DATA);
         VALIDATE(valueLen == memoLen + 4,
                  ERR_INVALID_DATA);  // has memo, memo length, memo, no hash, no url
-        VALIDATE(value[2 + memoLen] == 0, ERR_INVALID_DATA);
-        VALIDATE(value[3 + memoLen] == 0, ERR_INVALID_DATA);
+        VALIDATE(value[2 + memoLen] == 0, ERR_INVALID_DATA); //no hash
+        VALIDATE(value[3 + memoLen] == 0, ERR_INVALID_DATA); //no offline_url
     } else if (value[0] == 0) {  // no memo
         TRACE("No memo");
         VALIDATE(valueLen >= 3, ERR_INVALID_DATA);
