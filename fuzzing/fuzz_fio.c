@@ -36,7 +36,6 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 
                 printf("Running handler\n");
                 handlerFn(header->p1, header->p2, data, data_size, true);
-                printf("Handler ran\n");
             }
             CATCH_OTHER(e) {
             }

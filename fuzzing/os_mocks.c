@@ -1,6 +1,7 @@
 #include "cx.h"
 
 unsigned char G_io_apdu_buffer[260];
+unsigned int app_stack_canary = 0xDEAD0031;
 
 void os_longjmp(unsigned int exception) {
     longjmp(try_context_get()->jmp_buf, exception);
@@ -148,7 +149,12 @@ cx_err_t cx_aes_dec_block(const cx_aes_key_t *key, const uint8_t *inblock, uint8
 void cx_rng_no_throw(uint8_t *buffer, size_t len) {
 }
 
-
+void handleRunTests(uint8_t p1,
+                    uint8_t p2,
+                    uint8_t *wireBuffer,
+                    size_t wireSize,
+                    bool isNewCall) {
+}
 
 void os_perso_derive_node_bip32 ( cx_curve_t curve, const unsigned int * path, unsigned int pathLength, unsigned char * privateKey, unsigned char * chain ) {}
 
@@ -189,3 +195,8 @@ bool device_is_unlocked() {
 void *pic(void *link_address) {
     return link_address;
 }
+
+typedef void timeout_callback_fn_t(bool ux_allowed);
+void nanos_set_timer(int ms, timeout_callback_fn_t* cb) {
+}
+

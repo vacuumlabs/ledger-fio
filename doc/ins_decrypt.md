@@ -14,7 +14,7 @@ Decrypt shared secret. Decryption of shared secret spanns several APDU commands.
 | P2    | unused   |
 | Lc    | data     |
 
-Data contains part of the encrypted data (after base64 decoding). This command nad be sent multiple times, but reasonably, it should be used at most twice at this moment (the longest addmissible message has length 324 bytes after base 64 decoding).
+Data contains part of the encrypted data (after base64 decoding). This command can be sent multiple times, but reasonably, it should be used at most twice at this moment (the longest addmissible message has length 324 bytes after base 64 decoding).
 
 **Command 2**
 
