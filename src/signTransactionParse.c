@@ -152,9 +152,9 @@ static void displayChainCodeTokenCodePublicAddr(const uint8_t *value,
     snprintf(display,
              MAX_DISPLAY_VALUE_LENGTH,
              "%.*s:%.*s:%.*s",
-             chainCodeLen,
+             (int) chainCodeLen,
              value + tokenCodeLen + 2,
-             tokenCodeLen,
+             (int) tokenCodeLen,
              value + 1,
              (int) publicAddrLen,
              value + publicAddrStart);
@@ -163,8 +163,8 @@ static void displayChainCodeTokenCodePublicAddr(const uint8_t *value,
 //-------------------- NUMBER PARSING FUNCTIONS ----------------------
 
 static void parseUInt64(const uint8_t *value, uint8_t valueLen, uint64_t *number) {
-    VALIDATE(valueLen == SIZEOF(*number), ERR_INVALID_DATA);
-    memcpy(number, value, SIZEOF(*number));
+    VALIDATE(valueLen == sizeof(*number), ERR_INVALID_DATA);
+    memcpy(number, value, sizeof(*number));
 }
 
 static void parseVarUInt32(const uint8_t *value, uint8_t valueLen, uint64_t *number) {

@@ -367,7 +367,7 @@ __noinline_due_to_stack__ void signTx_handleAppendDataAPDU(uint8_t p2,
 #define CASE_STORAGE_EQUALS(n)                                                                     \
     case VALUE_STORAGE_CHECK_R##n: {                                                               \
         ASSERT(ctx->storage.initialized_magic == TX_STORAGE_INITIALIZED_MAGIC);                    \
-        ASSERT(ctx->storage.storedValueLen##n <= SIZEOF(ctx->storage.storedValue##n));             \
+        ASSERT(ctx->storage.storedValueLen##n <= sizeof(ctx->storage.storedValue##n));             \
         VALIDATE(ctx->storage.storedValueLen##n == varSize, ERR_INVALID_DATA);                     \
         VALIDATE(!memcmp(ctx->storage.storedValue##n, varData->value, varSize), ERR_INVALID_DATA); \
         break;                                                                                     \
@@ -377,7 +377,7 @@ __noinline_due_to_stack__ void signTx_handleAppendDataAPDU(uint8_t p2,
             CASE_STORAGE_EQUALS(3);
             case VALUE_STORAGE_CHECK_R1_DECODE_NAME: {
                 ASSERT(ctx->storage.initialized_magic == TX_STORAGE_INITIALIZED_MAGIC);
-                ASSERT(ctx->storage.storedValueLen1 <= SIZEOF(ctx->storage.storedValue1));
+                ASSERT(ctx->storage.storedValueLen1 <= sizeof(ctx->storage.storedValue1));
                 char buffer[14];
                 uint8array_name_to_string(ctx->storage.storedValue1,
                                           ctx->storage.storedValueLen1,
@@ -598,7 +598,7 @@ __noinline_due_to_stack__ void signTx_handleStoreValueAPDU(
 #define CASE(n)                                                                     \
     case n: {                                                                       \
         ASSERT(ctx->storage.initialized_magic == TX_STORAGE_INITIALIZED_MAGIC);     \
-        VALIDATE(varSize <= SIZEOF(ctx->storage.storedValue##n), ERR_INVALID_DATA); \
+        VALIDATE(varSize <= sizeof(ctx->storage.storedValue##n), ERR_INVALID_DATA); \
         ctx->storage.storedValueLen##n = varSize;                                   \
         memcpy(ctx->storage.storedValue##n, varData->value, varSize);               \
         break;                                                                      \
