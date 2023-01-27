@@ -15,6 +15,26 @@ typedef enum {
 } decode_stage_t;
 
 typedef struct {
+    uint8_t length;
+    uint8_t data[];
+} string_with_length_t;
+
+// These pointers will point to decoded message where strings are stored in string_with_length_t
+// format
+typedef struct {
+    string_with_length_t *payee_public_address;
+    string_with_length_t *payer_public_address;
+    string_with_length_t *amount;
+    string_with_length_t *chain_code;
+    string_with_length_t *token_code;
+    string_with_length_t *status;
+    string_with_length_t *obt_id;
+    string_with_length_t *memo;
+    string_with_length_t *hash;
+    string_with_length_t *offline_url;
+} parsed_context_t;
+
+typedef struct {
     decode_stage_t stage;
 
     bip44_path_t pathSpec;
@@ -26,6 +46,8 @@ typedef struct {
     uint16_t messageDecodedMagic;
 
     int ui_step;
+
+    parsed_context_t parsedContent;
 } ins_decode_context_t;
 
 handler_fn_t decode_handleAPDU;

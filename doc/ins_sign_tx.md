@@ -4,7 +4,7 @@
 
 Construct and sign a transaction (returns just the signature).
 
-For FIO app main use cases it is instrumental that the app is as small as possible, while we need to have >20 different workflows for various actions. To accomplish this we designed several commands to serialize transaction while displaying (or not) parts of it. Each command is divided into constant part and variable part. Constant parts of the commands are used to calculate integrity hash by contatenating integrity hash of the previous command with constant parts of current command to produce new integrity hash. This process creates a Merkle tree and at every critical step (signing transaction, finishing DH encryption) we compare the integrity hash to one stored in the app. This guarantees that to get ether a signature or encrypted message, the constant parts of theinstructions and the ordering of the instructions have to match exactly.
+For FIO app main use cases it is instrumental that the app is as small as possible, while we need to have >20 different workflows for various actions. To accomplish this we designed several commands to serialize transaction while displaying (or not) parts of it. Each command is divided into constant part and variable part. Constant parts of the commands are used to calculate integrity hash by concatenating integrity hash of the previous command with constant parts of current command to produce new integrity hash. This process creates a Merkle tree and at every critical step (signing transaction, finishing DH encryption) we compare the integrity hash to one stored in the app. This guarantees that to get ether a signature or encrypted message, the constant parts of theinstructions and the ordering of the instructions have to match exactly.
 
 For the list of allowed command sequences, see [List of allowed command sequences](allowed_command_sequences.md)
 
@@ -54,6 +54,20 @@ All other commands either do return nothing, or if we are within DH-encoded sect
 
 
 ## List of commands
+
+| Command                 | P1     | Brief description                                     |
+| ----------------------- |------- |-------------------------------------------------------|
+| INIT                    | `0x01` | Initiates transaction signing                         |
+| APPEND_CONST_DATA       | `0x02` | Appends constant data do the transaction              |
+| SHOW_MESSAGE            | `0x03` | Show message on ledger screen                         |
+| APPEND_DATA             | `0x04` | Append variable data to the transaction               |
+| START_COUNTED_SECTION   | `0x05` | Initiates transaction section of given length         |
+| END_COUNTED_SECTION     | `0x06` | Ends transaction section of given length              |
+| STORE_VALUE             | `0x07` | Store value into a register                           |
+| DH_START                | `0x08` | Starts transaction section encrypted by shared secret |
+| DH_END                  | `0x09` | Ends transaction section encrypted by shared secret   |
+| FINISH                  | `0x10` | Finishes and signs the transaction                    |
+
 
 ### INIT
 
@@ -163,8 +177,8 @@ Value formats:
 
 - VALUE_FORMAT_BUFFER_SHOW_AS_HEX = 0x01
 - VALUE_FORMAT_ASCII_STRING = 0x02,
-- VALUE_FORMAT_NAME = 0x03: Special FIO name format. To be converted to string before displau
-- VALUE_FORMAT_ASCII_STRING_WITH_LENGTH = 0x04: String prefixed with VarUInt lengrh
+- VALUE_FORMAT_NAME = 0x03: Special FIO name format. To be converted to string before display
+- VALUE_FORMAT_ASCII_STRING_WITH_LENGTH = 0x04: String prefixed with VarUInt length
 - VALUE_FORMAT_FIO_AMOUNT = 0x10: FIO currency amount stored as UINT64
 - VALUE_FORMAT_UINT64 = 0x14,
 - VALUE_FORMAT_VARUINT32 = 0x17,
@@ -184,7 +198,7 @@ Value validation:
 
 - VALUE_VALIDATION_NONE = 0x01
 - VALUE_VALIDATION_INBUFFER_LENGTH = 0x02: Validates that the length of value is between ValueValidationArg 1 and ValueValidationArg 2
-- VALUE_VALIDATION_NUMBER = 0x03: Value has to be a number (VALUE_FIO_AMOUNT, VALUE_UINT64, VALUE_FORMAT_VARUINT32). Validates that the numeric value is between ValueValidationArg 1 and ValueValidationArg 2
+- VALUE_VALIDATION_NUMBER = 0x03: Value has to be a number (VALUE_FIO_AMOUNT, VALUE_UINT64, VALUE_FORMAT_VARUINT32). Validates that the numeric value is between ValueValidationArg1 and ValueValidationArg2
 
 Storage bites:
 
@@ -213,7 +227,7 @@ Storage is used to guarantee that certain elements in the transaction match. Sto
 
 ### START_COUNTED_SECTION 
 
-Counted sections append a VARINT to the transaction and then validate that the total length of buffers appended to the transaction between START_COUNTED_SECTION and END_COUNTED_SECTION matches the value. Matching paits of commands have to be both either outside or within DH encrypted segment. Note that DH encoding modifies thelength of what is appedded to the transaction so counted section takes this into account.
+Counted sections append a VARINT to the transaction and then validate that the total length of buffers appended to the transaction between START_COUNTED_SECTION and END_COUNTED_SECTION matches the value. Matching pairs of commands have to be both either outside or within DH encrypted segment. Note that DH encoding modifies the length of what is appended to the transaction so counted section takes this into account.
 
 | Field | Value    |
 | ------|--------- |
@@ -226,8 +240,8 @@ Counted sections append a VARINT to the transaction and then validate that the t
 | --------------------------------- | -------- | ------------------------------------------ |
 | Value Format                      | 1        | NAME, STRING, UINT64                       |
 | ValueValidation                   | 1        | NONE, LENGTH, EQUALS_STORED                |
-| ValueValidationArg 1              | 8        |                                            |
-| ValueValidationArg 2              | 8        |                                            |
+| ValueValidationArg1               | 8        |                                            |
+| ValueValidationArg2               | 8        |                                            |
 
 Value formats: 
 - VALUE_FORMAT_FIO_AMOUNT = 0x10: FIO currency amount stored as UINT64
@@ -248,7 +262,7 @@ See APPEND_DATA instruction
 - Checks if the limit on nested counted section was not surpassed (MAX_NESTED_COUNTED_SECTIONS = 5)
 - Parse and validate the value
 - Append value to tx (includes counted section validation update and possible DH encoding)
-- Initiate new counted section validation (Value itseld does not count into the new counted section)
+- Initiate new counted section validation (Value itself does not count into the new counted section)
 - Continue integrity validation
 
 
@@ -279,7 +293,7 @@ See APPEND_DATA instruction
 
 ### STORE_VALUE
 
-Stores Value into one of the registers. APPEND_DATA may compare its value with the register. This mechanism allows to guarantee match of certain transaction ellements.
+Stores Value into one of the registers. APPEND_DATA may compare its value with the register. This mechanism allows to guarantee match of certain transaction elements.
 
 | Field | Value                         |
 | ------|------------------------------ |
@@ -340,9 +354,9 @@ Starts Diffie-Hellman encrypted block.
 
 Note that all commands within DH encrypted section that append value to the transaction have to:
 - Initiate and wipe out AES key
-- Instead of appending the data to the transaction, append them to DH encryption, and apend the finished blocks to the transaction
+- Instead of appending the data to the transaction, append them to DH encryption, and append the finished blocks to the transaction
 - Return finished blocks
-Also note that partial DH encrypted cypher text is of no cryptographical use before final HMAC is sent (which is only done at the end ). 
+Also note that partial DH encrypted cypher text is of no cryptographic use before final HMAC is sent (which is only done at the end ). 
 
 
 ### DH_END
@@ -399,7 +413,7 @@ Ends Diffie-Hellman encrypted block.
 
 **Ledger actions**
 
-- Validate htat DH is not active and there is no running counted section  
+- Validate that DH is not active and there is no running counted section  
 - Continue integrity validation
 - Validate the integrity hash against the list of known hashes
 - Request confirmation to sign the transaction
@@ -411,3 +425,4 @@ Ends Diffie-Hellman encrypted block.
 | --------- | ------ | ------------------ |
 | Signature | 65     | Witness signature  |
 | Hash      | 32     | Serialized Tx hash |
+

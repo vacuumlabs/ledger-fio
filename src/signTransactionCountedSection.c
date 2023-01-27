@@ -34,7 +34,7 @@ __noinline_due_to_stack__ bool countedSectionProcess(tx_counted_section_t *cs,
     ASSERT(cs->currentLevel <= MAX_NESTED_COUNTED_SECTIONS);
 
     for (size_t i = 0; i < cs->currentLevel; i++) {
-        TRACE("%d/%d: We have %d, use %d.",
+        TRACE("Counted section %d/%d: We have %d, use %d.",
               (int) (i + 1),
               (int) cs->currentLevel,
               (int) cs->count[i],

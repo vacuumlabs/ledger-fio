@@ -80,4 +80,4 @@ Instructions related to debug mode of the app. These instructions *must not* be 
 
 In order to ensure safe forward compatibility, sender *must* set any *unused* field to zero. When upgrading protocol, any unused field that is no longer unused *must* define only values != 0. This will ensure that clients using old protocol will receive errors instead of an unexpected behavior.
 
-❓(VL): Do we want to force clients to check app version (mis)match, e.g. by having an explicit handshake? A custom (non `ledgerjs`-based) client app might omit version checks which might lead to potential problems
+
