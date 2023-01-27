@@ -319,6 +319,7 @@ __noinline_due_to_stack__ void integrityCheckProcessInstruction(tx_integrity_t *
     sha_256_append(&ctx, constData, constDataLength);
     sha_256_finalize(&ctx, integrity->integrityHash, SIZEOF(integrity->integrityHash));
 
+    TRACE("p1: %02x. p2: %02x, constdata: %.*h", p1, p2, constDataLength, constData);
     TRACE_BUFFER(&integrity->integrityHash, SIZEOF(integrity->integrityHash));
 }
 

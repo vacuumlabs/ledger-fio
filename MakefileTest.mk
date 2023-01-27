@@ -77,6 +77,10 @@ speculos_port_5001_test:
 get_integrity_hashes_from_logs:
 	sed -n -e  's/^.*Integrity check for: //p' speculos-port-5001.log
 
+.PHONY: get_allowed_sequences_from_logs
+get_allowed_sequences_from_logs:
+	grep -e "vvvvvv testStart() // snapshots/signTransaction" -e "\^\^\^\^\^\^ testEnd()   // snapshots/signTransaction" -e "integrityCheckProcessInstruction:322" -e "Integrity check for" speculos-port-5001.log
+
 
 #Test on physical device
 

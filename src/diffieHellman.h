@@ -8,7 +8,7 @@
 #include "keyDerivation.h"
 #include "hash.h"
 
-// This file provides convenience functions for using firmware hashing api
+// This file provides functions for Diffie-Hellmann encoding and decoding
 
 // Note: We would like to make this static const but
 // it does not play well with inline functions

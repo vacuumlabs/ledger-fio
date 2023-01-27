@@ -2,6 +2,7 @@
 #define H_FIO_APP_HASH
 
 #include "common.h"
+#include "lcx_sha512.h"
 
 // This file provides convenience functions for using firmware hashing api
 

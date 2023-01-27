@@ -153,6 +153,7 @@ static void fio_main(void) {
 // Note(ppershing): assertions should not auto-respond
 #ifdef RESET_ON_CRASH
                 // Reset device
+                currentInstruction = INS_NONE;
                 io_seproxyhal_se_reset();
 #endif
             }
@@ -165,6 +166,7 @@ static void fio_main(void) {
                     PRINTF("Uncaught error 0x%x", (unsigned) e);
 #ifdef RESET_ON_CRASH
                     // Reset device
+                    currentInstruction = INS_NONE;
                     io_seproxyhal_se_reset();
 #endif
                 }
@@ -185,6 +187,7 @@ static void fio_main(void) {
 static void app_exit(void) {
     BEGIN_TRY_L(exit) {
         TRY_L(exit) {
+            currentInstruction = INS_NONE;
             os_sched_exit(-1);
         }
         FINALLY_L(exit) {
