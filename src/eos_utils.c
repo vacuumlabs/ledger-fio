@@ -161,6 +161,7 @@ void rng_rfc6979(unsigned char *rnd,
     }
 }
 
+#define MAX_B58ENC_LENGTH 40
 unsigned char const BASE58ALPHABET[58] = {
     '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
     'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
@@ -175,8 +176,9 @@ bool b58enc(uint8_t *bin, uint32_t binsz, char *b58, uint32_t *b58sz) {
     while (zcount < binsz && !bin[zcount]) ++zcount;
 
     size = (binsz - zcount) * 138 / 100 + 1;
-    uint8_t buf[size];
-    memset(buf, 0, size);
+    uint8_t buf[MAX_B58ENC_LENGTH];
+    ASSERT(size <= MAX_B58ENC_LENGTH);
+    memset(buf, 0, sizeof(buf));
 
     for (i = zcount, high = size - 1; i < binsz; ++i, high = j) {
         for (carry = bin[i], j = size - 1; (j > high) || carry; --j) {

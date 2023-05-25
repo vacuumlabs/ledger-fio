@@ -323,9 +323,10 @@ __noinline_due_to_stack__ void integrityCheckProcessInstruction(tx_integrity_t *
     TRACE_BUFFER(&integrity->integrityHash, SIZEOF(integrity->integrityHash));
 }
 
-__noinline_due_to_stack__ bool _integrityCheckEvaluate(tx_integrity_t *integrity,
-                                                       const uint8_t (*allowedHashes)[SHA_256_SIZE],
-                                                       uint16_t allowedHashesLength) {
+__noinline_due_to_stack__ bool _integrityCheckEvaluate(
+    tx_integrity_t *integrity,
+    const uint8_t (*allowedHashesList)[SHA_256_SIZE],
+    uint16_t allowedHashesLength) {
     PRINTF("Integrity check for: {");
     for (size_t i = 0; i < SIZEOF(integrity->integrityHash) - 1; i++) {
         PRINTF("0x%02x, ", integrity->integrityHash[i]);
@@ -337,9 +338,10 @@ __noinline_due_to_stack__ bool _integrityCheckEvaluate(tx_integrity_t *integrity
 #endif
     ASSERT(integrity->initialized_magic == TX_INTEGRITY_HASH_INITIALIZED_MAGIC);
     for (uint16_t i = 0; i < allowedHashesLength; i++) {
-        STATIC_ASSERT(SIZEOF(allowedHashes[i]) == SIZEOF(integrity->integrityHash),
+        STATIC_ASSERT(SIZEOF(allowedHashesList[i]) == SIZEOF(integrity->integrityHash),
                       "Incompatible hashes.");
-        if (memcmp(integrity->integrityHash, allowedHashes[i], SIZEOF(allowedHashes[i])) == 0) {
+        if (memcmp(integrity->integrityHash, allowedHashesList[i], SIZEOF(allowedHashesList[i])) ==
+            0) {
             TRACE("Integrity check passed");
             return true;
         }
