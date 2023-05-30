@@ -51,6 +51,8 @@ size_t encode_hex(const uint8_t* bytes, size_t bytesLength, char* out, size_t ou
     return 2 * bytesLength;
 }
 
+#ifdef DEVEL
+
 void test_hex_nibble_parsing() {
     struct {
         char nibble;
@@ -102,7 +104,6 @@ void test_hex_parsing() {
     }
 }
 
-#ifdef DEVEL
 void run_hex_test() {
     test_hex_nibble_parsing();
     test_hex_parsing();
