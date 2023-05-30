@@ -1,9 +1,11 @@
 #include "io.h"
 #include "common.h"
+#include "ux.h"
 
 io_state_t io_state;
 
 #if defined(TARGET_NANOS)
+
 static timeout_callback_fn_t* timeout_cb;
 
 void nanos_clear_timer() {
@@ -69,7 +71,7 @@ void io_seproxyhal_display(const bagl_element_t* element) {
     io_seproxyhal_display_default((bagl_element_t*) element);
 }
 
-unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
+/*unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];*/
 
 unsigned char io_event(unsigned char channel MARK_UNUSED) {
     // can't have more than one tag in the reply, not supported yet.

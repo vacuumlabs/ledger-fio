@@ -180,7 +180,7 @@ bool b58enc(uint8_t *bin, uint32_t binsz, char *b58, uint32_t *b58sz) {
     uint8_t buf[MAX_B58ENC_LENGTH];
     ASSERT(size <= MAX_B58ENC_LENGTH);
     memset(buf, 0, sizeof(buf));
-    
+
     for (i = zcount, high = size - 1; i < binsz; ++i, high = j) {
         for (carry = bin[i], j = size - 1; (j > high) || carry; --j) {
             ASSERT(j < size);

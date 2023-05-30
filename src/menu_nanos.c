@@ -3,6 +3,7 @@
 
 #include <os_io_seproxyhal.h>
 
+#include "ux.h"
 #include "menu.h"
 #include "getVersion.h"
 #include "glyphs.h"

@@ -1,8 +1,8 @@
 #ifndef H_FIO_APP_MENU
 #define H_FIO_APP_MENU
 
-#include <os_io_seproxyhal.h>
 #include <ux.h>
+#include <os_io_seproxyhal.h>
 
 #if defined(TARGET_NANOS)
 extern const ux_menu_entry_t menu_main[4];

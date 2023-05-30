@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-229b03c
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:cddf59dd232f5cf7fa211901d47028f5a9097278
 
     steps:
       - name: Clone
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-229b03c
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:cddf59dd232f5cf7fa211901d47028f5a9097278
 
     steps:
       - name: Clone
@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-229b03c
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:cddf59dd232f5cf7fa211901d47028f5a9097278
 
     steps:
       - name: Clone
@@ -72,7 +72,7 @@ jobs:
     needs: job_nanoS_build_debug
 
     container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-229b03c
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:cddf59dd232f5cf7fa211901d47028f5a9097278
 
     steps:
       - uses: actions/checkout@v2

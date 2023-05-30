@@ -71,7 +71,7 @@ static const uint8_t CLA = 0xD7;
 // subsequent io_exchange call. The handler may also throw an exception, which
 // will be caught, converted to an error code, appended to the response APDU,
 // and sent in the next io_exchange call.
-static void fio_main(void) {
+void app_main(void) {
     volatile size_t rx = 0;
     volatile size_t tx = 0;
     volatile uint8_t flags = 0;
@@ -184,6 +184,7 @@ static void fio_main(void) {
 // don't need to understand any of this in order to write an app.
 //
 
+/*
 static void app_exit(void) {
     BEGIN_TRY_L(exit) {
         TRY_L(exit) {
@@ -194,8 +195,9 @@ static void app_exit(void) {
         }
     }
     END_TRY_L(exit);
-}
+}*/
 
+/*
 __attribute__((section(".boot"))) int main(void) {
     // exit critical section
     __asm volatile("cpsie i");
@@ -239,3 +241,4 @@ __attribute__((section(".boot"))) int main(void) {
     app_exit();
     return 0;
 }
+*/

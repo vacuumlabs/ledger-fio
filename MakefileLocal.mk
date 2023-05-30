@@ -1,194 +1,127 @@
-#*******************************************************************************
-#   Ledger Nano S
-#   (c) 2016 Ledger
+# ****************************************************************************
+#    Ledger FIO App Boilerplate
+#    (c) 2023 Ledger SAS.
 #
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#       http://www.apache.org/licenses/LICENSE-2.0
 #
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#*******************************************************************************
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+# ****************************************************************************
 
 ifeq ($(BOLOS_SDK),)
 $(error Environment variable BOLOS_SDK is not set)
 endif
 
-APPNAME      = "FIO"
-APPVERSION   = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
-APPPATH = "44'/235'"
-
-##################
-# Default target #
-##################
-
-default_target: build
-
 include $(BOLOS_SDK)/Makefile.defines
 
-APP_LOAD_PARAMS =--appFlags 0x240 --curve secp256k1 --path "44'/235'"
-APP_LOAD_PARAMS += $(COMMON_LOAD_PARAMS)
+########################################
+#        Mandatory configuration       #
+########################################
+# Application name
+APPNAME = "FIO"
 
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-	ICONNAME=icon_fio_nanos.gif
-else
-	ICONNAME=icon_fio_nanox.gif
-endif
+# Application version
+APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
-############
-# Platform #
-############
-DEFINES += OS_IO_SEPROXYHAL
-DEFINES += HAVE_BAGL HAVE_SPRINTF HAVE_SNPRINTF_FORMAT_U
-DEFINES += APPVERSION=\"$(APPVERSION)\"
-DEFINES += MAJOR_VERSION=$(APPVERSION_M) MINOR_VERSION=$(APPVERSION_N) PATCH_VERSION=$(APPVERSION_P)
+# Application source files
+APP_SOURCE_PATH += src
 
-# Ledger: add the "Pending security review" disclaimer
-APP_LOAD_PARAMS += --tlvraw 9F:01
-DEFINES += HAVE_PENDING_REVIEW_SCREEN
+# Application icons following guidelines:
+# https://developers.ledger.com/docs/embedded-app/design-requirements/#device-icon
+ICON_NANOS = icon_fio_nanos.gif
+ICON_NANOX = icon_fio_nanox.gif
+ICON_NANOSP = icon_fio_nanox.gif
+ICON_STAX = icon_fio_nanox.gif
 
-## USB HID?
-DEFINES += HAVE_IO_USB HAVE_L4_USBLIB IO_USB_MAX_ENDPOINTS=4 IO_HID_EP_LENGTH=64 HAVE_USB_APDU
+# Application allowed derivation curves.
+# Possibles curves are: secp256k1, secp256r1, ed25519 and bls12381g1
+# If your app needs it, you can specify multiple curves by using:
+# `CURVE_APP_LOAD_PARAMS = <curve1> <curve2>`
+CURVE_APP_LOAD_PARAMS = secp256k1
 
-## WEBUSB
-#WEBUSB_URL = https://www.ledger.com/pages/supported-crypto-assets
-#DEFINES += HAVE_WEBUSB WEBUSB_URL_SIZE_B=$(shell echo -n $(WEBUSB_URL) | wc -c) WEBUSB_URL=$(shell echo -n $(WEBUSB_URL) | sed -e "s/./\\\'\0\\\',/g")
-DEFINES   += HAVE_WEBUSB WEBUSB_URL_SIZE_B=0 WEBUSB_URL=""
+# Application allowed derivation paths.
+# You should request a specific path for your app.
+# This serve as an isolation mechanism.
+# Most application will have to request a path according to the BIP-0044
+# and SLIP-0044 standards.
+# If your app needs it, you can specify multiple path by using:
+# `PATH_APP_LOAD_PARAMS = "44'/1'" "45'/1'"`
+PATH_APP_LOAD_PARAMS = "44'/235'"   # purpose=coin(44) / coin_type=FIO(235)
 
-## BLUETOOTH
-ifeq ($(TARGET_NAME),TARGET_NANOX)
-	DEFINES += HAVE_BLE BLE_COMMAND_TIMEOUT_MS=2000 HAVE_BLE_APDU
-endif
+# Setting to allow building variant applications
+# - <VARIANT_PARAM> is the name of the parameter which should be set
+#   to specify the variant that should be build.
+# - <VARIANT_VALUES> a list of variant that can be build using this app code.
+#   * It must at least contains one value.
+#   * Values can be the app ticker or anything else but should be unique.
+VARIANT_PARAM = COIN
+VARIANT_VALUES = BOL
 
-## Protect stack overflows
-DEFINES += HAVE_BOLOS_APP_STACK_CANARY
+# Enabling DEBUG flag will enable PRINTF and disable optimizations
+#DEBUG = 1
 
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=128
-else
-DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=300
-DEFINES += HAVE_GLO096
-DEFINES += HAVE_BAGL BAGL_WIDTH=128 BAGL_HEIGHT=64
-DEFINES += HAVE_BAGL_ELLIPSIS # long label truncation feature
-DEFINES += HAVE_BAGL_FONT_OPEN_SANS_REGULAR_11PX
-DEFINES += HAVE_BAGL_FONT_OPEN_SANS_EXTRABOLD_11PX
-DEFINES += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
-DEFINES += HAVE_UX_FLOW
-endif
+########################################
+#     Application custom permissions   #
+########################################
+# See SDK `include/appflags.h` for the purpose of each permission
+#HAVE_APPLICATION_FLAG_DERIVE_MASTER = 1
+#HAVE_APPLICATION_FLAG_GLOBAL_PIN = 1
+#HAVE_APPLICATION_FLAG_BOLOS_SETTINGS = 1
+#HAVE_APPLICATION_FLAG_LIBRARY = 1
 
-# Enabling debug PRINTF
+########################################
+# Application communication interfaces #
+########################################
+#ENABLE_BLUETOOTH = 1
+#ENABLE_NFC = 1
+
+########################################
+#         NBGL custom features         #
+########################################
+#ENABLE_NBGL_QRCODE = 1
+#ENABLE_NBGL_KEYBOARD = 1
+#ENABLE_NBGL_KEYPAD = 1
+
+########################################
+#          Features disablers          #
+########################################
+# These advanced settings allow to disable some feature that are by
+# default enabled in the SDK `Makefile.standard_app`.
+#DISABLE_STANDARD_APP_FILES = 1 
+#DISABLE_DEFAULT_IO_SEPROXY_BUFFER_SIZE = 1 # To allow custom size declaration
+#DISABLE_STANDARD_APP_DEFINES = 1 # Will set all the following disablers
+#DISABLE_STANDARD_SNPRINTF = 1
+#DISABLE_STANDARD_USB = 1
+#DISABLE_STANDARD_WEBUSB = 1
+#DISABLE_STANDARD_BAGL_UX_FLOW = 1
+
 ifeq ($(DEVEL), 1)
-	DEFINES += DEVEL HAVE_PRINTF
-	ifeq ($(TARGET_NAME),TARGET_NANOS)
-		DEFINES += PRINTF=screen_printf
-	else
-		DEFINES += PRINTF=mcu_usb_printf
-	endif
+	DEBUG = 1
 	ifeq ($(NO_INTEGRITY_CHECK), 1)
-	DEFINES += NO_INTEGRITY_CHECK
+		DEFINES += NO_INTEGRITY_CHECK
 	endif
 else
 	DEFINES += RESET_ON_CRASH
-	DEFINES += PRINTF\(...\)=
 endif
 
-##############
-#  Compiler  #
-##############
+DEFINES += HAVE_UX_LEGACY 
 
-ifneq ($(BOLOS_ENV),)
-$(info BOLOS_ENV=$(BOLOS_ENV))
-CLANGPATH := $(BOLOS_ENV)/clang-arm-fropi/bin/
-GCCPATH   := $(BOLOS_ENV)/gcc-arm-none-eabi-5_3-2016q1/bin/
-else
-$(info BOLOS_ENV is not set: falling back to CLANGPATH and GCCPATH)
-endif
-ifeq ($(CLANGPATH),)
-$(info CLANGPATH is not set: clang will be used from PATH)
-endif
-ifeq ($(GCCPATH),)
-$(info GCCPATH is not set: arm-none-eabi-* will be used from PATH)
-endif
-
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-WERROR   := -Werror=incompatible-pointer-types -Werror=return-type
-else
-WERROR   := -Werror=return-type
-endif
-
-CC       := $(CLANGPATH)clang
-CFLAGS   += -O3 -Os -Wall -Wextra -Wuninitialized $(WERROR)
-
-AS       := $(GCCPATH)arm-none-eabi-gcc
-LD       := $(GCCPATH)arm-none-eabi-gcc
-
-LDFLAGS  += -O3 -Os -Wall
-LDLIBS   += -lm -lgcc -lc
-
-##Enable to strip debug info from app
-##This needs to be commented out for Speculos to work
-#LDFLAGS  += -Wl,-s
-
-
-##################
-#  Dependencies  #
-##################
-
-# import rules to compile glyphs
-include $(BOLOS_SDK)/Makefile.glyphs
-
-### computed variables
-APP_SOURCE_PATH  += src
-SDK_SOURCE_PATH  += lib_stusb lib_stusb_impl
-SDK_SOURCE_PATH  += lib_ux
-ifeq ($(TARGET_NAME),TARGET_NANOX)
-	SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
-endif
-
-
-##############
-#   Build    #
-##############
-
-build: bin/app.elf
-	@mkdir -p pkg
-	@echo "#!/usr/bin/env bash" > $(CURDIR)/pkg/loadingtool.sh
-	@echo "APPNAME=\"${APPNAME}\"" >> $(CURDIR)/pkg/loadingtool.sh
-	@echo "APPVERSION=\"${APPVERSION}\"" >> $(CURDIR)/pkg/loadingtool.sh
-	@echo "APPPATH=\""${APPPATH}"\"" >> $(CURDIR)/pkg/loadingtool.sh
-	@echo "LOAD_PARAMS=\"${COMMON_LOAD_PARAMS}\"" >> $(CURDIR)/pkg/loadingtool.sh
-	@echo "DELETE_PARAMS=\"${COMMON_DELETE_PARAMS}\"" >> $(CURDIR)/pkg/loadingtool.sh
-	@echo "APPHEX=\"" >> $(CURDIR)/pkg/loadingtool.sh
-	@cat $(CURDIR)/bin/app.hex >> $(CURDIR)/pkg/loadingtool.sh
-	@echo "\"" >> $(CURDIR)/pkg/loadingtool.sh
-	@cat $(CURDIR)/submodules/template.sh >> $(CURDIR)/pkg/loadingtool.sh
-	@chmod +x $(CURDIR)/pkg/loadingtool.sh
-
-# import generic rules from the sdk
-include $(BOLOS_SDK)/Makefile.rules
-
-#add dependency on custom makefile filename
-dep/%.d: %.c Makefile
-
-listvariants:
-	@echo VARIANTS COIN fio
-	
 ##############
 #   Style    #
 ##############
 
 # better to run this manually to avoid irrelevant dependencies processing
 format:
-	clang-format -i src/*
-	
-#scan_build:
-#In sdk
+	clang-format -i src/*	
 
 size: bin/app.elf
 	$(GCCPATH)arm-none-eabi-size --format=GNU bin/app.elf
 
+include $(BOLOS_SDK)/Makefile.standard_app
