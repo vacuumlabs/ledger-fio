@@ -167,6 +167,8 @@ unsigned char const BASE58ALPHABET[58] = {
     'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'm',
     'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
 
+#define MAX_B58ENC_LENGTH 60
+
 bool b58enc(uint8_t *bin, uint32_t binsz, char *b58, uint32_t *b58sz) {
     int carry;
     uint32_t i, j, high, zcount = 0;
@@ -175,9 +177,10 @@ bool b58enc(uint8_t *bin, uint32_t binsz, char *b58, uint32_t *b58sz) {
     while (zcount < binsz && !bin[zcount]) ++zcount;
 
     size = (binsz - zcount) * 138 / 100 + 1;
-    uint8_t buf[size];
-    memset(buf, 0, size);
-
+    uint8_t buf[MAX_B58ENC_LENGTH];
+    ASSERT(size <= MAX_B58ENC_LENGTH);
+    memset(buf, 0, sizeof(buf));
+    
     for (i = zcount, high = size - 1; i < binsz; ++i, high = j) {
         for (carry = bin[i], j = size - 1; (j > high) || carry; --j) {
             ASSERT(j < size);
