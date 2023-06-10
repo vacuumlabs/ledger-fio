@@ -15,7 +15,7 @@
 #  limitations under the License.
 #*******************************************************************************
 
-SPECULOS_IMAGE = speculos:sha-79ab0bf
+SPECULOS_IMAGE = speculos:sha-dbaf133
 	
 define run_announce
 	@perl -e 'use Time::HiRes; use POSIX; $$ts = sprintf qq[%f], Time::HiRes::time(); ($$f) = $$ts =~ m~(\....)~; printf qq[%s%s %s make: %s\n], POSIX::strftime("%H:%M:%S", gmtime), $$f, q[-] x 126, $$ARGV[0];' "$(1)"

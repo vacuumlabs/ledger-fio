@@ -124,4 +124,23 @@ format:
 size: bin/app.elf
 	$(GCCPATH)arm-none-eabi-size --format=GNU bin/app.elf
 
+
+##############
+#   Package  #
+##############
+
+package: bin/app.elf
+	@mkdir -p pkg
+	@echo "#!/usr/bin/env bash" > $(CURDIR)/pkg/loadingtool.sh
+	@echo "APPNAME=\"${APPNAME}\"" >> $(CURDIR)/pkg/loadingtool.sh
+	@echo "APPVERSION=\"${APPVERSION}\"" >> $(CURDIR)/pkg/loadingtool.sh
+	@echo "APPPATH=\""${PATH_APP_LOAD_PARAMS}"\"" >> $(CURDIR)/pkg/loadingtool.sh
+	@echo "LOAD_PARAMS=\"${COMMON_LOAD_PARAMS}\"" >> $(CURDIR)/pkg/loadingtool.sh
+	@echo "DELETE_PARAMS=\"${COMMON_DELETE_PARAMS}\"" >> $(CURDIR)/pkg/loadingtool.sh
+	@echo "APPHEX=\"" >> $(CURDIR)/pkg/loadingtool.sh
+	@cat $(CURDIR)/bin/app.hex >> $(CURDIR)/pkg/loadingtool.sh
+	@echo "\"" >> $(CURDIR)/pkg/loadingtool.sh
+	@cat $(CURDIR)/submodules/template.sh >> $(CURDIR)/pkg/loadingtool.sh
+	@chmod +x $(CURDIR)/pkg/loadingtool.sh
+
 include $(BOLOS_SDK)/Makefile.standard_app

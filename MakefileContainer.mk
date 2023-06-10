@@ -88,6 +88,10 @@ listvariants:
 size:
 	$(call run_docker, , make size)
 
+.PHONY: package
+package: 
+	$(call run_docker, , make package)
+
 
 ##############
 #   Style    #
