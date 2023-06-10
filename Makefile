@@ -33,7 +33,7 @@ NANO_ICON_GIF=nanos_icon.gif
 BOLOS_SDK_DIRECTORY=/opt/nanos-secure-sdk
 TARGET_NAME=TARGET_NANOS
 TEST_DEVICE=nanos
-SPECULOS_SDK=2.1
+SPECULOS_SDK_STRING= --sdk 2.1
 ifeq ($(TARGET_DEVICE), NANO_X)
     $(info Targeting NanoX)
     SPECULOS_MODEL_SWITCH=nanox
@@ -41,7 +41,7 @@ ifeq ($(TARGET_DEVICE), NANO_X)
     BOLOS_SDK_DIRECTORY=/opt/nanox-secure-sdk
     TARGET_NAME=TARGET_NANOX
     TEST_DEVICE=nanox
-    SPECULOS_SDK=2.0.2
+    SPECULOS_SDK_STRING=
 endif
 ifeq ($(TARGET_DEVICE), NANO_SP)
     $(info Targeting NanoSPlus)
@@ -50,7 +50,7 @@ ifeq ($(TARGET_DEVICE), NANO_SP)
     BOLOS_SDK_DIRECTORY=/opt/nanosplus-secure-sdk
     TARGET_NAME=TARGET_NANOS2
     TEST_DEVICE=nanosp
-    SPECULOS_SDK=1.0
+    SPECULOS_SDK_STRING=
 endif
 
 
