@@ -19,7 +19,7 @@ ifneq ($(BOLOS_SDK),)
 $(error Containerized build, BOLOS_SDK should be empty)
 endif
 
-APP_BUILDER_IMAGE = ledger-app-builder:sha-229b03c
+APP_BUILDER_IMAGE = ledger-app-builder:1d9f741e9bc969b072e2de53762b64993536c0f7
 
 default_target: build
 

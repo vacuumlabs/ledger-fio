@@ -156,6 +156,9 @@ endif
 ##############
 
 build: bin/app.elf
+	@cp $(DBG_DIR)/app.asm debug/app.asm
+	@cp $(DBG_DIR)/app.map debug/app.map
+	@cp $(BIN_DIR)/app.hex bin/app.hex
 	@mkdir -p pkg
 	@echo "#!/usr/bin/env bash" > $(CURDIR)/pkg/loadingtool.sh
 	@echo "APPNAME=\"${APPNAME}\"" >> $(CURDIR)/pkg/loadingtool.sh
