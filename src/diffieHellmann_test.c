@@ -238,10 +238,10 @@ __noinline_due_to_stack__ static void run_dh_decode_tests() {
 
 #define TESTCASE(msgHex_, expectedDecMsgHex_)                                      \
     {                                                                              \
-        char* msgHex = msgHex_;                                                    \
+        const char* msgHex = msgHex_;                                              \
         uint8_t msg[120];                                                          \
         size_t msgLen = decode_hex(msgHex, msg, SIZEOF(msg));                      \
-        char* expectedDecMsgHex = expectedDecMsgHex_;                              \
+        const char* expectedDecMsgHex = expectedDecMsgHex_;                        \
         uint8_t expectedDecMsg[100];                                               \
         size_t expectedMsgLen =                                                    \
             decode_hex(expectedDecMsgHex, expectedDecMsg, SIZEOF(expectedDecMsg)); \
@@ -316,7 +316,7 @@ __noinline_due_to_stack__ static void run_dh_decode_failed_hmac_tests() {
 
     //"000102030405060708090a0b0c0d0e0f9508b492f96f067cc72ef8c7c24ac2072310c4e1d36bd6737958f0a3a005576d60a63b30e52db993fdb53f67ba03cd0abed894f54929ac6addfd7076970597a43a36c525ad1fc4349c69be21718ab07bc639172663927cb075fa777797e0c1c4";we
     // change first byte
-    char* msgHex =
+    const char* msgHex =
         "100102030405060708090a0b0c0d0e0f9508b492f96f067cc72ef8c7c24ac2072310c4e1d36bd6737958f0a3a0"
         "05576d60a63b30e52db993fdb53f67ba03cd0abed894f54929ac6addfd7076970597a43a36c525ad1fc4349c69"
         "be21718ab07bc639172663927cb075fa777797e0c1c4";
