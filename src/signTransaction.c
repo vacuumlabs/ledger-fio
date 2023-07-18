@@ -173,10 +173,10 @@ __noinline_due_to_stack__ void signTx_handleInitAPDU(uint8_t p2,
         TRACE_STACK_USAGE();
         snprintf(ctx->key, MAX_DISPLAY_KEY_LENGTH, "Chain");
         switch (network) {
-#define CASE(NETWORK, CHAIN_STRING)                                 \
-    case NETWORK: {                                                 \
-        snprintf(ctx->value, MAX_DISPLAY_KEY_LENGTH, CHAIN_STRING); \
-        break;                                                      \
+#define CASE(NETWORK, CHAIN_STRING)                                   \
+    case NETWORK: {                                                   \
+        snprintf(ctx->value, MAX_DISPLAY_VALUE_LENGTH, CHAIN_STRING); \
+        break;                                                        \
     }
             CASE(NETWORK_MAINNET, "Mainnet");
             CASE(NETWORK_TESTNET, "Testnet");
@@ -204,19 +204,11 @@ __noinline_due_to_stack__ void signTx_handleInitAPDU(uint8_t p2,
         policy = policyForSignTxInit(&ctx->wittnessPath);
         TRACE("Policy: %d", (int) policy);
         ENSURE_NOT_DENIED(policy);
-        {
-            // select UI steps
-            switch (policy) {
-#define CASE(POLICY, UI_STEP)   \
-    case POLICY: {              \
-        ctx->ui_step = UI_STEP; \
-        break;                  \
-    }
-                CASE(POLICY_SHOW_BEFORE_RESPONSE, HANDLE_SIMPLE_STEP_DISPLAY_DETAILS);
-                default:
-                    THROW(ERR_NOT_IMPLEMENTED);
-#undef CASE
-            }
+        // select UI step
+        if (policy == POLICY_SHOW_BEFORE_RESPONSE) {
+            ctx->ui_step = HANDLE_SIMPLE_STEP_DISPLAY_DETAILS;
+        } else {
+            THROW(ERR_NOT_IMPLEMENTED);
         }
     }
 
@@ -296,7 +288,7 @@ __noinline_due_to_stack__ void signTx_handleShowMessageAPDU(
     struct {
         uint8_t displayValueLen;
         uint8_t displayValue[MAX_DISPLAY_VALUE_LENGTH];
-    }* constData2 = (void*) constDataBuffer + 1 + constData->displayKeyLen;
+    }* constData2 = (void*) (constDataBuffer + 1 + constData->displayKeyLen);
     VALIDATE(constData2->displayValueLen < MAX_DISPLAY_VALUE_LENGTH - 1, ERR_INVALID_DATA);
     VALIDATE(constSize == 2 + constData->displayKeyLen + constData2->displayValueLen,
              ERR_INVALID_DATA);
@@ -848,19 +840,11 @@ __noinline_due_to_stack__ void signTx_handleEndDHEncodingAPDU(
             policy = policyForSignTxDHEnd();
             TRACE("Policy: %d", (int) policy);
             ENSURE_NOT_DENIED(policy);
-            {
-                // select UI steps
-                switch (policy) {
-#define CASE(POLICY, UI_STEP)   \
-    case POLICY: {              \
-        ctx->ui_step = UI_STEP; \
-        break;                  \
-    }
-                    CASE(POLICY_PROMPT_BEFORE_RESPONSE, HANDLE_DH_END_STEP_CONFIRM);
-                    default:
-                        THROW(ERR_NOT_IMPLEMENTED);
-#undef CASE
-                }
+            // select UI step
+            if (policy == POLICY_PROMPT_BEFORE_RESPONSE) {
+                ctx->ui_step = HANDLE_DH_END_STEP_CONFIRM;
+            } else {
+                THROW(ERR_NOT_IMPLEMENTED);
             }
         }
     }
@@ -952,19 +936,11 @@ __noinline_due_to_stack__ void signTx_handleFinishAPDU(
         policy = policyForSignTxFinish();
         TRACE("Policy: %d", (int) policy);
         ENSURE_NOT_DENIED(policy);
-        {
-            // select UI steps
-            switch (policy) {
-#define CASE(POLICY, UI_STEP)   \
-    case POLICY: {              \
-        ctx->ui_step = UI_STEP; \
-        break;                  \
-    }
-                CASE(POLICY_PROMPT_BEFORE_RESPONSE, HANDLE_FINISH_STEP_DISPLAY_DETAILS);
-                default:
-                    THROW(ERR_NOT_IMPLEMENTED);
-#undef CASE
-            }
+        // select UI step
+        if (policy == POLICY_PROMPT_BEFORE_RESPONSE) {
+            ctx->ui_step = HANDLE_FINISH_STEP_DISPLAY_DETAILS;
+        } else {
+            THROW(ERR_NOT_IMPLEMENTED);
         }
     }
 
@@ -1032,7 +1008,7 @@ __noinline_due_to_stack__ void signTx_handleFinishAPDU(
             }
         }
         FINALLY {
-            memset(&privateKey, 0, sizeof(privateKey));
+            explicit_bzero(&privateKey, sizeof(privateKey));
         }
     }
     END_TRY;

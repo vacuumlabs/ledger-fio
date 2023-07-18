@@ -370,6 +370,8 @@ __noinline_due_to_stack__ size_t dh_decode(bip44_path_t* pathSpec,
     END_TRY;
 
     TRACE("Finishing decription, written:%d, lastCharacter:%d", written, buffer[written - 1]);
-    // Calculate redulting length based on the last decoded value
+    // Calculate resulting length based on the last decoded value
+    ASSERT(written != 0);
+    ASSERT(written >= buffer[written - 1]);
     return written - buffer[written - 1];
 }

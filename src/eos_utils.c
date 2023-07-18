@@ -179,7 +179,7 @@ bool b58enc(uint8_t *bin, uint32_t binsz, char *b58, uint32_t *b58sz) {
     size = (binsz - zcount) * 138 / 100 + 1;
     uint8_t buf[MAX_B58ENC_LENGTH];
     ASSERT(size <= MAX_B58ENC_LENGTH);
-    memset(buf, 0, sizeof(buf));
+    explicit_bzero(buf, sizeof(buf));
 
     for (i = zcount, high = size - 1; i < binsz; ++i, high = j) {
         for (carry = bin[i], j = size - 1; (j > high) || carry; --j) {
@@ -223,7 +223,7 @@ uint32_t compressed_public_key_to_wif(const uint8_t *publicKey,
     ASSERT(outLength >= 40);
 
     uint8_t temp[37];
-    memset(temp, 0, sizeof(temp));
+    explicit_bzero(temp, sizeof(temp));
     memcpy(temp, publicKey, 33);
 
     uint8_t check[20];
@@ -232,7 +232,7 @@ uint32_t compressed_public_key_to_wif(const uint8_t *publicKey,
     cx_hash(&riprip.header, CX_LAST, temp, 33, check, sizeof(check));
     memcpy(temp + 33, check, 4);
 
-    memset(out, 0, outLength);
+    explicit_bzero(out, outLength);
     out[0] = 'F';
     out[1] = 'I';
     out[2] = 'O';
