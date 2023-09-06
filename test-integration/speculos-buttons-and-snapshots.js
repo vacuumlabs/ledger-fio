@@ -1,15 +1,28 @@
 import { syncBackTicks, sleep, humanTime } from "./speculos-common.js"
 
-const fioWaitingForCommandsSHANanoS = "sha256:13bd32a0f8a2eb3d5723b7e131e439105d63875272e952f703a268a0f1e00728";
-const fioWaitingForCommandsSHANanoX = "sha256:86fa19f6aa42fb59d1058cc245e95132629b88adb42efea49af289ddeb651405"; //works for NanoSP, too
+const fioWaitingForCommandsSHA = {
+    "nanos": "sha256:13bd32a0f8a2eb3d5723b7e131e439105d63875272e952f703a268a0f1e00728",
+    "nanox": "sha256:ce937171040b94097e5d805f76eda47fe8eeb41e50215706634939417214544c",
+    "nanosp": "sha256:86fa19f6aa42fb59d1058cc245e95132629b88adb42efea49af289ddeb651405",
+} 
 
-const fioWarningDevelSHANanoS = "sha256:df7553b0b614d9d3ff0dcb5facde9e1e7e308e2691be9669d206a241f958a999";
-const fioWarningDevelSHANanoX = "sha256:2bb665c41bcb7e7abda8fc30255f28b35144d26997f314074290eb24b23e37fa"; 
+const fioWarningDevelSHA = {
+    "nanos": "sha256:df7553b0b614d9d3ff0dcb5facde9e1e7e308e2691be9669d206a241f958a999",
+    "nanox": "sha256:2bb665c41bcb7e7abda8fc30255f28b35144d26997f314074290eb24b23e37fa", //TODO?
+    "nanosp": "sha256:2bb665c41bcb7e7abda8fc30255f28b35144d26997f314074290eb24b23e37fa",
+} 
 
-const fioThreeDotsNanoS = "sha256:77d4d2651ac7327eee85219c9d25da7b40cf476fad1a67e7eeacb74b37221efe";
-const fioThreeDotsNanoX = "sha256:c650a1475392bdc2ff484341c43bb3aa532ea5262ddb9331f219a24314bc014f";
-const fioEmptyScreenNanoS ="sha256:6dde663afd5a4b7cf8f4955a8a4b035d358affcb661f18bda910ec837a70ee77";
-const fioEmptyScreenNanoX ="sha256:6dde663afd5a4b7cf8f4955a8a4b035d358affcb661f18bda910ec837a70ee77";
+const fioThreeDotsSHA = {
+    "nanos": "sha256:77d4d2651ac7327eee85219c9d25da7b40cf476fad1a67e7eeacb74b37221efe",
+    "nanox": "sha256:c650a1475392bdc2ff484341c43bb3aa532ea5262ddb9331f219a24314bc014f", //TODO?
+    "nanosp": "sha256:c650a1475392bdc2ff484341c43bb3aa532ea5262ddb9331f219a24314bc014f",
+} 
+
+const fioEmptyScreenSHA = {
+    "nanos": "sha256:6dde663afd5a4b7cf8f4955a8a4b035d358affcb661f18bda910ec837a70ee77",
+    "nanox": "sha256:6dde663afd5a4b7cf8f4955a8a4b035d358affcb661f18bda910ec837a70ee77", 
+    "nanosp": "sha256:6dde663afd5a4b7cf8f4955a8a4b035d358affcb661f18bda910ec837a70ee77",
+} 
 
 class ButtonsAndSnapshots {
     scriptName;
@@ -25,10 +38,10 @@ class ButtonsAndSnapshots {
         this.scriptName = scriptName;
         this.speculosButtonsPort = conf.speculosApiPort;
 		this.deviceType = conf.deviceType;
-		this.snapshotName = conf.snapshotName
-		this.fioWaitingSHA = this.deviceType == "nanos" ? fioWaitingForCommandsSHANanoS : fioWaitingForCommandsSHANanoX;
-		this.fioWarningSHA = this.deviceType == "nanos" ? fioWarningDevelSHANanoS : fioWarningDevelSHANanoX;
-		this.fioThreeDots = this.deviceType == "nanos" ? [fioThreeDotsNanoS, fioEmptyScreenNanoS] : [fioThreeDotsNanoX, fioEmptyScreenNanoX];
+		this.snapshotName = conf.snapshotName;
+		this.fioWaitingSHA = fioWaitingForCommandsSHA[this.deviceType];
+		this.fioWarningSHA = fioWarningDevelSHA[this.deviceType];
+		this.fioThreeDots = [fioThreeDotsSHA[this.deviceType], fioEmptyScreenSHA[this.deviceType]];
     }
 
 	curlButton(which, hint) { // e.g. which: 'left', 'right', or 'both'
