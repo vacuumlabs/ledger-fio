@@ -37,7 +37,11 @@ APP_LOAD_PARAMS += $(COMMON_LOAD_PARAMS)
 ifeq ($(TARGET_NAME),TARGET_NANOS)
 	ICONNAME=icon_fio_nanos.gif
 else
-	ICONNAME=icon_fio_nanox.gif
+	ifeq ($(TARGET_NAME),TARGET_STAX)
+		ICONNAME=icon_fio_stax.png
+	else
+		ICONNAME=icon_fio_nanox.gif
+	endif
 endif
 
 ############
@@ -179,7 +183,7 @@ include $(BOLOS_SDK)/Makefile.rules
 dep/%.d: %.c Makefile
 
 listvariants:
-	@echo VARIANTS COIN fio
+	@echo VARIANTS COIN FIO
 	
 ##############
 #   Style    #

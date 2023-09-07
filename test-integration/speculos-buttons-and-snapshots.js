@@ -8,13 +8,13 @@ const fioWaitingForCommandsSHA = {
 
 const fioWarningDevelSHA = {
     "nanos": "sha256:df7553b0b614d9d3ff0dcb5facde9e1e7e308e2691be9669d206a241f958a999",
-    "nanox": "sha256:2bb665c41bcb7e7abda8fc30255f28b35144d26997f314074290eb24b23e37fa", //TODO?
+    "nanox": "sha256:2bb665c41bcb7e7abda8fc30255f28b35144d26997f314074290eb24b23e37fa", 
     "nanosp": "sha256:2bb665c41bcb7e7abda8fc30255f28b35144d26997f314074290eb24b23e37fa",
 } 
 
 const fioThreeDotsSHA = {
     "nanos": "sha256:77d4d2651ac7327eee85219c9d25da7b40cf476fad1a67e7eeacb74b37221efe",
-    "nanox": "sha256:c650a1475392bdc2ff484341c43bb3aa532ea5262ddb9331f219a24314bc014f", //TODO?
+    "nanox": "sha256:c650a1475392bdc2ff484341c43bb3aa532ea5262ddb9331f219a24314bc014f", 
     "nanosp": "sha256:c650a1475392bdc2ff484341c43bb3aa532ea5262ddb9331f219a24314bc014f",
 } 
 
