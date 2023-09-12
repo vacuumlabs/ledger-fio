@@ -981,14 +981,16 @@ __noinline_due_to_stack__ void signTx_handleFinishAPDU(
                     rng_rfc6979(G_io_apdu_buffer + 100, hashBuf, NULL, 0, SECP256K1_N, 32, V, K);
                 }
                 uint32_t infos;
-                cx_ecdsa_sign(&privateKey,
-                              CX_NO_CANONICAL | CX_RND_PROVIDED | CX_LAST,
-                              CX_SHA256,
-                              hashBuf,
-                              32,
-                              G_io_apdu_buffer + 100,
-                              100,
-                              &infos);
+
+                size_t sig_len_ = 100;
+                CX_THROW(cx_ecdsa_sign_no_throw(&privateKey,
+                                                CX_NO_CANONICAL | CX_RND_PROVIDED | CX_LAST,
+                                                CX_SHA256,
+                                                hashBuf,
+                                                32,
+                                                G_io_apdu_buffer + 100,
+                                                &sig_len_,
+                                                &infos));
                 TRACE_BUFFER(G_io_apdu_buffer + 100, 100);
 
                 if ((infos & CX_ECCINFO_PARITY_ODD) != 0) {

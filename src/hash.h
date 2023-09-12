@@ -32,12 +32,12 @@ static __attribute__((always_inline, unused)) void sha_256_append(sha_256_contex
                                                                   size_t inSize) {
     ASSERT(ctx->initialized_magic == HASH_CONTEXT_INITIALIZED_MAGIC);
     TRACE_BUFFER(inBuffer, inSize);
-    cx_hash(&ctx->cx_ctx.header,
-            0, /* Do not output the hash, yet */
-            inBuffer,
-            inSize,
-            NULL,
-            0);
+    CX_THROW(cx_hash_no_throw(&ctx->cx_ctx.header,
+                              0, /* Do not output the hash, yet */
+                              inBuffer,
+                              inSize,
+                              NULL,
+                              0));
 }
 
 static __attribute__((always_inline, unused)) void sha_256_finalize(sha_256_context_t* ctx,
@@ -45,12 +45,12 @@ static __attribute__((always_inline, unused)) void sha_256_finalize(sha_256_cont
                                                                     size_t outSize) {
     ASSERT(ctx->initialized_magic == HASH_CONTEXT_INITIALIZED_MAGIC);
     ASSERT(outSize == SHA_256_SIZE);
-    cx_hash(&ctx->cx_ctx.header,
-            CX_LAST, /* Output the hash */
-            NULL,
-            0,
-            outBuffer,
-            SHA_256_SIZE);
+    CX_THROW(cx_hash_no_throw(&ctx->cx_ctx.header,
+                              CX_LAST, /* Output the hash */
+                              NULL,
+                              0,
+                              outBuffer,
+                              SHA_256_SIZE));
 }
 
 /* Convenience function to make all in one step */
@@ -83,12 +83,12 @@ static __attribute__((always_inline, unused)) void sha_512_append(sha_512_contex
                                                                   size_t inSize) {
     ASSERT(ctx->initialized_magic == HASH_CONTEXT_INITIALIZED_MAGIC);
     TRACE_BUFFER(inBuffer, inSize);
-    cx_hash(&ctx->cx_ctx.header,
-            0, /* Do not output the hash, yet */
-            inBuffer,
-            inSize,
-            NULL,
-            0);
+    CX_THROW(cx_hash_no_throw(&ctx->cx_ctx.header,
+                              0, /* Do not output the hash, yet */
+                              inBuffer,
+                              inSize,
+                              NULL,
+                              0));
 }
 
 static __attribute__((always_inline, unused)) void sha_512_finalize(sha_512_context_t* ctx,
@@ -96,12 +96,12 @@ static __attribute__((always_inline, unused)) void sha_512_finalize(sha_512_cont
                                                                     size_t outSize) {
     ASSERT(ctx->initialized_magic == HASH_CONTEXT_INITIALIZED_MAGIC);
     ASSERT(outSize == SHA_512_SIZE);
-    cx_hash(&ctx->cx_ctx.header,
-            CX_LAST, /* Output the hash */
-            NULL,
-            0,
-            outBuffer,
-            SHA_512_SIZE);
+    CX_THROW(cx_hash_no_throw(&ctx->cx_ctx.header,
+                              CX_LAST, /* Output the hash */
+                              NULL,
+                              0,
+                              outBuffer,
+                              SHA_512_SIZE));
 }
 
 /* Convenience function to make all in one step */

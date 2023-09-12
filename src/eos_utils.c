@@ -104,32 +104,32 @@ void rng_rfc6979(unsigned char *rnd,
             memset(K, 0x00, h_len);
             // d.  Set: K = HMAC_K(V || 0x00 || int2octets(x) || bits2octets(h1))
             V[h_len] = 0;
-            cx_hmac_sha256_init(&hmac, K, 32);
-            cx_hmac((cx_hmac_t *) &hmac, 0, V, h_len + 1, K, 32);
-            cx_hmac((cx_hmac_t *) &hmac, 0, x, x_len, K, 32);
-            cx_hmac((cx_hmac_t *) &hmac, CX_LAST, h1, h_len, K, 32);
+            CX_THROW(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
+            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, 0, V, h_len + 1, K, 32));
+            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, 0, x, x_len, K, 32));
+            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, h1, h_len, K, 32));
             // e.  Set: V = HMAC_K(V)
-            cx_hmac_sha256_init(&hmac, K, 32);
-            cx_hmac((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32);
+            CX_THROW(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
+            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32));
             // f.  Set:  K = HMAC_K(V || 0x01 || int2octets(x) || bits2octets(h1))
             V[h_len] = 1;
-            cx_hmac_sha256_init(&hmac, K, 32);
-            cx_hmac((cx_hmac_t *) &hmac, 0, V, h_len + 1, K, 32);
-            cx_hmac((cx_hmac_t *) &hmac, 0, x, x_len, K, 32);
-            cx_hmac((cx_hmac_t *) &hmac, CX_LAST, h1, h_len, K, 32);
+            CX_THROW(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
+            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, 0, V, h_len + 1, K, 32));
+            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, 0, x, x_len, K, 32));
+            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, h1, h_len, K, 32));
             // g. Set: V = HMAC_K(V) --
-            cx_hmac_sha256_init(&hmac, K, 32);
-            cx_hmac((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32);
+            CX_THROW(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
+            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32));
             // initial setup only once
             x = NULL;
         } else {
             // h.3  K = HMAC_K(V || 0x00)
             V[h_len] = 0;
-            cx_hmac_sha256_init(&hmac, K, 32);
-            cx_hmac((cx_hmac_t *) &hmac, CX_LAST, V, h_len + 1, K, 32);
+            CX_THROW(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
+            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len + 1, K, 32));
             // h.3 V = HMAC_K(V)
-            cx_hmac_sha256_init(&hmac, K, 32);
-            cx_hmac((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32);
+            CX_THROW(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
+            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32));
         }
 
         // generate candidate
@@ -145,8 +145,8 @@ void rng_rfc6979(unsigned char *rnd,
             if (x_len < h_len) {
                 h_len = x_len;
             }
-            cx_hmac_sha256_init(&hmac, K, 32);
-            cx_hmac((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32);
+            CX_THROW(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
+            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32));
             memcpy(rnd, V, h_len);
             x_len -= h_len;
         }
@@ -229,7 +229,7 @@ uint32_t compressed_public_key_to_wif(const uint8_t *publicKey,
     uint8_t check[20];
     cx_ripemd160_t riprip;
     cx_ripemd160_init(&riprip);
-    cx_hash(&riprip.header, CX_LAST, temp, 33, check, sizeof(check));
+    CX_THROW(cx_hash_no_throw(&riprip.header, CX_LAST, temp, 33, check, sizeof(check)));
     memcpy(temp + 33, check, 4);
 
     explicit_bzero(out, outLength);
