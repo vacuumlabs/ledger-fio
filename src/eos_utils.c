@@ -20,6 +20,12 @@
 #include "cx.h"
 #include "utils.h"
 
+#define FORWARD_CX_ERROR(call)                      \
+    {                                               \
+        cx_err_t callResult = (call);               \
+        if (callResult != CX_OK) return callResult; \
+    }
+
 /**
  * EOS way to check if a signature is canonical :/
  */
@@ -80,14 +86,14 @@ int ecdsa_der_to_sig(const uint8_t *der, uint8_t *sig) {
  * - V, out
  * - K, out
  */
-void rng_rfc6979(unsigned char *rnd,
-                 unsigned char *h1,
-                 unsigned char *x,
-                 unsigned int x_len,
-                 const unsigned char *q,
-                 unsigned int q_len,
-                 unsigned char *V,
-                 unsigned char *K) {
+cx_err_t rng_rfc6979(unsigned char *rnd,
+                     unsigned char *h1,
+                     unsigned char *x,
+                     unsigned int x_len,
+                     const unsigned char *q,
+                     unsigned int q_len,
+                     unsigned char *V,
+                     unsigned char *K) {
     unsigned int h_len, found, i;
     cx_hmac_sha256_t hmac;
 
@@ -104,32 +110,32 @@ void rng_rfc6979(unsigned char *rnd,
             memset(K, 0x00, h_len);
             // d.  Set: K = HMAC_K(V || 0x00 || int2octets(x) || bits2octets(h1))
             V[h_len] = 0;
-            CX_THROW(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
-            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, 0, V, h_len + 1, K, 32));
-            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, 0, x, x_len, K, 32));
-            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, h1, h_len, K, 32));
+            FORWARD_CX_ERROR(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
+            FORWARD_CX_ERROR(cx_hmac_no_throw((cx_hmac_t *) &hmac, 0, V, h_len + 1, K, 32));
+            FORWARD_CX_ERROR(cx_hmac_no_throw((cx_hmac_t *) &hmac, 0, x, x_len, K, 32));
+            FORWARD_CX_ERROR(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, h1, h_len, K, 32));
             // e.  Set: V = HMAC_K(V)
-            CX_THROW(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
-            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32));
+            FORWARD_CX_ERROR(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
+            FORWARD_CX_ERROR(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32));
             // f.  Set:  K = HMAC_K(V || 0x01 || int2octets(x) || bits2octets(h1))
             V[h_len] = 1;
-            CX_THROW(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
-            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, 0, V, h_len + 1, K, 32));
-            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, 0, x, x_len, K, 32));
-            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, h1, h_len, K, 32));
+            FORWARD_CX_ERROR(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
+            FORWARD_CX_ERROR(cx_hmac_no_throw((cx_hmac_t *) &hmac, 0, V, h_len + 1, K, 32));
+            FORWARD_CX_ERROR(cx_hmac_no_throw((cx_hmac_t *) &hmac, 0, x, x_len, K, 32));
+            FORWARD_CX_ERROR(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, h1, h_len, K, 32));
             // g. Set: V = HMAC_K(V) --
-            CX_THROW(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
-            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32));
+            FORWARD_CX_ERROR(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
+            FORWARD_CX_ERROR(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32));
             // initial setup only once
             x = NULL;
         } else {
             // h.3  K = HMAC_K(V || 0x00)
             V[h_len] = 0;
-            CX_THROW(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
-            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len + 1, K, 32));
+            FORWARD_CX_ERROR(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
+            FORWARD_CX_ERROR(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len + 1, K, 32));
             // h.3 V = HMAC_K(V)
-            CX_THROW(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
-            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32));
+            FORWARD_CX_ERROR(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
+            FORWARD_CX_ERROR(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32));
         }
 
         // generate candidate
@@ -145,8 +151,8 @@ void rng_rfc6979(unsigned char *rnd,
             if (x_len < h_len) {
                 h_len = x_len;
             }
-            CX_THROW(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
-            CX_THROW(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32));
+            FORWARD_CX_ERROR(cx_hmac_sha256_init_no_throw(&hmac, K, 32));
+            FORWARD_CX_ERROR(cx_hmac_no_throw((cx_hmac_t *) &hmac, CX_LAST, V, h_len, V, 32));
             memcpy(rnd, V, h_len);
             x_len -= h_len;
         }
@@ -159,6 +165,8 @@ void rng_rfc6979(unsigned char *rnd,
             }
         }
     }
+
+    return CX_OK;
 }
 
 unsigned char const BASE58ALPHABET[58] = {
@@ -229,7 +237,9 @@ uint32_t compressed_public_key_to_wif(const uint8_t *publicKey,
     uint8_t check[20];
     cx_ripemd160_t riprip;
     cx_ripemd160_init(&riprip);
-    CX_THROW(cx_hash_no_throw(&riprip.header, CX_LAST, temp, 33, check, sizeof(check)));
+    if (cx_hash_no_throw(&riprip.header, CX_LAST, temp, 33, check, sizeof(check)) != CX_OK) {
+        return 0;
+    }
     memcpy(temp + 33, check, 4);
 
     explicit_bzero(out, outLength);

@@ -34,11 +34,6 @@ enum {
     TX_INIT_WAS_CALLED_INITIALIZED_MAGIC = 12346,
 };
 
-// Taken from EOS app. Needed to produce signatures.
-static uint8_t const SECP256K1_N[] = {
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe,
-    0xba, 0xae, 0xdc, 0xe6, 0xaf, 0x48, 0xa0, 0x3b, 0xbf, 0xd2, 0x5e, 0x8c, 0xd0, 0x36, 0x41, 0x41};
-
 // Uses ctx->dataToAppendToTx, ctx->dataToAppendToTxLen to extend hash
 // If ctx->dhIsActive then, we extend hash with encrypted data and prepare resulting encrypted
 // blocks to G_io_apdu_buffer, ctx->responseLength Variables (&ctx->wittnessPath, &ctx->otherPubkey,
@@ -58,7 +53,7 @@ static void processShaAndPosibleDHAndPrepareResponse() {
                                                        ctx->dataToAppendToTxLen,
                                                        G_io_apdu_buffer,
                                                        SIZEOF(G_io_apdu_buffer));
-                sha_256_append(&ctx->hashContext, G_io_apdu_buffer, ctx->responseLength);
+                CX_THROW(sha_256_append(&ctx->hashContext, G_io_apdu_buffer, ctx->responseLength));
                 VALIDATE(
                     ctx->countedSectionDifference + ctx->responseLength >= ctx->dataToAppendToTxLen,
                     ERR_INVALID_STATE);
@@ -75,7 +70,9 @@ static void processShaAndPosibleDHAndPrepareResponse() {
         }
         END_TRY;
     } else {
-        sha_256_append(&ctx->hashContext, ctx->dataToAppendToTx, ctx->dataToAppendToTxLen);
+        cx_err_t err =
+            sha_256_append(&ctx->hashContext, ctx->dataToAppendToTx, ctx->dataToAppendToTxLen);
+        ASSERT(err == CX_OK);
         ctx->responseLength = 0;
     }
 }
@@ -85,13 +82,15 @@ static void processShaAndPosibleDHAndPrepareResponse() {
 static void prepareOurPubkeyForDisplay() {
     public_key_t wittnessPathPubkey;
     explicit_bzero(&wittnessPathPubkey, SIZEOF(wittnessPathPubkey));
-    derivePublicKey(&ctx->wittnessPath, &wittnessPathPubkey);
+    uint16_t err = derivePublicKey(&ctx->wittnessPath, &wittnessPathPubkey);
+    ASSERT(err == SUCCESS);
     TRACE_BUFFER(wittnessPathPubkey.W, SIZEOF(wittnessPathPubkey.W));
 
     uint32_t outlen = public_key_to_wif(wittnessPathPubkey.W,
                                         SIZEOF(wittnessPathPubkey.W),
                                         ctx->value,
                                         SIZEOF(ctx->value));
+    ASSERT(outlen != 0);
     ASSERT(outlen < SIZEOF(ctx->value));
     ctx->value[outlen] = 0;
 }
@@ -193,7 +192,8 @@ __noinline_due_to_stack__ void signTx_handleInitAPDU(uint8_t p2,
         VALIDATE(!ctx->dhIsActive, ERR_INVALID_STATE);
         VALIDATE(countedSectionProcess(&ctx->countedSections, ctx->dataToAppendToTxLen),
                  ERR_INVALID_DATA);
-        sha_256_append(&ctx->hashContext, ctx->dataToAppendToTx, ctx->dataToAppendToTxLen);
+        ASSERT(sha_256_append(&ctx->hashContext, ctx->dataToAppendToTx, ctx->dataToAppendToTxLen) ==
+               CX_OK);
 
         ctx->responseLength = 0;
     }
@@ -690,6 +690,7 @@ __noinline_due_to_stack__ void signTx_handleStartDHEncodingAPDU(
                                             SIZEOF(ctx->otherPubkey.W),
                                             ctx->value,
                                             SIZEOF(ctx->value));
+        ASSERT(outlen != 0);
         ASSERT(outlen < SIZEOF(ctx->value));
         ctx->value[outlen] = 0;
     }
@@ -722,7 +723,9 @@ __noinline_due_to_stack__ void signTx_handleStartDHEncodingAPDU(
                                                      SIZEOF(IV),
                                                      G_io_apdu_buffer,
                                                      SIZEOF(G_io_apdu_buffer));
-                ASSERT(ctx->responseLength == 20);  // first 5 blocks
+                if (ctx->responseLength != 20) {  // first 5 blocks
+                    THROW(ERR_ASSERT);
+                }
                 ctx->countedSectionDifference = ctx->responseLength;
                 TRACE("CS diff %d", (int) ctx->responseLength);
             }
@@ -732,7 +735,7 @@ __noinline_due_to_stack__ void signTx_handleStartDHEncodingAPDU(
         }
         END_TRY;
 
-        sha_256_append(&ctx->hashContext, G_io_apdu_buffer, ctx->responseLength);
+        ASSERT(sha_256_append(&ctx->hashContext, G_io_apdu_buffer, ctx->responseLength) == CX_OK);
         ctx->dhIsActive = true;
     }
 
@@ -830,7 +833,8 @@ __noinline_due_to_stack__ void signTx_handleEndDHEncodingAPDU(
             VALIDATE(countedSectionProcess(&ctx->countedSections, ctx->countedSectionDifference),
                      ERR_INVALID_STATE);
 
-            sha_256_append(&ctx->hashContext, G_io_apdu_buffer, ctx->responseLength);
+            ASSERT(sha_256_append(&ctx->hashContext, G_io_apdu_buffer, ctx->responseLength) ==
+                   CX_OK);
             ctx->dhIsActive = false;
         }
 
@@ -917,7 +921,7 @@ __noinline_due_to_stack__ void signTx_handleFinishAPDU(
     uint8_t hashBuf[SHA_256_SIZE];
     explicit_bzero(hashBuf, SIZEOF(hashBuf));
     {
-        sha_256_finalize(&ctx->hashContext, hashBuf, SIZEOF(hashBuf));
+        ASSERT(sha_256_finalize(&ctx->hashContext, hashBuf, SIZEOF(hashBuf)) == CX_OK);
         TRACE("SHA_256_finalize, resulting hash:");
         TRACE_BUFFER(hashBuf, SHA_256_SIZE);
     }
@@ -944,81 +948,16 @@ __noinline_due_to_stack__ void signTx_handleFinishAPDU(
         }
     }
 
-    // Derive keys and sign the transaction, setup
-    private_key_t privateKey;
-    explicit_bzero(&privateKey, SIZEOF(privateKey));
-    BEGIN_TRY {
-        TRY {
-            // We derive the private key
-            {
-                derivePrivateKey(&ctx->wittnessPath, &privateKey);
-                TRACE("privateKey.d:");
-                TRACE_BUFFER(privateKey.d, privateKey.d_len);
-            }
-
-            // We sign the hash
-            // Code producing signatures is taken from EOS app
-            uint8_t V[33];
-            uint8_t K[32];
-            int tries = 0;
-
-            // Loop until a candidate matching the canonical signature is found
-            // Taken from EOS app
-            // We use G_io_apdu_buffer to save memory (and also to minimize changes to EOS code)
-            // The code produces the signature right where we need it for the respons
-            explicit_bzero(G_io_apdu_buffer, SIZEOF(G_io_apdu_buffer));
-            for (;;) {
-                if (tries == 0) {
-                    rng_rfc6979(G_io_apdu_buffer + 100,
-                                hashBuf,
-                                privateKey.d,
-                                privateKey.d_len,
-                                SECP256K1_N,
-                                32,
-                                V,
-                                K);
-                } else {
-                    rng_rfc6979(G_io_apdu_buffer + 100, hashBuf, NULL, 0, SECP256K1_N, 32, V, K);
-                }
-                uint32_t infos;
-
-                size_t sig_len_ = 100;
-                CX_THROW(cx_ecdsa_sign_no_throw(&privateKey,
-                                                CX_NO_CANONICAL | CX_RND_PROVIDED | CX_LAST,
-                                                CX_SHA256,
-                                                hashBuf,
-                                                32,
-                                                G_io_apdu_buffer + 100,
-                                                &sig_len_,
-                                                &infos));
-                TRACE_BUFFER(G_io_apdu_buffer + 100, 100);
-
-                if ((infos & CX_ECCINFO_PARITY_ODD) != 0) {
-                    G_io_apdu_buffer[100] |= 0x01;
-                }
-                G_io_apdu_buffer[0] = 27 + 4 + (G_io_apdu_buffer[100] & 0x01);
-                ecdsa_der_to_sig(G_io_apdu_buffer + 100, G_io_apdu_buffer + 1);
-                TRACE_BUFFER(G_io_apdu_buffer, PUBKEY_LENGTH);
-
-                if (check_canonical(G_io_apdu_buffer + 1)) {
-                    TRACE("Try %d succesfull!", tries);
-                    break;
-                } else {
-                    TRACE("Try %d unsuccesfull!", tries);
-                    tries++;
-                }
-            }
-        }
-        FINALLY {
-            explicit_bzero(&privateKey, sizeof(privateKey));
-        }
+    uint16_t err =
+        signTransaction(&ctx->wittnessPath, hashBuf, G_io_apdu_buffer, SIZEOF(G_io_apdu_buffer));
+    if (err != SUCCESS) {
+        THROW(err);
     }
-    END_TRY;
 
     // We add hash to the response
     TRACE("ecdsa_der_to_sig_result:");
     TRACE_BUFFER(G_io_apdu_buffer, PUBKEY_LENGTH);
-    memcpy(G_io_apdu_buffer + PUBKEY_LENGTH, hashBuf, SHA_256_SIZE);
+    memcpy(G_io_apdu_buffer + PUBKEY_LENGTH, hashBuf, SIZEOF(hashBuf));
 
     signTx_handleFinish_ui_runStep();
 }
@@ -1066,7 +1005,8 @@ void signTransaction_handleAPDU(uint8_t p1,
     if (isNewCall) {
         explicit_bzero(ctx, SIZEOF(*ctx));
         TRACE("SHA_256_init");
-        sha_256_init(&ctx->hashContext);
+        cx_err_t err = sha_256_init(&ctx->hashContext);
+        ASSERT(err == CX_OK);
         TRACE("Integrity check init");
         integrityCheckInit(&ctx->integrity);
         TRACE("Counted sections init");

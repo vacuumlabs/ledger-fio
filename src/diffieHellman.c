@@ -92,23 +92,30 @@ __noinline_due_to_stack__ void dh_init_aes_key(dh_aes_key_t* dhKey,
     BEGIN_TRY {
         TRY {
             TRACE_STACK_USAGE();
-            derivePrivateKey(pathSpec, &privateKey);
+            {
+                uint16_t err = derivePrivateKey(pathSpec, &privateKey);
+                if (err != SUCCESS) {
+                    THROW(err);
+                }
+            }
 
-            // this is how it is done...
             cx_err_t err = cx_ecdh_no_throw(&privateKey,
                                             CX_ECDH_X,
                                             publicKey->W,
                                             publicKey->W_len,
                                             basicSecret,
                                             SIZEOF(basicSecret));
-            ASSERT(err == CX_OK);
-            sha_512_hash(basicSecret, SIZEOF(basicSecret), secret, SIZEOF(secret));
-            sha_512_hash(secret, SIZEOF(secret), K, SIZEOF(K));
+            CX_THROW(err);
+            err = sha_512_hash(basicSecret, SIZEOF(basicSecret), secret, SIZEOF(secret));
+            CX_THROW(err);
+            err = sha_512_hash(secret, SIZEOF(secret), K, SIZEOF(K));
+            CX_THROW(err);
 
             // First DH_AES_SECRET_SIZE bytes are used to compute shared secret, then DH_KM_SIZE are
             // used as Km for HMAC calculation
             STATIC_ASSERT(SIZEOF(K) == DH_AES_SECRET_SIZE + DH_KM_SIZE, "Incompatible types");
-            cx_aes_init_key_no_throw(K, DH_AES_SECRET_SIZE, &dhKey->aesKey);
+            err = cx_aes_init_key_no_throw(K, DH_AES_SECRET_SIZE, &dhKey->aesKey);
+            CX_THROW(err);
             STATIC_ASSERT(SIZEOF(dhKey->km) == DH_KM_SIZE, "Incompatible types");
             memmove(dhKey->km, K + DH_AES_SECRET_SIZE, DH_KM_SIZE);
             dhKey->initialized_magic = DH_AES_KEY_INITIALIZED_MAGIC;
