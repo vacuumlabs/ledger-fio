@@ -40,35 +40,27 @@ enum {
 // &ctx->dhContext) are needed for encryption
 static void processShaAndPosibleDHAndPrepareResponse() {
     if (ctx->dhIsActive) {
-        dh_aes_key_t aesKey;
-        BEGIN_TRY {
-            TRY {
-                // Compute AES key
-                dh_init_aes_key(&aesKey, &ctx->wittnessPath, &ctx->otherPubkey);
-
-                // Encode message chunk
-                ctx->responseLength = dh_encode_append(&ctx->dhContext,
-                                                       &aesKey,
-                                                       ctx->dataToAppendToTx,
-                                                       ctx->dataToAppendToTxLen,
-                                                       G_io_apdu_buffer,
-                                                       SIZEOF(G_io_apdu_buffer));
-                CX_THROW(sha_256_append(&ctx->hashContext, G_io_apdu_buffer, ctx->responseLength));
-                VALIDATE(
-                    ctx->countedSectionDifference + ctx->responseLength >= ctx->dataToAppendToTxLen,
-                    ERR_INVALID_STATE);
-                ctx->countedSectionDifference =
-                    ctx->countedSectionDifference + ctx->responseLength - ctx->dataToAppendToTxLen;
-                TRACE("CS diff %d from:%d, %d",
-                      (int) ctx->countedSectionDifference,
-                      (int) ctx->responseLength,
-                      (int) ctx->dataToAppendToTxLen);
-            }
-            FINALLY {
-                explicit_bzero(&aesKey, SIZEOF(aesKey));
-            }
+        uint16_t bufferLen = SIZEOF(G_io_apdu_buffer);
+        uint16_t err = dh_encode_append(&ctx->dhContext,
+                                        &ctx->wittnessPath,
+                                        &ctx->otherPubkey,
+                                        ctx->dataToAppendToTx,
+                                        ctx->dataToAppendToTxLen,
+                                        G_io_apdu_buffer,
+                                        &bufferLen);
+        if (err != SUCCESS) {
+            THROW(err);
         }
-        END_TRY;
+        ctx->responseLength = bufferLen;
+        CX_THROW(sha_256_append(&ctx->hashContext, G_io_apdu_buffer, ctx->responseLength));
+        VALIDATE(ctx->countedSectionDifference + ctx->responseLength >= ctx->dataToAppendToTxLen,
+                 ERR_INVALID_STATE);
+        ctx->countedSectionDifference =
+            ctx->countedSectionDifference + ctx->responseLength - ctx->dataToAppendToTxLen;
+        TRACE("CS diff %d from:%d, %d",
+              (int) ctx->countedSectionDifference,
+              (int) ctx->responseLength,
+              (int) ctx->dataToAppendToTxLen);
     } else {
         cx_err_t err =
             sha_256_append(&ctx->hashContext, ctx->dataToAppendToTx, ctx->dataToAppendToTxLen);
@@ -703,37 +695,32 @@ __noinline_due_to_stack__ void signTx_handleStartDHEncodingAPDU(
         TRACE_STACK_USAGE();
         VALIDATE(!ctx->dhIsActive, ERR_INVALID_STATE);
 
-        dh_aes_key_t aesKey;
-        BEGIN_TRY {
-            TRY {
-                TRACE_STACK_USAGE();
-                // Compute AES key
-                dh_init_aes_key(&aesKey, &ctx->wittnessPath, &ctx->otherPubkey);
+        TRACE_STACK_USAGE();
+        // Generate IV
+        uint8_t IV[DH_AES_IV_SIZE];
+        cx_rng_no_throw(IV, SIZEOF(IV));
 
-                // Generate IV
-                uint8_t IV[DH_AES_IV_SIZE];
-                cx_rng_no_throw(IV, SIZEOF(IV));
+        // INIT dh context
+        STATIC_ASSERT(DH_AES_IV_SIZE == CX_AES_BLOCK_SIZE, "Unexpected IV length");
+        ctx->dhCountedSectionEntryLevel = ctx->countedSections.currentLevel;
+        uint16_t bufferLen = SIZEOF(G_io_apdu_buffer);
 
-                // INIT dh context
-                STATIC_ASSERT(DH_AES_IV_SIZE == CX_AES_BLOCK_SIZE, "Unexpected IV length");
-                ctx->dhCountedSectionEntryLevel = ctx->countedSections.currentLevel;
-                ctx->responseLength = dh_encode_init(&ctx->dhContext,
-                                                     &aesKey,
-                                                     IV,
-                                                     SIZEOF(IV),
-                                                     G_io_apdu_buffer,
-                                                     SIZEOF(G_io_apdu_buffer));
-                if (ctx->responseLength != 20) {  // first 5 blocks
-                    THROW(ERR_ASSERT);
-                }
-                ctx->countedSectionDifference = ctx->responseLength;
-                TRACE("CS diff %d", (int) ctx->responseLength);
-            }
-            FINALLY {
-                explicit_bzero(&aesKey, SIZEOF(aesKey));
-            }
+        uint16_t err = dh_encode_init(&ctx->dhContext,
+                                      &ctx->wittnessPath,
+                                      &ctx->otherPubkey,
+                                      IV,
+                                      SIZEOF(IV),
+                                      G_io_apdu_buffer,
+                                      &bufferLen);
+        if (err != SUCCESS) {
+            THROW(err);
         }
-        END_TRY;
+        ctx->responseLength = bufferLen;
+        if (ctx->responseLength != 20) {  // first 5 blocks
+            THROW(ERR_ASSERT);
+        }
+        ctx->countedSectionDifference = ctx->responseLength;
+        TRACE("CS diff %d", (int) ctx->responseLength);
 
         ASSERT(sha_256_append(&ctx->hashContext, G_io_apdu_buffer, ctx->responseLength) == CX_OK);
         ctx->dhIsActive = true;
@@ -809,22 +796,16 @@ __noinline_due_to_stack__ void signTx_handleEndDHEncodingAPDU(
             VALIDATE(ctx->dhCountedSectionEntryLevel == ctx->countedSections.currentLevel,
                      ERR_INVALID_STATE);
 
-            dh_aes_key_t aesKey;
-            BEGIN_TRY {
-                TRY {
-                    // Compute AES key
-                    dh_init_aes_key(&aesKey, &ctx->wittnessPath, &ctx->otherPubkey);
-
-                    ctx->responseLength = dh_encode_finalize(&ctx->dhContext,
-                                                             &aesKey,
-                                                             G_io_apdu_buffer,
-                                                             SIZEOF(G_io_apdu_buffer));
-                }
-                FINALLY {
-                    explicit_bzero(&aesKey, SIZEOF(aesKey));
-                }
+            uint16_t bufferLen = SIZEOF(G_io_apdu_buffer);
+            uint16_t err = dh_encode_finalize(&ctx->dhContext,
+                                              &ctx->wittnessPath,
+                                              &ctx->otherPubkey,
+                                              G_io_apdu_buffer,
+                                              &bufferLen);
+            if (err != SUCCESS) {
+                THROW(err);
             }
-            END_TRY;
+            ctx->responseLength = bufferLen;
 
             ctx->countedSectionDifference += ctx->responseLength;
             TRACE("CS diff %d from:%d",

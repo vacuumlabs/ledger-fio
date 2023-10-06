@@ -80,7 +80,7 @@ static void runGetPublicKeyUIFlow() {
     {
         // Calculation
         uint16_t err = derivePublicKey(&ctx->pathSpec, &ctx->pubKey);
-        if (err != CX_OK) {
+        if (err != SUCCESS) {
             THROW(err);
         }
         ctx->responseReadyMagic = RESPONSE_READY_MAGIC;

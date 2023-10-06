@@ -17,6 +17,12 @@ static uint8_t const SECP256K1_N[] = {
 
 __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t derivePrivateKey(const bip44_path_t* pathSpec,
                                                                        private_key_t* privateKey) {
+    // Crypto assets to be cleared
+    uint8_t privateKeySeed[PRIVATE_KEY_SEED_LEN];
+    explicit_bzero(privateKeySeed, SIZEOF(privateKeySeed));
+    // Crypto assets to be cleared in case of failure
+    explicit_bzero(privateKey, SIZEOF(*privateKey));
+
     if (policyDerivePrivateKey(pathSpec) == POLICY_DENY) {
         return ERR_REJECTED_BY_POLICY;
     }
@@ -26,11 +32,8 @@ __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t derivePrivateKey(const bip
         return ERR_ASSERT;
     }
 
-    TRACE();
-    uint8_t privateKeySeed[PRIVATE_KEY_SEED_LEN];
-    explicit_bzero(privateKeySeed, SIZEOF(privateKeySeed));
-
     STATIC_ASSERT(CX_APILEVEL >= 5, "unsupported api level");
+    TRACE();
 
     cx_err_t err = os_derive_bip32_with_seed_no_throw(HDW_NORMAL,
                                                       CX_CURVE_SECP256K1,
@@ -46,8 +49,8 @@ __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t derivePrivateKey(const bip
     }
 
     err = cx_ecfp_init_private_key_no_throw(CX_CURVE_SECP256K1, privateKeySeed, 32, privateKey);
+    explicit_bzero(privateKeySeed, SIZEOF(privateKeySeed));
     if (err != CX_OK) {
-        explicit_bzero(privateKeySeed, SIZEOF(privateKeySeed));
         explicit_bzero(privateKey, SIZEOF(*privateKey));
         return ERR_ASSERT;
     }
@@ -57,6 +60,7 @@ __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t derivePrivateKey(const bip
 
 __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t derivePublicKey(const bip44_path_t* pathSpec,
                                                                       public_key_t* publicKey) {
+    // Crypto assets to be cleared
     private_key_t privateKey;
     explicit_bzero(&privateKey, SIZEOF(privateKey));
 
@@ -78,11 +82,12 @@ __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t derivePublicKey(const bip4
                                          publicKey,
                                          &privateKey,
                                          1);  // 1 - private key preserved
+    explicit_bzero(&privateKey, SIZEOF(privateKey));
     if (err != CX_OK) {
-        explicit_bzero(&privateKey, SIZEOF(privateKey));
         return ERR_ASSERT;
     }
 
+    TRACE();
     return SUCCESS;
 }
 
@@ -92,13 +97,19 @@ __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t signTransaction(bip44_path
                                                                       uint8_t hashBuf[SHA_256_SIZE],
                                                                       uint8_t* signature,
                                                                       size_t signatureLen) {
+    // Crypto assets to be cleared
+    private_key_t privateKey;
+    explicit_bzero(&privateKey, SIZEOF(privateKey));
+    uint8_t V[33];
+    explicit_bzero(V, SIZEOF(V));
+    uint8_t K[32];
+    explicit_bzero(K, SIZEOF(K));
+    // Crypto assets to be cleared in case of failure
+    explicit_bzero(signature, signatureLen);
+
     if (signatureLen < 200) {
         return ERR_ASSERT;
     }
-
-    // Derive keys and sign the transaction, setup
-    private_key_t privateKey;
-    explicit_bzero(&privateKey, SIZEOF(privateKey));
 
     // We derive the private key
     {
@@ -112,9 +123,6 @@ __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t signTransaction(bip44_path
     }
 
     // We sign the hash
-    explicit_bzero(signature, signatureLen);
-    uint8_t V[33];
-    uint8_t K[32];
     int tries = 0;
 
     // Loop until a candidate matching the canonical signature is found
@@ -131,6 +139,8 @@ __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t signTransaction(bip44_path
             if (err != CX_OK) {
                 explicit_bzero(&privateKey, SIZEOF(privateKey));
                 explicit_bzero(signature, signatureLen);
+                explicit_bzero(V, SIZEOF(V));
+                explicit_bzero(K, SIZEOF(K));
                 return ERR_ASSERT;
             }
         } else {
@@ -138,6 +148,8 @@ __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t signTransaction(bip44_path
             if (err != CX_OK) {
                 explicit_bzero(&privateKey, SIZEOF(privateKey));
                 explicit_bzero(signature, signatureLen);
+                explicit_bzero(V, SIZEOF(V));
+                explicit_bzero(K, SIZEOF(K));
                 return ERR_ASSERT;
             }
         }
@@ -155,6 +167,8 @@ __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t signTransaction(bip44_path
         if (err != CX_OK) {
             explicit_bzero(&privateKey, SIZEOF(privateKey));
             explicit_bzero(signature, signatureLen);
+            explicit_bzero(V, SIZEOF(V));
+            explicit_bzero(K, SIZEOF(K));
             return ERR_ASSERT;
         }
         TRACE_BUFFER(signature + 100, 100);
@@ -176,5 +190,7 @@ __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t signTransaction(bip44_path
     }
 
     explicit_bzero(&privateKey, sizeof(privateKey));
+    explicit_bzero(V, SIZEOF(V));
+    explicit_bzero(K, SIZEOF(K));
     return SUCCESS;
 }
