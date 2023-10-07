@@ -22,20 +22,6 @@
 #include <stdint.h>
 #include "cx.h"
 
-unsigned char check_canonical(uint8_t *rs);
-
-int ecdsa_der_to_sig(const uint8_t *der, uint8_t *sig);
-
-cx_err_t rng_rfc6979(unsigned char *rnd,
-                     unsigned char *h1,
-                     unsigned char *x,
-                     unsigned int x_len,
-                     const unsigned char *q,
-                     unsigned int q_len,
-                     unsigned char *V,
-                     unsigned char *K);
-
-// returns 0 on error
 uint32_t public_key_to_wif(const uint8_t *publicKey,
                            uint32_t keyLength,
                            char *out,

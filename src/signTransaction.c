@@ -936,7 +936,6 @@ __noinline_due_to_stack__ void signTx_handleFinishAPDU(
     }
 
     // We add hash to the response
-    TRACE("ecdsa_der_to_sig_result:");
     TRACE_BUFFER(G_io_apdu_buffer, PUBKEY_LENGTH);
     memcpy(G_io_apdu_buffer + PUBKEY_LENGTH, hashBuf, SIZEOF(hashBuf));
 
