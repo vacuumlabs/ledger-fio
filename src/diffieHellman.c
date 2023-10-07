@@ -97,19 +97,19 @@ static WARN_UNUSED_RESULT uint16_t processDHOneBlockFromCache(dh_context_t *ctx,
 
 __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t
 dh_init_aes_key(dh_aes_key_t *dhKey, const bip44_path_t *pathSpec, const public_key_t *publicKey) {
-    TRACE_STACK_USAGE();
+    // Crypto assets to be cleared
     private_key_t privateKey;
-    unsigned char basicSecret[32];
-    unsigned char secret[SHA_512_SIZE];
-    uint8_t K[SHA_512_SIZE];
-
-    TRACE("dh_init_aesKey");
-
     explicit_bzero(&privateKey, SIZEOF(privateKey));
+    unsigned char basicSecret[32];
     explicit_bzero(basicSecret, SIZEOF(basicSecret));
+    unsigned char secret[SHA_512_SIZE];
     explicit_bzero(secret, SIZEOF(secret));
+    uint8_t K[SHA_512_SIZE];
     explicit_bzero(K, SIZEOF(K));
     explicit_bzero(dhKey, SIZEOF(*dhKey));
+
+    TRACE_STACK_USAGE();
+    TRACE("dh_init_aesKey");
 
     {
         uint16_t err = derivePrivateKey(pathSpec, &privateKey);
@@ -157,6 +157,7 @@ dh_init_aes_key(dh_aes_key_t *dhKey, const bip44_path_t *pathSpec, const public_
 
     STATIC_ASSERT(SIZEOF(dhKey->km) == DH_KM_SIZE, "Incompatible types");
     memmove(dhKey->km, K + DH_AES_SECRET_SIZE, DH_KM_SIZE);
+    explicit_bzero(K, SIZEOF(K));
     return SUCCESS;
 }
 
@@ -280,6 +281,7 @@ dh_encode_append(dh_context_t *ctx,
         written += restLength;  // processDHOneBlockFromCache returns number of bytes written
     }
 
+    explicit_bzero(&aesKey, SIZEOF(aesKey));
     TRACE("Leaving dh_encode_append, written: %d", (int) written);
     *outSize = written;
     return SUCCESS;
@@ -294,6 +296,7 @@ dh_encode_finalize(dh_context_t *ctx,
     // Crypto assets to be cleared
     dh_aes_key_t aesKey;
     explicit_bzero(&aesKey, SIZEOF(aesKey));
+    // ctx->base64EncodingCache will contain final HMAC at one point
     // Crypto assets to be cleared in case of failure
     explicit_bzero(outBuffer, *outSize);  // It suffices to clear this after final hmac
 
@@ -404,9 +407,9 @@ dh_encode_finalize(dh_context_t *ctx,
             explicit_bzero(outBuffer, *outSize);
             return ERR_ASSERT;
     }
+    explicit_bzero(ctx->base64EncodingCache, SIZEOF(ctx->base64EncodingCache));
     *outSize = written;
     return SUCCESS;
-    ;
 }
 
 #ifdef DEVEL
@@ -493,7 +496,7 @@ __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t dh_decode(bip44_path_t *pa
     dh_aes_key_t aesKey;
     explicit_bzero(&aesKey, SIZEOF(aesKey));
     // Crypto assets to be cleared in case of failure
-    TRACE_BUFFER(buffer, *size);  // buffer after decoding
+    TRACE_BUFFER(buffer, *size);  // only after decoding
 
     if (*size < DH_AES_IV_SIZE + CX_AES_BLOCK_SIZE + DH_HMAC_SIZE) {
         return ERR_INVALID_DATA;

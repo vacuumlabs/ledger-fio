@@ -33,7 +33,8 @@ static __attribute__((always_inline, unused)) cx_err_t sha_256_init(sha_256_cont
 static __attribute__((always_inline, unused)) cx_err_t sha_256_append(sha_256_context_t* ctx,
                                                                       const uint8_t* inBuffer,
                                                                       size_t inSize) {
-    if (ctx->initialized_magic != HASH_CONTEXT_INITIALIZED_MAGIC) {
+    if (ctx->initialized_magic != HASH_CONTEXT_INITIALIZED_MAGIC ||
+        inSize >= BUFFER_SIZE_PARANOIA) {
         return CX_INVALID_PARAMETER;
     }
     TRACE_BUFFER(inBuffer, inSize);
@@ -64,9 +65,6 @@ static __attribute__((always_inline, unused)) cx_err_t sha_256_hash(const uint8_
                                                                     size_t inSize,
                                                                     uint8_t* outBuffer,
                                                                     size_t outSize) {
-    if (inSize >= BUFFER_SIZE_PARANOIA) {
-        return CX_INVALID_PARAMETER;
-    }
     sha_256_context_t ctx;
     cx_err_t err = sha_256_init(&ctx);
     if (err != CX_OK) {
@@ -95,9 +93,11 @@ static __attribute__((always_inline, unused)) cx_err_t sha_512_init(sha_512_cont
 static __attribute__((always_inline, unused)) cx_err_t sha_512_append(sha_512_context_t* ctx,
                                                                       const uint8_t* inBuffer,
                                                                       size_t inSize) {
-    if (ctx->initialized_magic != HASH_CONTEXT_INITIALIZED_MAGIC) {
+    if (ctx->initialized_magic != HASH_CONTEXT_INITIALIZED_MAGIC ||
+        inSize >= BUFFER_SIZE_PARANOIA) {
         return CX_INVALID_PARAMETER;
     }
+
     TRACE_BUFFER(inBuffer, inSize);
     return cx_hash_no_throw(&ctx->cx_ctx.header,
                             0, /* Do not output the hash, yet */
@@ -126,9 +126,6 @@ static __attribute__((always_inline, unused)) cx_err_t sha_512_hash(const uint8_
                                                                     size_t inSize,
                                                                     uint8_t* outBuffer,
                                                                     size_t outSize) {
-    if (inSize >= BUFFER_SIZE_PARANOIA) {
-        return CX_INVALID_PARAMETER;
-    }
     sha_512_context_t ctx;
     cx_err_t err = sha_512_init(&ctx);
     if (err != CX_OK) {
