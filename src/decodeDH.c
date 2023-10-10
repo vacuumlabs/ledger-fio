@@ -505,6 +505,9 @@ void decode_handleAPDU(uint8_t p1,
         TRACE_BUFFER(ctx->buffer, ctx->bufferLen);
         uint16_t err = dh_decode(&ctx->pathSpec, &ctx->otherPubKey, ctx->buffer, &ctx->bufferLen);
         if (err != SUCCESS) {
+            explicit_bzero(ctx->buffer, ctx->bufferLen);
+            TRACE();
+            PRINTF("Error: %d\n", err);
             THROW(err);
         }
         ctx->messageDecodedMagic = DECODING_FINISHED_MAGIC;

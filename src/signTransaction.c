@@ -803,6 +803,7 @@ __noinline_due_to_stack__ void signTx_handleEndDHEncodingAPDU(
                                               G_io_apdu_buffer,
                                               &bufferLen);
             if (err != SUCCESS) {
+                explicit_bzero(G_io_apdu_buffer, SIZEOF(G_io_apdu_buffer));
                 THROW(err);
             }
             ctx->responseLength = bufferLen;
@@ -932,6 +933,7 @@ __noinline_due_to_stack__ void signTx_handleFinishAPDU(
     uint16_t err =
         signTransaction(&ctx->wittnessPath, hashBuf, G_io_apdu_buffer, SIZEOF(G_io_apdu_buffer));
     if (err != SUCCESS) {
+        explicit_bzero(G_io_apdu_buffer, SIZEOF(G_io_apdu_buffer));
         THROW(err);
     }
 
