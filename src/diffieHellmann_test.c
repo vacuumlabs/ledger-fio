@@ -66,9 +66,7 @@ __noinline_due_to_stack__ static void run_dh_encode_tests() {
                                  msgLen,                                 \
                                  encMsg,                                 \
                                  &encMsgLength);                         \
-        if (err != SUCCESS) {                                            \
-            THROW(err);                                                  \
-        }                                                                \
+        ASSERT(err == SUCCESS);                                          \
         TRACE_BUFFER(encMsg, encMsgLength);                              \
         ASSERT(encMsgLength == strlen(expectedEncMsg));                  \
         EXPECT_EQ_BYTES(encMsg, expectedEncMsg, strlen(expectedEncMsg)); \
@@ -292,9 +290,7 @@ __noinline_due_to_stack__ static void run_dh_decode_tests() {
         size_t expectedMsgLen =                                                    \
             decode_hex(expectedDecMsgHex, expectedDecMsg, SIZEOF(expectedDecMsg)); \
         uint16_t err = dh_decode(&pathSpec, &publicKey, msg, &msgLen);             \
-        if (err != SUCCESS) {                                                      \
-            THROW(err);                                                            \
-        }                                                                          \
+        ASSERT(err == SUCCESS);                                                    \
         TRACE("Decoded mesage %d, %d", msgLen, expectedMsgLen);                    \
         ASSERT(msgLen == expectedMsgLen);                                          \
         EXPECT_EQ_BYTES(msg, expectedDecMsg, msgLen);                              \

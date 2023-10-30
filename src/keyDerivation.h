@@ -49,7 +49,7 @@ __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t derivePublicKey(const bip4
 /**
  * @brief   Signs transaction hash.
  *
- * @param[in]  wittnessPath    Derivation path.
+ * @param[in]  witnessPath     Derivation path.
  *
  * @param[in]  hashBuf         Hash to sign.
  *
@@ -63,7 +63,7 @@ __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t derivePublicKey(const bip4
  *                             - ERR_REJECTED_BY_POLICY
  *                             - ERR_ASSERT for other unexpected errors
  */
-__noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t signTransaction(bip44_path_t* wittnessPath,
+__noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t signTransaction(bip44_path_t* witnessPath,
                                                                       uint8_t hashBuf[SHA_256_SIZE],
                                                                       uint8_t* signature,
                                                                       size_t signatureLen);

@@ -153,7 +153,7 @@ extern unsigned int app_stack_canary;
     {                                     \
         if (!(condition)) {               \
             TRACE();                      \
-            error_to_return = error;      \
+            error_to_return = (error);    \
             goto end;                     \
         }                                 \
     }

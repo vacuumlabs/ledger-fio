@@ -36,23 +36,28 @@ enum {
 
 // Uses ctx->dataToAppendToTx, ctx->dataToAppendToTxLen to extend hash
 // If ctx->dhIsActive then, we extend hash with encrypted data and prepare resulting encrypted
-// blocks to G_io_apdu_buffer, ctx->responseLength Variables (&ctx->wittnessPath, &ctx->otherPubkey,
+// blocks to G_io_apdu_buffer, ctx->responseLength Variables (&ctx->witnessPath, &ctx->otherPubkey,
 // &ctx->dhContext) are needed for encryption
 static void processShaAndPosibleDHAndPrepareResponse() {
     if (ctx->dhIsActive) {
         uint16_t bufferLen = SIZEOF(G_io_apdu_buffer);
-        uint16_t err = dh_encode_append(&ctx->dhContext,
-                                        &ctx->wittnessPath,
-                                        &ctx->otherPubkey,
-                                        ctx->dataToAppendToTx,
-                                        ctx->dataToAppendToTxLen,
-                                        G_io_apdu_buffer,
-                                        &bufferLen);
-        if (err != SUCCESS) {
-            THROW(err);
+        {
+            uint16_t err = dh_encode_append(&ctx->dhContext,
+                                            &ctx->witnessPath,
+                                            &ctx->otherPubkey,
+                                            ctx->dataToAppendToTx,
+                                            ctx->dataToAppendToTxLen,
+                                            G_io_apdu_buffer,
+                                            &bufferLen);
+            if (err != SUCCESS) {
+                THROW(err);
+            }
         }
         ctx->responseLength = bufferLen;
-        CX_THROW(sha_256_append(&ctx->hashContext, G_io_apdu_buffer, ctx->responseLength));
+        {
+            cx_err_t err = sha_256_append(&ctx->hashContext, G_io_apdu_buffer, ctx->responseLength);
+            ASSERT(err == CX_OK);
+        }
         VALIDATE(ctx->countedSectionDifference + ctx->responseLength >= ctx->dataToAppendToTxLen,
                  ERR_INVALID_STATE);
         ctx->countedSectionDifference =
@@ -69,17 +74,17 @@ static void processShaAndPosibleDHAndPrepareResponse() {
     }
 }
 
-// Takes &ctx->wittnessPath and modifies ctx->value to be null terminated scting to display the
+// Takes &ctx->witnessPath and modifies ctx->value to be null terminated scting to display the
 // pubkey
 static void prepareOurPubkeyForDisplay() {
-    public_key_t wittnessPathPubkey;
-    explicit_bzero(&wittnessPathPubkey, SIZEOF(wittnessPathPubkey));
-    uint16_t err = derivePublicKey(&ctx->wittnessPath, &wittnessPathPubkey);
+    public_key_t witnessPathPubkey;
+    explicit_bzero(&witnessPathPubkey, SIZEOF(witnessPathPubkey));
+    uint16_t err = derivePublicKey(&ctx->witnessPath, &witnessPathPubkey);
     ASSERT(err == SUCCESS);
-    TRACE_BUFFER(wittnessPathPubkey.W, SIZEOF(wittnessPathPubkey.W));
+    TRACE_BUFFER(witnessPathPubkey.W, SIZEOF(witnessPathPubkey.W));
 
-    uint32_t outlen = public_key_to_wif(wittnessPathPubkey.W,
-                                        SIZEOF(wittnessPathPubkey.W),
+    uint32_t outlen = public_key_to_wif(witnessPathPubkey.W,
+                                        SIZEOF(witnessPathPubkey.W),
                                         ctx->value,
                                         SIZEOF(ctx->value));
     ASSERT(outlen != 0);
@@ -139,17 +144,17 @@ __noinline_due_to_stack__ void signTx_handleInitAPDU(uint8_t p2,
     }* varData = (void*) varDataBuffer;
     VALIDATE(varSize >= SIZEOF(varData->chainId), ERR_INVALID_DATA);
 
-    // Parsing: network, ctx->wittnessPath, ctx->dataToAppendToTx,
+    // Parsing: network, ctx->witnessPath, ctx->dataToAppendToTx,
     network_type_t network = NETWORK_UNKNOWN;
     {
         network = getNetworkByChainId(varData->chainId, SIZEOF(varData->chainId));
         TRACE("Chain: %d", (int) network);
         VALIDATE(network == NETWORK_MAINNET || network == NETWORK_TESTNET, ERR_INVALID_DATA);
 
-        const size_t parsedSize = bip44_parseFromWire(&ctx->wittnessPath,
+        const size_t parsedSize = bip44_parseFromWire(&ctx->witnessPath,
                                                       varData->derivationPath,
                                                       varSize - SIZEOF(varData->chainId));
-        BIP44_PRINTF(&ctx->wittnessPath);
+        BIP44_PRINTF(&ctx->witnessPath);
         PRINTF("\n");
         VALIDATE(parsedSize == varSize - SIZEOF(varData->chainId), ERR_INVALID_DATA);
 
@@ -193,7 +198,7 @@ __noinline_due_to_stack__ void signTx_handleInitAPDU(uint8_t p2,
     // Security policy
     security_policy_t policy = POLICY_DENY;
     {
-        policy = policyForSignTxInit(&ctx->wittnessPath);
+        policy = policyForSignTxInit(&ctx->witnessPath);
         TRACE("Policy: %d", (int) policy);
         ENSURE_NOT_DENIED(policy);
         // select UI step
@@ -682,7 +687,7 @@ __noinline_due_to_stack__ void signTx_handleStartDHEncodingAPDU(
                                             SIZEOF(ctx->otherPubkey.W),
                                             ctx->value,
                                             SIZEOF(ctx->value));
-        ASSERT(outlen != 0);
+        ASSERT(outlen > 0);
         ASSERT(outlen < SIZEOF(ctx->value));
         ctx->value[outlen] = 0;
     }
@@ -706,7 +711,7 @@ __noinline_due_to_stack__ void signTx_handleStartDHEncodingAPDU(
         uint16_t bufferLen = SIZEOF(G_io_apdu_buffer);
 
         uint16_t err = dh_encode_init(&ctx->dhContext,
-                                      &ctx->wittnessPath,
+                                      &ctx->witnessPath,
                                       &ctx->otherPubkey,
                                       IV,
                                       SIZEOF(IV),
@@ -798,7 +803,7 @@ __noinline_due_to_stack__ void signTx_handleEndDHEncodingAPDU(
 
             uint16_t bufferLen = SIZEOF(G_io_apdu_buffer);
             uint16_t err = dh_encode_finalize(&ctx->dhContext,
-                                              &ctx->wittnessPath,
+                                              &ctx->witnessPath,
                                               &ctx->otherPubkey,
                                               G_io_apdu_buffer,
                                               &bufferLen);
@@ -931,7 +936,7 @@ __noinline_due_to_stack__ void signTx_handleFinishAPDU(
     }
 
     uint16_t err =
-        signTransaction(&ctx->wittnessPath, hashBuf, G_io_apdu_buffer, SIZEOF(G_io_apdu_buffer));
+        signTransaction(&ctx->witnessPath, hashBuf, G_io_apdu_buffer, SIZEOF(G_io_apdu_buffer));
     if (err != SUCCESS) {
         explicit_bzero(G_io_apdu_buffer, SIZEOF(G_io_apdu_buffer));
         THROW(err);
@@ -939,6 +944,8 @@ __noinline_due_to_stack__ void signTx_handleFinishAPDU(
 
     // We add hash to the response
     TRACE_BUFFER(G_io_apdu_buffer, PUBKEY_LENGTH);
+    STATIC_ASSERT(SIZEOF(G_io_apdu_buffer) >= PUBKEY_LENGTH + SIZEOF(hashBuf),
+                  "G_io_apdu_buffer too small");
     memcpy(G_io_apdu_buffer + PUBKEY_LENGTH, hashBuf, SIZEOF(hashBuf));
 
     signTx_handleFinish_ui_runStep();

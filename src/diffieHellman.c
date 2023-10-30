@@ -15,7 +15,7 @@ static const uint8_t BASE64[64] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 
                                    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
                                    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
 
-static void base64EncBlock(uint8_t in[3], uint8_t out[4]) {
+static void base64EncBlock(uint8_t in[BASE64_IN_BLOCK_SIZE], uint8_t out[BASE64_OUT_BLOCK_SIZE]) {
     out[0] = BASE64[(in[0] / 0x04) & 0x3F];
     out[1] = BASE64[(in[0] * 0x10 + in[1] / 0x10) & 0x3F];
     out[2] = BASE64[(in[1] * 0x04 + in[2] / 0x40) & 0x3F];
@@ -140,6 +140,9 @@ dh_init_aes_key(dh_aes_key_t *dhKey, const bip44_path_t *pathSpec, const public_
 
     error_to_return = SUCCESS;
 end:  // CRYPTO_ macros jump here in case of error
+    if (error_to_return != SUCCESS) {
+        explicit_bzero(dhKey, SIZEOF(*dhKey));
+    }
     explicit_bzero(&privateKey, SIZEOF(privateKey));
     explicit_bzero(basicSecret, SIZEOF(basicSecret));
     explicit_bzero(secret, SIZEOF(secret));
@@ -232,6 +235,7 @@ dh_encode_append(dh_context_t *ctx,
     uint16_t written = 0;
     while (1) {
         // fill ctx->buffer
+        CRYPTO_ASSERT(inSize >= processedInput);
         uint16_t to_read = MIN(CX_AES_BLOCK_SIZE - ctx->cacheLength, inSize - processedInput);
         memcpy(ctx->cache + ctx->cacheLength, inBuffer + processedInput, to_read);
         ctx->cacheLength += to_read;
@@ -244,10 +248,10 @@ dh_encode_append(dh_context_t *ctx,
             break;
         }
 
-        uint16_t restLength = *outSize - written;  // remaining buffer
+        uint16_t remainingBufferLength = *outSize - written;  // remaining buffer
         CRYPTO_FORWARD_ERROR(
-            processDHOneBlockFromCache(ctx, &aesKey, outBuffer + written, &restLength));
-        written += restLength;  // processDHOneBlockFromCache returns number of bytes written
+            processDHOneBlockFromCache(ctx, &aesKey, outBuffer + written, &remainingBufferLength));
+        written += remainingBufferLength;
     }
     TRACE("Leaving dh_encode_append, written: %d", (int) written);
 
@@ -268,7 +272,7 @@ dh_encode_finalize(dh_context_t *ctx,
     // Crypto assets to be cleared
     dh_aes_key_t aesKey;
     explicit_bzero(&aesKey, SIZEOF(aesKey));
-    // ctx->base64EncodingCache
+    // ctx->base64EncodingCache needs to be cleared as it will contain sensitive HMAC
 
     // Variable for CRYPTO_ error handling macros
     uint16_t error_to_return = ERR_ASSERT;
@@ -298,10 +302,10 @@ dh_encode_finalize(dh_context_t *ctx,
 
     // Encode last block
     {
-        uint16_t restLength = *outSize - written;  // remaining buffer
+        uint16_t remainingBufferLength = *outSize - written;  // remaining buffer
         CRYPTO_FORWARD_ERROR(
-            processDHOneBlockFromCache(ctx, &aesKey, outBuffer + written, &restLength));
-        written += restLength;
+            processDHOneBlockFromCache(ctx, &aesKey, outBuffer + written, &remainingBufferLength));
+        written += remainingBufferLength;
     }
 
     // finalize hmac and append base64 encode it and append to cyphertext
@@ -316,12 +320,12 @@ dh_encode_finalize(dh_context_t *ctx,
 
     // Encode cache content
     {
-        uint16_t restLength = *outSize - written;  // remaining buffer
+        uint16_t remainingBufferLength = *outSize - written;  // remaining buffer
         CRYPTO_FORWARD_ERROR(base64EncWholeBlocks(ctx->base64EncodingCache,
                                                   &ctx->base64EncodingCacheLen,
                                                   outBuffer + written,
-                                                  &restLength));
-        written += restLength;  // processDHOneBlockFromCache returns number of bytes written
+                                                  &remainingBufferLength));
+        written += remainingBufferLength;
     }
 
     // the last base64 encoding block
@@ -331,6 +335,7 @@ dh_encode_finalize(dh_context_t *ctx,
             break;
         case 1:
             CRYPTO_ASSERT(*outSize >= written + BASE64_OUT_BLOCK_SIZE);
+            STATIC_ASSERT(BASE64_OUT_BLOCK_SIZE >= 3, "BASE64_OUT_BLOCK_SIZE too small");
             lastBlock[0] = ctx->base64EncodingCache[0];
             base64EncBlock(lastBlock, outBuffer + written);
             *(outBuffer + written + 2) = '=';
@@ -339,6 +344,7 @@ dh_encode_finalize(dh_context_t *ctx,
             break;
         case 2:
             CRYPTO_ASSERT(*outSize >= written + BASE64_OUT_BLOCK_SIZE);
+            STATIC_ASSERT(BASE64_OUT_BLOCK_SIZE >= 3, "BASE64_OUT_BLOCK_SIZE too small");
             lastBlock[0] = ctx->base64EncodingCache[0];
             lastBlock[1] = ctx->base64EncodingCache[1];
             base64EncBlock(lastBlock, outBuffer + written);
@@ -421,6 +427,7 @@ __noinline_due_to_stack__ static WARN_UNUSED_RESULT uint16_t validateHmac(dh_aes
                     ERR_INVALID_HMAC);
     error_to_return = SUCCESS;
 end:
+    explicit_bzero(hmacBuf, SIZEOF(hmacBuf));
     return error_to_return;
 }
 
