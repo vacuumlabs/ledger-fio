@@ -35,7 +35,6 @@ __noinline_due_to_stack__ WARN_UNUSED_RESULT uint16_t derivePrivateKey(const bip
 
     // Sanity check
     CRYPTO_ASSERT(pathSpec->length < ARRAY_LEN(pathSpec->path));
-    STATIC_ASSERT(CX_APILEVEL >= 5, "unsupported api level");
     TRACE();
 
     CRYPTO_CX_CHECK(os_derive_bip32_with_seed_no_throw(HDW_NORMAL,
